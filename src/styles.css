@@ -1,0 +1,8 @@
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at 8% 0%, rgba(246,210,228,.36), transparent 26rem),
+    radial-gradient(circle at 100% 15%, rgba(224,213,246,.38), transparent 30rem), #fff8fc;
+}
+button { -webkit-tap-highlight-color: transparent; }
