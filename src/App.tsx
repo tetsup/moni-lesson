@@ -9,7 +9,6 @@ import {
   listTopics,
   loadLessonDatabase,
   saveLessonDatabase,
-  setCurrentSong,
   setSongExercise,
   type LessonDatabase,
 } from './data/lesson-database';
@@ -75,6 +74,7 @@ export default function App() {
 
   const songs = useMemo(() => listSongs(database), [database]);
   const topics = useMemo(() => listTopics(database), [database]);
+  const activeSongId = songs.some((song) => song.id === selectedSongId) ? selectedSongId : (songs[0]?.id ?? '');
   const sessionSongs = session.songs;
   const currentSong = sessionSongs.find((song) =>
     song.exercises.some((exercise) => exercise.topicId === currentTopicId),
@@ -101,13 +101,14 @@ export default function App() {
     const added = listTopics(next).at(-1);
     setDatabase(next);
     setTopicTitle('');
-    if (added && selectedSongId) {
-      setDatabase((previous) => setSongExercise(previous, selectedSongId, added.id, true));
+    if (added && activeSongId) {
+      setDatabase((previous) => setSongExercise(previous, activeSongId, added.id, true));
     }
   };
 
   const toggleTopicForSong = (topicId: string, active: boolean) => {
-    setDatabase((previous) => setSongExercise(previous, selectedSongId, topicId, active));
+    if (!activeSongId) return;
+    setDatabase((previous) => setSongExercise(previous, activeSongId, topicId, active));
   };
 
   const openLesson = () => {
@@ -178,13 +179,13 @@ export default function App() {
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲ごとのお題を設定</Typography>
                 {songs.length === 0 ? <Typography color="text.secondary">先に曲を登録してね。</Typography> : (
                   <>
-                    <TextField select SelectProps={{ native: true }} fullWidth size="small" label="曲を選択" value={selectedSongId || songs[0].id} onChange={(event) => setSelectedSongId(event.target.value)} sx={{ mb: 1.5 }}>
+                    <TextField select fullWidth size="small" label="曲を選択" value={activeSongId} onChange={(event) => setSelectedSongId(event.target.value)} sx={{ mb: 1.5 }}>
                       {songs.map((song) => <option key={song.id} value={song.id}>{song.title}</option>)}
                     </TextField>
                     {topics.length === 0 ? <Typography color="text.secondary">先にお題を登録してね。</Typography> : (
                       <Stack spacing={1}>
                         {topics.map((topic) => {
-                          const song = songs.find((item) => item.id === (selectedSongId || songs[0].id));
+                          const song = songs.find((item) => item.id === activeSongId);
                           const assignment = song?.exercises.find((item) => item.topicId === topic.id);
                           const active = assignment?.active ?? false;
                           return (
