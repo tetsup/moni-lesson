@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Card, CardContent, Chip, Container, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
+import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSong,
   addTopic,
@@ -25,33 +26,6 @@ import {
 const today = (): string => {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-};
-
-const DEFAULT_TARGET_COUNT = 2;
-const DEFAULT_POINTS_PER_COMPLETION = 1;
-const DEFAULT_GOAL_BONUS_POINTS = 5;
-const DEFAULT_ALL_GOALS_BONUS_POINTS = 5;
-const DEFAULT_DAILY_BONUS_POINTS = 10;
-
-const makeSessionSetup = (database: LessonDatabase): LessonSongSetup[] => {
-  const topics = listTopics(database);
-  return listSongs(database).map((song) => ({
-    songId: song.id,
-    songTitle: song.title,
-    order: song.order,
-    exercises: getActiveExercises(database, song.id).flatMap((assignment) => {
-      const topic = topics.find((item) => item.id === assignment.topicId);
-      if (!topic) return [];
-      return [{
-        topicId: topic.id,
-        topicTitle: topic.title,
-        targetCount: DEFAULT_TARGET_COUNT,
-        pointsPerCompletion: DEFAULT_POINTS_PER_COMPLETION,
-        goalBonusPoints: DEFAULT_GOAL_BONUS_POINTS,
-      }];
-    }),
-    allGoalsBonusPoints: DEFAULT_ALL_GOALS_BONUS_POINTS,
-  })).filter((song) => song.exercises.length > 0);
 };
 
 const loadDatabase = (): LessonDatabase => loadLessonDatabase(window.localStorage);
@@ -112,7 +86,7 @@ export default function App() {
   };
 
   const openLesson = () => {
-    const setup = makeSessionSetup(database);
+    const setup = makeLessonSetup(database);
     if (setup.length === 0) return;
     const previous = loadLessonSession(window.localStorage);
     const next = createLessonSession(today(), setup, DEFAULT_DAILY_BONUS_POINTS, previous?.totalPoints ?? session.totalPoints);
@@ -203,7 +177,7 @@ export default function App() {
                 )}
               </CardContent>
             </Card>
-            <Button fullWidth variant="contained" size="large" onClick={openLesson} disabled={makeSessionSetup(database).length === 0} sx={{ minHeight: 58, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>
+            <Button fullWidth variant="contained" size="large" onClick={openLesson} disabled={!canStartLesson(database)} sx={{ minHeight: 58, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>
               レッスン画面へ
             </Button>
           </Stack>
