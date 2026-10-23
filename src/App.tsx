@@ -110,9 +110,12 @@ export default function App() {
               borderRadius: '20px 34px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
               {/* eyes */}
               <Box sx={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2.2 }}>
-                {[0,1].map((eye) => <Box key={eye} sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative',
-                  '&:after': { content: '""', position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 } }} />
-                )}
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}>
+                  <Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} />
+                </Box>
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}>
+                  <Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} />
+                </Box>
               </Box>
               {/* smile */}
               <Box sx={{ position: 'absolute', top: 40, left: '50%', transform: 'translateX(-50%)', width: 23, height: 12, borderBottom: '3px solid #f3a4c3', borderRadius: '0 0 50% 50%' }} />
