@@ -87,43 +87,31 @@ export default function App() {
           <Chip label={`${reps} 回できた`} sx={{ bgcolor: '#f4e9fa', color: '#9361a9', fontWeight: 800 }} />
         </Stack>
         <Box sx={{ position: 'relative', height: { xs: 350, sm: 420 }, overflow: 'hidden', borderRadius: 5, mb: 2,
-          background: 'linear-gradient(180deg,#fff5fa 0%,#fbeaf4 70%,#f1d6e8 70%,#eac9df 100%)',
+          background: 'linear-gradient(180deg,#fff4fa 0%,#f9e8f2 70%,#f0d4e6 70%,#e9c9df 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* A simple, empty pastel girl's room */}
-          <Box sx={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#ffffffaa 1px, transparent 1px)', backgroundSize: '34px 34px', opacity: .25 }} />
-          <Box sx={{ position: 'absolute', top: 0, left: '7%', right: '7%', height: '70%', borderBottom: '3px solid #e9c8dc', bgcolor: '#fff8fc', opacity: .7 }} />
-          <Box sx={{ position: 'absolute', bottom: 22, width: '82%', height: 15, borderRadius: '50%', bgcolor: '#c9a3c0', opacity: .25 }} />
-          {/* Notes float up repeatedly */}
-          <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none', '@keyframes floatNote': { '0%': { transform: 'translateY(35px) rotate(-8deg)', opacity: 0 }, '20%': { opacity: 1 }, '100%': { transform: 'translateY(-150px) rotate(12deg)', opacity: 0 } } }}>
-            {['♪','♫','♬'].map((note, i) => <Typography key={i} sx={{ position: 'absolute', left: `${20 + i * 29}%`, bottom: 115, color: ['#a56cc1','#e58eae','#75aa9a'][i], fontSize: 34 + i * 5, animation: `floatNote 3s ease-out ${i * .85}s infinite` }}>{note}</Typography>)}
+          {/* Empty, softly colorful girl's room */}
+          <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fff8fc', opacity: .38 }} />
+          <Box sx={{ position: 'absolute', top: 0, left: '6%', right: '6%', height: '70%', borderBottom: '3px solid #e7c5d9' }} />
+          <Box sx={{ position: 'absolute', bottom: 24, width: '82%', height: 16, borderRadius: '50%', bgcolor: '#c9a3c0', opacity: .25 }} />
+          {/* Music notes float up continuously */}
+          <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            {['♪','♫','♬'].map((note, i) => <Typography key={i} sx={{ position: 'absolute', left: `${18 + i * 30}%`, bottom: 110, color: ['#a56cc1','#e58eae','#75aa9a'][i], fontSize: 38 + i * 5, animation: `noteRise 3.4s ease-out ${i * 1.05}s infinite`, '@keyframes noteRise': { '0%': { transform: 'translateY(35px)', opacity: 0 }, '25%': { opacity: 1 }, '100%': { transform: 'translateY(-155px)', opacity: 0 } } }}>{note}</Typography>)}
           </Box>
-          {/* Cute black grand piano with eyes and a smiling mouth drawn on the piano body */}
-          <Box sx={{ zIndex: 1, position: 'relative', width: { xs: 285, sm: 320 }, height: 218, mt: 3, animation: 'pianoBounce 2s ease-in-out infinite',
-            '@keyframes pianoBounce': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }}>
-            {/* grand piano lid */}
-            <Box sx={{ position: 'absolute', top: 2, left: 20, width: '84%', height: 104, bgcolor: '#211f29', border: '3px solid #100f15',
-              borderRadius: '12px 78% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 6px 0 #494550, 0 6px 0 #111' }} />
-            <Box sx={{ position: 'absolute', top: 17, left: 39, width: '72%', height: 70, bgcolor: '#393540', border: '3px solid #17151c',
-              clipPath: 'polygon(0 0, 100% 0, 88% 100%, 0 100%)', transform: 'rotate(-8deg)', transformOrigin: 'left center' }} />
-            {/* curved front/body */}
-            <Box sx={{ position: 'absolute', top: 82, left: 15, right: 9, height: 91, bgcolor: '#17151c', border: '3px solid #08070b',
-              borderRadius: '20px 34px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
-              {/* eyes */}
+          {/* Black grand piano, with its eyes and smile drawn directly on its front */}
+          <Box sx={{ position: 'relative', zIndex: 1, width: { xs: 285, sm: 320 }, height: 220, mt: 3, animation: 'pianoBob 2.2s ease-in-out infinite', '@keyframes pianoBob': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }}>
+            <Box sx={{ position: 'absolute', top: 4, left: 20, width: '84%', height: 104, bgcolor: '#24212b', border: '3px solid #100f15', borderRadius: '10px 78% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 6px 0 #494550, 0 6px 0 #111' }} />
+            <Box sx={{ position: 'absolute', top: 20, left: 42, width: '70%', height: 70, bgcolor: '#393540', border: '3px solid #17151c', clipPath: 'polygon(0 0, 100% 0, 88% 100%, 0 100%)', transform: 'rotate(-8deg)', transformOrigin: 'left center' }} />
+            <Box sx={{ position: 'absolute', top: 84, left: 15, right: 9, height: 92, bgcolor: '#17151c', border: '3px solid #08070b', borderRadius: '20px 34px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
               <Box sx={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2.2 }}>
-                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}>
-                  <Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} />
-                </Box>
-                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}>
-                  <Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} />
-                </Box>
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}><Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} /></Box>
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}><Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} /></Box>
               </Box>
-              {/* smile */}
-              <Box sx={{ position: 'absolute', top: 40, left: '50%', transform: 'translateX(-50%)', width: 23, height: 12, borderBottom: '3px solid #f3a4c3', borderRadius: '0 0 50% 50%' }} />
+              <Box sx={{ position: 'absolute', top: 41, left: '50%', transform: 'translateX(-50%)', width: 24, height: 12, borderBottom: '3px solid #f3a4c3', borderRadius: '0 0 50% 50%' }} />
               <Stack direction="row" sx={{ position: 'absolute', left: 9, right: 9, bottom: 7, height: 25, gap: '2px' }}>
                 {Array.from({ length: 14 }, (_, i) => <Box key={i} sx={{ flex: 1, bgcolor: '#fffafc', borderRadius: '0 0 3px 3px', border: '1px solid #cfc6d2' }} />)}
               </Stack>
             </Box>
-            {[-1, 0, 1].map((leg) => <Box key={leg} sx={{ position: 'absolute', top: 155, left: `${43 + leg * 26}%`, width: 13, height: 38, bgcolor: '#111015', borderRadius: 2, transform: leg === 0 ? 'rotate(2deg)' : 'rotate(-3deg)', boxShadow: '2px 2px 0 #39333f' }} />)}
+            {[-1, 0, 1].map((leg) => <Box key={leg} sx={{ position: 'absolute', top: 158, left: `${43 + leg * 26}%`, width: 13, height: 38, bgcolor: '#111015', borderRadius: 2 }} />)}
             <Box sx={{ position: 'absolute', bottom: 0, right: 12, width: 42, height: 23, borderRadius: '50%', bgcolor: '#17151c', border: '3px solid #08070b' }} />
           </Box>
         </Box>
