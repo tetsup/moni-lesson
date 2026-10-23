@@ -1,0 +1,79 @@
+import { describe, expect, it } from 'vitest';
+import {
+  addSong,
+  addTopic,
+  emptyLessonDatabase,
+  setSongExercise,
+} from './lesson-database';
+import { canStartLesson, makeLessonSetup } from './lesson-setup';
+
+describe('lesson setup', () => {
+  it('cannot start when there are no songs or topics', () => {
+    expect(makeLessonSetup(emptyLessonDatabase())).toEqual([]);
+    expect(canStartLesson(emptyLessonDatabase())).toBe(false);
+  });
+
+  it('enables start after a song gets an active topic', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+
+    // Teacher flow: the new topic is assigned and activated for the selected song.
+    database = setSongExercise(database, song.id, topic.id, true);
+
+    expect(canStartLesson(database)).toBe(true);
+    expect(makeLessonSetup(database)).toEqual([{
+      songId: song.id,
+      songTitle: 'きらきら星',
+      order: song.order,
+      exercises: [{
+        topicId: topic.id,
+        topicTitle: '右手だけ',
+        targetCount: 2,
+        pointsPerCompletion: 1,
+        goalBonusPoints: 5,
+      }],
+      allGoalsBonusPoints: 5,
+    }]);
+  });
+
+  it('does not enable start for inactive or deleted topics', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+
+    database = setSongExercise(database, song.id, topic.id, false);
+    expect(canStartLesson(database)).toBe(false);
+
+    database = setSongExercise(database, song.id, topic.id, true);
+    database = {
+      ...database,
+      topics: database.topics.map((item) => item.id === topic.id ? { ...item, deleted: true } : item),
+    };
+    expect(canStartLesson(database)).toBe(false);
+  });
+
+  it('builds multiple songs with only their active topics', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, '曲A');
+    database = addSong(database, '曲B');
+    database = addTopic(database, 'お題1');
+    database = addTopic(database, 'お題2');
+    const [songA, songB] = database.songs;
+    const [topic1, topic2] = database.topics;
+
+    database = setSongExercise(database, songA.id, topic1.id, true);
+    database = setSongExercise(database, songA.id, topic2.id, false);
+    database = setSongExercise(database, songB.id, topic2.id, true);
+
+    const setup = makeLessonSetup(database);
+    expect(setup).toHaveLength(2);
+    expect(setup[0].exercises.map((exercise) => exercise.topicId)).toEqual([topic1.id]);
+    expect(setup[1].exercises.map((exercise) => exercise.topicId)).toEqual([topic2.id]);
+  });
+});
