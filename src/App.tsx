@@ -66,11 +66,12 @@ export default function App() {
         <Typography color="text.secondary" sx={{ mb: 2 }}>練習の種類を選んで、やってみたいお題をタップしてね。</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1, mb: 2.5 }}>
           {stages.map((item) => <Button key={item.id} onClick={() => chooseStage(item.id)} variant={stage === item.id ? 'contained' : 'outlined'} sx={{
-            aspectRatio: '1 / 1', minWidth: 0, p: .5, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: .5,
-            fontSize: 'clamp(11px, 3.1vw, 15px)', lineHeight: 1.15, fontWeight: 800, whiteSpace: 'nowrap',
+            width: '100%', aspectRatio: '1 / 1', minWidth: 0, p: .25, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: .65,
+            fontSize: 'clamp(10px, 3.25vw, 14px)', lineHeight: 1, fontWeight: 900, whiteSpace: 'nowrap',
             bgcolor: stage === item.id ? item.color : '#fff', color: stage === item.id ? '#fff' : item.color,
-            borderColor: item.color, '&:hover': { bgcolor: stage === item.id ? item.color : item.tint },
-          }}><Typography component="span" sx={{ fontSize: 'clamp(27px, 8vw, 42px)', lineHeight: 1 }}>{item.icon}</Typography><Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'inherit', whiteSpace: 'nowrap' }}>{item.title}</Typography></Button>)}
+            borderColor: item.color, borderWidth: stage === item.id ? 2 : 1,
+            '&:hover': { bgcolor: stage === item.id ? item.color : item.tint },
+          }}><Typography component="span" sx={{ fontSize: 'clamp(32px, 9vw, 46px)', lineHeight: 1 }}>{item.icon}</Typography><Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'inherit', whiteSpace: 'nowrap' }}>{item.title}</Typography></Button>)}
         </Box>
         <Typography variant="h6" fontWeight={800} sx={{ mb: 1.2 }}>{stages.find((item) => item.id === stage)?.title}のお題</Typography>
         <Stack spacing={1.2}>{list.map((item) => <Card key={item.id} sx={{ borderRadius: 3, border: '1px solid #f0e6f2' }}>
@@ -86,25 +87,25 @@ export default function App() {
           <Chip label={`${reps} 回できた`} sx={{ bgcolor: '#f4e9fa', color: '#9361a9', fontWeight: 800 }} />
         </Stack>
         <Box sx={{ position: 'relative', height: { xs: 350, sm: 420 }, overflow: 'hidden', borderRadius: 5, mb: 2,
-          background: 'linear-gradient(180deg,#fbeaf2 0%,#f8eaf1 68%,#e9cddf 68%,#e5c4d9 100%)',
+          background: 'linear-gradient(180deg,#fff2f8 0%,#fceaf4 66%,#f3d8e9 66%,#eecfe2 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {/* Empty pastel girl's room: wall and floor only */}
-          <Box sx={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#ffffff88 1.5px, transparent 1.5px)', backgroundSize: '28px 28px', opacity: .45 }} />
-          <Box sx={{ position: 'absolute', top: 0, left: '8%', right: '8%', height: '68%', borderBottom: '2px solid #e8c8dc', bgcolor: '#f9edf5', opacity: .55 }} />
+          <Box sx={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#ffffffaa 1.2px, transparent 1.2px)', backgroundSize: '32px 32px', opacity: .28 }} />
+          <Box sx={{ position: 'absolute', top: 0, left: '8%', right: '8%', height: '66%', borderBottom: '3px solid #e7c4d9', bgcolor: '#fff6fb', opacity: .7 }} />
           <Box sx={{ position: 'absolute', bottom: 25, width: '82%', height: 16, borderRadius: '50%', bgcolor: '#cda9c6', opacity: .28 }} />
           {/* Repeating floating notes */}
           <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none', '@keyframes floatNote': { '0%': { transform: 'translateY(35px) rotate(-8deg)', opacity: 0 }, '20%': { opacity: 1 }, '100%': { transform: 'translateY(-150px) rotate(12deg)', opacity: 0 } } }}>
             {['♪','♫','♬'].map((note, i) => <Typography key={i} sx={{ position: 'absolute', left: `${20 + i * 29}%`, bottom: 115, color: ['#a56cc1','#e58eae','#75aa9a'][i], fontSize: 34 + i * 5, animation: `floatNote 3s ease-out ${i * .85}s infinite` }}>{note}</Typography>)}
           </Box>
           {/* Friendly black grand piano, with its face drawn on the piano body */}
-          <Box sx={{ zIndex: 1, position: 'relative', width: { xs: 270, sm: 310 }, height: 205, mt: 3, animation: 'pianoBounce 2s ease-in-out infinite',
+          <Box sx={{ zIndex: 1, position: 'relative', width: { xs: 285, sm: 320 }, height: 218, mt: 3, animation: 'pianoBounce 2s ease-in-out infinite',
             '@keyframes pianoBounce': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }}>
-            <Box sx={{ position: 'absolute', top: 2, left: 28, width: '78%', height: 94, bgcolor: '#22202a', border: '3px solid #100f15',
-              borderRadius: '8px 75% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 5px 0 #48434f, 0 5px 0 #111' }} />
+            <Box sx={{ position: 'absolute', top: 2, left: 24, width: '82%', height: 105, bgcolor: '#211f29', border: '3px solid #100f15',
+              borderRadius: '10px 78% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 6px 0 #494550, 0 6px 0 #111' }} />
             <Box sx={{ position: 'absolute', top: 18, left: 42, width: '72%', height: 72, bgcolor: '#393540', border: '3px solid #17151c',
               clipPath: 'polygon(0 0, 100% 0, 88% 100%, 0 100%)', transform: 'rotate(-8deg)', transformOrigin: 'left center' }} />
-            <Box sx={{ position: 'absolute', top: 73, left: 24, right: 15, height: 90, bgcolor: '#17151c', border: '3px solid #08070b',
-              borderRadius: '18px 30px 12px 12px', boxShadow: 'inset 0 7px 0 #37333d, 0 9px 0 #09080c' }}>
+            <Box sx={{ position: 'absolute', top: 82, left: 18, right: 10, height: 91, bgcolor: '#17151c', border: '3px solid #08070b',
+              borderRadius: '20px 32px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
               <Box sx={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2.2 }}>
                 <Box sx={{ width: 13, height: 17, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #c7b8d1', position: 'relative',
                   '&:after': { content: '""', position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 } }} />
@@ -119,7 +120,6 @@ export default function App() {
           {[-1, 0, 1].map((leg) => <Box key={leg} sx={{ position: 'absolute', top: 155, left: `${43 + leg * 26}%`, width: 13, height: 38, bgcolor: '#111015', borderRadius: 2, transform: leg === 0 ? 'rotate(2deg)' : 'rotate(-3deg)', boxShadow: '2px 2px 0 #39333f' }} />)}
           <Box sx={{ position: 'absolute', bottom: 0, right: 12, width: 42, height: 23, borderRadius: '50%', bgcolor: '#17151c', border: '3px solid #08070b' }} />
           </Box>
-        </Box>
         </Box>
         <Box sx={{ bgcolor: '#fff', borderRadius: 4, p: 2, mb: 1.5, border: '1px solid #f0e6f2' }}>
           <Typography fontWeight={800} sx={{ mb: .5 }}>「{stage === 'warmup' ? '指をぽかぽかにするのだ！' : stage === 'part' ? 'むずかしいところは、ゆっくりで大丈夫♪' : '最後まで楽しく弾くのだ〜！'}」</Typography>
