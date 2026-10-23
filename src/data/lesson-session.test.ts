@@ -86,6 +86,25 @@ describe('lesson session operations', () => {
     expect(third.songs[0].exercises[0].goalBonusAwarded).toBe(true);
   });
 
+  it('does not re-award an exercise bonus for the same topic or a different topic immediately afterward', () => {
+    const session = setup();
+    // Keep Topic 2 from completing Song A while this test isolates Topic 1's bonus.
+    session.songs[0].exercises[1].targetCount = 10;
+
+    const first = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    const achieved = recordExerciseCompletion(first, 'song-a', 'topic-1');
+    expect(achieved.totalPoints - first.totalPoints).toBe(6); // ordinary point + Topic 1 bonus
+
+    const sameTopicAgain = recordExerciseCompletion(achieved, 'song-a', 'topic-1');
+    expect(sameTopicAgain.totalPoints - achieved.totalPoints).toBe(1);
+
+    const differentTopicImmediately = recordExerciseCompletion(sameTopicAgain, 'song-a', 'topic-2');
+    expect(differentTopicImmediately.totalPoints - sameTopicAgain.totalPoints).toBe(2);
+    expect(differentTopicImmediately.songs[0].exercises[0].goalBonusAwarded).toBe(true);
+    expect(differentTopicImmediately.songs[0].exercises[1].goalBonusAwarded).toBe(false);
+    expect(differentTopicImmediately.songs[0].allGoalsBonusAwarded).toBe(false);
+  });
+
   it('grants a song bonus when every assigned goal in that song is achieved', () => {
     let session = setup();
     session = recordExerciseCompletion(session, 'song-a', 'topic-1');
@@ -93,6 +112,27 @@ describe('lesson session operations', () => {
     session = recordExerciseCompletion(session, 'song-a', 'topic-2');
     expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
     expect(session.totalPoints).toBe(120);
+  });
+
+  it('does not re-award Song A bonus after its completion, including when Song B is completed next', () => {
+    let session = setup();
+    // Delay Song B's topic and song bonuses so the cross-song completion is easy to isolate.
+    session.songs[1].exercises[0].targetCount = 2;
+
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-2');
+    expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
+    const songABonusTotal = session.totalPoints;
+
+    const sameTopicAfterSongBonus = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    expect(sameTopicAfterSongBonus.totalPoints - songABonusTotal).toBe(1);
+
+    const differentSongImmediately = recordExerciseCompletion(sameTopicAfterSongBonus, 'song-b', 'topic-3');
+    expect(differentSongImmediately.totalPoints - sameTopicAfterSongBonus.totalPoints).toBe(4);
+    expect(differentSongImmediately.songs[0].allGoalsBonusAwarded).toBe(true);
+    expect(differentSongImmediately.songs[1].allGoalsBonusAwarded).toBe(false);
+    expect(differentSongImmediately.dailyBonusAwarded).toBe(false);
   });
 
   it('grants the daily bonus only after all goals across all selected songs are achieved', () => {
@@ -104,7 +144,27 @@ describe('lesson session operations', () => {
     session = recordExerciseCompletion(session, 'song-b', 'topic-3');
     expect(session.dailyBonusAwarded).toBe(true);
     expect(session.totalPoints).toBe(147);
-    expect(session.todayPoints).toBe(47;
+    expect(session.todayPoints).toBe(47);
+  });
+
+  it('does not re-award daily or already-earned song bonuses after the daily goal, for same and different topics', () => {
+    let session = setup();
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-2');
+    session = recordExerciseCompletion(session, 'song-b', 'topic-3');
+    expect(session.dailyBonusAwarded).toBe(true);
+    expect(session.songs.every((song) => song.allGoalsBonusAwarded)).toBe(true);
+    const afterAllBonuses = session.totalPoints;
+
+    const sameTopicAfterDailyBonus = recordExerciseCompletion(session, 'song-b', 'topic-3');
+    expect(sameTopicAfterDailyBonus.totalPoints - afterAllBonuses).toBe(4);
+
+    const differentTopicImmediately = recordExerciseCompletion(sameTopicAfterDailyBonus, 'song-a', 'topic-1');
+    expect(differentTopicImmediately.totalPoints - sameTopicAfterDailyBonus.totalPoints).toBe(1);
+    expect(differentTopicImmediately.dailyBonusAwarded).toBe(true);
+    expect(differentTopicImmediately.songs.every((song) => song.allGoalsBonusAwarded)).toBe(true);
+    expect(differentTopicImmediately.totalPoints).toBe(afterAllBonuses + 5);
   });
 
   it('does not change state for an unknown song or topic', () => {
