@@ -1,18 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Avatar, Box, Button, Card, CardContent, Chip, Container, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
-import HeadphonesRoundedIcon from '@mui/icons-material/HeadphonesRounded';
 import MusicNoteRoundedIcon from '@mui/icons-material/MusicNoteRounded';
-import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 
 type Stage = 'warmup' | 'part' | 'full';
 type Exercise = { id: string; title: string; detail: string; points: number; icon: string };
-const stages: { id: Stage; title: string; subtitle: string; color: string; tint: string }[] = [
-  { id: 'warmup', title: 'バーナム', subtitle: '指をほぐそう', color: '#a56cc1', tint: '#f2e5f8' },
-  { id: 'part', title: 'パート練習', subtitle: 'むずかしい所を', color: '#e58eae', tint: '#fff0f5' },
-  { id: 'full', title: '通し練習', subtitle: '曲をつなげよう', color: '#75aa9a', tint: '#eaf7f1' },
+const stages: { id: Stage; title: string; icon: string; color: string; tint: string }[] = [
+  { id: 'warmup', title: 'バーナム', icon: '🌷', color: '#a56cc1', tint: '#f2e5f8' },
+  { id: 'part', title: 'パート練習', icon: '🎵', color: '#e58eae', tint: '#fff0f5' },
+  { id: 'full', title: '通し練習', icon: '🎶', color: '#75aa9a', tint: '#eaf7f1' },
 ];
 const exercises: Record<Stage, Exercise[]> = {
   warmup: [
@@ -39,6 +37,7 @@ const loadProgress = (): Progress => {
 export default function App() {
   const [stage, setStage] = useState<Stage>('part');
   const [exerciseId, setExerciseId] = useState('p1');
+  const [inLesson, setInLesson] = useState(false);
   const [progress, setProgress] = useState<Progress>(loadProgress);
   const list = exercises[stage];
   const selected = list.find((item) => item.id === exerciseId) ?? list[0];
@@ -46,65 +45,83 @@ export default function App() {
   useEffect(() => { localStorage.setItem('moni-lesson-progress', JSON.stringify(progress)); }, [progress]);
 
   const chooseStage = (next: Stage) => { setStage(next); setExerciseId(exercises[next][0].id); };
+  const startLesson = (id: string) => { setExerciseId(id); setInLesson(true); };
   const addRep = () => setProgress((p) => ({
     ...p, points: p.points + selected.points, reps: { ...p.reps, [selected.id]: (p.reps[selected.id] ?? 0) + 1 },
   }));
-  const resetReps = () => setProgress((p) => ({ ...p, reps: {} }));
 
-  return <Box sx={{ minHeight: '100vh', pb: 5 }}>
-    <Container maxWidth="xl" sx={{ pt: { xs: 2, md: 3 } }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Avatar sx={{ bgcolor: '#f4dce9', color: '#a56cc1', width: 48, height: 48 }}><MusicNoteRoundedIcon fontSize="large" /></Avatar>
+  return <Box sx={{ minHeight: '100vh', pb: 4 }}>
+    <Container maxWidth="sm" sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {inLesson && <IconButton aria-label="お題選択に戻る" onClick={() => setInLesson(false)} sx={{ bgcolor: '#fff', border: '1px solid #f2e7f4' }}><ArrowBackRoundedIcon /></IconButton>}
+          <Avatar sx={{ bgcolor: '#f4dce9', color: '#a56cc1' }}><MusicNoteRoundedIcon /></Avatar>
           <Box><Typography variant="h5" sx={{ color: '#80509a', lineHeight: 1.1 }}>moni lesson</Typography><Typography variant="caption" color="text.secondary">きょうも、音楽と仲よくなろう ♡</Typography></Box>
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Chip icon={<StarsRoundedIcon />} label={`${progress.points} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, px: 1, height: 42, '& .MuiChip-icon': { color: '#e0a32c' }}} />
-          <IconButton aria-label="設定（準備中）" sx={{ bgcolor: '#fff', border: '1px solid #f2e7f4' }}><SettingsRoundedIcon sx={{ color: '#a58eae' }} /></IconButton>
-        </Stack>
+        <Chip icon={<StarsRoundedIcon />} label={`${progress.points} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />
       </Stack>
 
-      <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }}>
-        {stages.map((item, i) => <Card key={item.id} onClick={() => chooseStage(item.id)} sx={{ flex: 1, cursor: 'pointer', bgcolor: stage === item.id ? item.tint : '#fff', borderColor: stage === item.id ? item.color : '#f2e7f4', borderWidth: stage === item.id ? 2 : 1, transition: 'all .18s', '&:hover': { transform: 'translateY(-2px)' } }}>
-          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: '16px !important' }}>
-            <Avatar sx={{ bgcolor: item.color, color: '#fff', fontWeight: 800 }}>{i + 1}</Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}><Typography fontWeight={800} color={stage === item.id ? item.color : 'text.primary'}>{item.title}</Typography><Typography variant="caption" color="text.secondary">{item.subtitle}</Typography></Box>
-            {stage === item.id && <Chip size="small" label="いまここ" sx={{ bgcolor: '#fff', color: item.color, fontWeight: 800 }} />}
+      {!inLesson ? <>
+        <Typography variant="h5" fontWeight={800} sx={{ mb: .5 }}>きょうのお題を選ぼう</Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>練習の種類を選んで、やってみたいお題をタップしてね。</Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1, mb: 2.5 }}>
+          {stages.map((item) => <Button key={item.id} onClick={() => chooseStage(item.id)} variant={stage === item.id ? 'contained' : 'outlined'} sx={{
+            width: '100%', aspectRatio: '1 / 1', minWidth: 0, p: .25, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: .65,
+            fontSize: 'clamp(10px, 3.25vw, 14px)', lineHeight: 1, fontWeight: 900, whiteSpace: 'nowrap',
+            bgcolor: stage === item.id ? item.color : '#fff', color: stage === item.id ? '#fff' : item.color,
+            borderColor: item.color, borderWidth: stage === item.id ? 2 : 1,
+            '&:hover': { bgcolor: stage === item.id ? item.color : item.tint },
+          }}><Typography component="span" sx={{ fontSize: 'clamp(32px, 9vw, 46px)', lineHeight: 1 }}>{item.icon}</Typography><Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'inherit', whiteSpace: 'nowrap' }}>{item.title}</Typography></Button>)}
+        </Box>
+        <Typography variant="h6" fontWeight={800} sx={{ mb: 1.2 }}>{stages.find((item) => item.id === stage)?.title}のお題</Typography>
+        <Stack spacing={1.2}>{list.map((item) => <Card key={item.id} sx={{ borderRadius: 3, border: '1px solid #f0e6f2' }}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: '14px !important' }}>
+            <Avatar variant="rounded" sx={{ width: 50, height: 50, bgcolor: '#f8f0fa', fontSize: 26 }}>{item.icon}</Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}><Typography fontWeight={800}>{item.title}</Typography><Typography variant="body2" color="text.secondary">{item.detail}</Typography></Box>
+            <Button variant="contained" onClick={() => startLesson(item.id)} sx={{ borderRadius: 3, bgcolor: '#b486c9', minWidth: 76, '&:hover': { bgcolor: '#9d6bb4' } }}>やる！</Button>
           </CardContent>
-        </Card>)}
-      </Stack>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(250px,.92fr) minmax(280px,1.05fr) minmax(300px,1.1fr)' }, gap: 2 }}>
-        <Card sx={{ minHeight: 400 }}><CardContent sx={{ p: 2.5 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}><Box><Typography variant="h6" fontWeight={800}>今日のお題</Typography><Typography variant="caption" color="text.secondary">好きな練習を選んでね</Typography></Box><Chip label={`${list.length}つ`} size="small" sx={{ bgcolor: '#f5edf8', color: '#a56cc1', fontWeight: 800 }} /></Stack>
-          <Stack spacing={1}>{list.map((item) => <Box key={item.id} onClick={() => setExerciseId(item.id)} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 3, cursor: 'pointer', bgcolor: selected.id === item.id ? '#f8effb' : '#fff', border: selected.id === item.id ? '1.5px solid #c59bd4' : '1.5px solid #f4edf5', '&:hover': { bgcolor: '#fbf5fd' } }}>
-            <Avatar variant="rounded" sx={{ width: 48, height: 48, bgcolor: selected.id === item.id ? '#ead8f2' : '#f8f3f8', fontSize: 25 }}>{item.icon}</Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}><Typography fontWeight={800}>{item.title}</Typography><Typography variant="caption" color="text.secondary">{item.detail}</Typography></Box><Chip size="small" label={`+${item.points}pt`} sx={{ bgcolor: '#fff0c9', color: '#936c22', fontWeight: 800 }} />
-          </Box>)}</Stack>
-        </CardContent></Card>
-
-        <Card sx={{ overflow: 'hidden', minHeight: 400 }}><CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between"><Chip label="✦ きょうのレッスン" sx={{ bgcolor: '#f4e9fa', color: '#9361a9', fontWeight: 800 }} /><IconButton size="small" aria-label="アドバイスをもう一度聞く"><ReplayRoundedIcon /></IconButton></Stack>
-          <Box sx={{ flex: 1, minHeight: 210, my: 1.5, borderRadius: 4, background: 'linear-gradient(145deg,#fff3f8 0%,#f5efff 58%,#eef9f4 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-            <Typography sx={{ position: 'absolute', top: 18, left: 22, color: '#d4a4cb', fontSize: 24 }}>✦</Typography><Typography sx={{ position: 'absolute', top: 45, right: 28, color: '#e8b2c9' }}>♫</Typography>
-            <Stack alignItems="center" spacing={1}>
-              <Avatar sx={{ width: 132, height: 132, bgcolor: '#f6d8e5', fontSize: 70, border: '5px solid rgba(255,255,255,.8)', boxShadow: '0 12px 24px rgba(166,119,166,.16)' }}>🐰</Avatar>
-              <Box sx={{ bgcolor: '#fff', borderRadius: 4, px: 2.5, py: 1.2, boxShadow: '0 5px 18px rgba(145,109,159,.08)', textAlign: 'center' }}>
-                <Typography fontWeight={800} sx={{ color: '#80509a' }}>「{stage === 'warmup' ? '指をぽかぽかにするのだ！' : stage === 'part' ? 'むずかしいところは、ゆっくりで大丈夫♪' : '最後まで楽しく弾くのだ〜！'}」</Typography><Typography variant="caption" color="text.secondary">モニからのワンポイント</Typography>
-              </Box>
-            </Stack>
+        </Card>)}</Stack>
+      </> : <>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Box><Typography variant="caption" color="text.secondary">{stages.find((item) => item.id === stage)?.title}</Typography><Typography variant="h5" fontWeight={800}>{selected.title}</Typography></Box>
+          <Chip label={`${reps} 回できた`} sx={{ bgcolor: '#f4e9fa', color: '#9361a9', fontWeight: 800 }} />
+        </Stack>
+        <Box sx={{ position: 'relative', height: { xs: 350, sm: 420 }, overflow: 'hidden', borderRadius: 5, mb: 2,
+          background: 'linear-gradient(180deg,#fff4fa 0%,#f9e8f2 70%,#f0d4e6 70%,#e9c9df 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Empty, softly colorful girl's room */}
+          <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fff8fc', opacity: .38 }} />
+          <Box sx={{ position: 'absolute', top: 0, left: '6%', right: '6%', height: '70%', borderBottom: '3px solid #e7c5d9' }} />
+          <Box sx={{ position: 'absolute', bottom: 24, width: '82%', height: 16, borderRadius: '50%', bgcolor: '#c9a3c0', opacity: .25 }} />
+          {/* Music notes float up continuously */}
+          <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            {['♪','♫','♬'].map((note, i) => <Typography key={i} sx={{ position: 'absolute', left: `${18 + i * 30}%`, bottom: 110, color: ['#a56cc1','#e58eae','#75aa9a'][i], fontSize: 38 + i * 5, animation: `noteRise 3.4s ease-out ${i * 1.05}s infinite`, '@keyframes noteRise': { '0%': { transform: 'translateY(35px)', opacity: 0 }, '25%': { opacity: 1 }, '100%': { transform: 'translateY(-155px)', opacity: 0 } } }}>{note}</Typography>)}
           </Box>
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 'auto' }}><Avatar sx={{ bgcolor: '#f4e7f7', color: '#a56cc1' }}><HeadphonesRoundedIcon /></Avatar><Box sx={{ flex: 1 }}><Typography fontWeight={800} variant="body2">お手本を聞いてみよう</Typography><Typography variant="caption" color="text.secondary">音声アドバイスは準備中です</Typography></Box><Button variant="outlined" disabled>聞く</Button></Stack>
-        </CardContent></Card>
-
-        <Card sx={{ minHeight: 400 }}><CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}><Box><Typography variant="h6" fontWeight={800}>できた！カウント</Typography><Typography variant="caption" color="text.secondary">弾けたらボタンをタップしよう</Typography></Box><Chip icon={<StarsRoundedIcon />} label={`+${selected.points} pt`} sx={{ bgcolor: '#fff0c9', color: '#936c22', fontWeight: 800 }} /></Stack>
-          <Box sx={{ bgcolor: '#fcf8fd', borderRadius: 4, p: 2, mb: 1.5 }}><Typography variant="caption" color="text.secondary">いま練習していること</Typography><Typography variant="h5" sx={{ mt: .3, mb: 1 }}>{selected.title}</Typography><Stack direction="row" alignItems="center" spacing={1}><Box sx={{ flex: 1 }}><LinearProgress variant="determinate" value={Math.min(reps * 20, 100)} sx={{ height: 9, borderRadius: 8, bgcolor: '#eee3f2', '& .MuiLinearProgress-bar': { bgcolor: '#b48ac8', borderRadius: 8 } }} /></Box><Typography fontWeight={800} sx={{ color: '#a56cc1', minWidth: 60, textAlign: 'right' }}>{reps} 回</Typography></Stack></Box>
-          <Button variant="contained" size="large" onClick={addRep} startIcon={<FavoriteRoundedIcon />} sx={{ minHeight: 72, fontSize: 20, background: 'linear-gradient(100deg,#b486c9,#e59ab9)', '&:hover': { background: 'linear-gradient(100deg,#9d6bb4,#d989aa)' } }}>できた！ +{selected.points}ポイント</Button>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5, mb: 1 }}><Typography variant="caption" color="text.secondary">自分のペースで、ていねいにね</Typography><Button size="small" color="inherit" onClick={resetReps} startIcon={<ReplayRoundedIcon />} sx={{ color: '#9b8aa3' }}>回数リセット</Button></Stack>
-          <Box sx={{ mt: 'auto', bgcolor: '#f1faf5', borderRadius: 3, p: 1.5, display: 'flex', alignItems: 'center', gap: 1.2 }}><Avatar sx={{ bgcolor: '#d8f0e4', color: '#5c9d82' }}><StarsRoundedIcon /></Avatar><Box><Typography fontWeight={800} variant="body2">練習のごほうび</Typography><Typography variant="caption" color="text.secondary">ポイントをためて、お部屋をかわいくしよう！</Typography></Box></Box>
-        </CardContent></Card>
-      </Box>
+          {/* Black grand piano, with its eyes and smile drawn directly on its front */}
+          <Box sx={{ position: 'relative', zIndex: 1, width: { xs: 285, sm: 320 }, height: 220, mt: 3, animation: 'pianoBob 2.2s ease-in-out infinite', '@keyframes pianoBob': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }}}>
+            <Box sx={{ position: 'absolute', top: 4, left: 20, width: '84%', height: 104, bgcolor: '#24212b', border: '3px solid #100f15', borderRadius: '10px 78% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 6px 0 #494550, 0 6px 0 #111' }} />
+            <Box sx={{ position: 'absolute', top: 20, left: 42, width: '70%', height: 70, bgcolor: '#393540', border: '3px solid #17151c', clipPath: 'polygon(0 0, 100% 0, 88% 100%, 0 100%)', transform: 'rotate(-8deg)', transformOrigin: 'left center' }} />
+            <Box sx={{ position: 'absolute', top: 84, left: 15, right: 9, height: 92, bgcolor: '#17151c', border: '3px solid #08070b', borderRadius: '20px 34px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
+              <Box sx={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2.2 }}>
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}><Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} /></Box>
+                <Box sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}><Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} /></Box>
+              </Box>
+              <Box sx={{ position: 'absolute', top: 41, left: '50%', transform: 'translateX(-50%)', width: 24, height: 12, borderBottom: '3px solid #f3a4c3', borderRadius: '0 0 50% 50%' }} />
+              <Stack direction="row" sx={{ position: 'absolute', left: 9, right: 9, bottom: 7, height: 25, gap: '2px' }}>
+                {Array.from({ length: 14 }, (_, i) => <Box key={i} sx={{ flex: 1, bgcolor: '#fffafc', borderRadius: '0 0 3px 3px', border: '1px solid #cfc6d2' }} />)}
+              </Stack>
+            </Box>
+            {[-1, 0, 1].map((leg) => <Box key={leg} sx={{ position: 'absolute', top: 158, left: `${43 + leg * 26}%`, width: 13, height: 38, bgcolor: '#111015', borderRadius: 2 }} />)}
+            <Box sx={{ position: 'absolute', bottom: 0, right: 12, width: 42, height: 23, borderRadius: '50%', bgcolor: '#17151c', border: '3px solid #08070b' }} />
+          </Box>
+        </Box>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 4, p: 2, mb: 1.5, border: '1px solid #f0e6f2' }}>
+          <Typography fontWeight={800} sx={{ mb: .5 }}>「{stage === 'warmup' ? '指をぽかぽかにするのだ！' : stage === 'part' ? 'むずかしいところは、ゆっくりで大丈夫♪' : '最後まで楽しく弾くのだ〜！'}」</Typography>
+          <Typography variant="body2" color="text.secondary">{selected.detail}</Typography>
+          <LinearProgress variant="determinate" value={Math.min(reps * 20, 100)} sx={{ mt: 1.5, height: 8, borderRadius: 5, bgcolor: '#eee3f2', '& .MuiLinearProgress-bar': { bgcolor: '#b48ac8', borderRadius: 5 } }} />
+        </Box>
+        <Button fullWidth variant="contained" size="large" onClick={addRep} startIcon={<FavoriteRoundedIcon />} sx={{ minHeight: 82, fontSize: 24, borderRadius: 4, fontWeight: 900, background: 'linear-gradient(100deg,#b486c9,#e59ab9)', '&:hover': { background: 'linear-gradient(100deg,#9d6bb4,#d989aa)' } }}>できた！</Button>
+      </>}
     </Container>
   </Box>;
 }
