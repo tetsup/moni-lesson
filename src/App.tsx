@@ -90,6 +90,7 @@ export default function App() {
     const previous = loadLessonSession(window.localStorage);
     const next = createLessonSession(today(), setup, DEFAULT_DAILY_BONUS_POINTS, previous?.totalPoints ?? session.totalPoints);
     setSession(next);
+    window.location.hash = '/practice';
   };
 
 
