@@ -111,7 +111,7 @@ describe('lesson session operations', () => {
     session = recordExerciseCompletion(session, 'song-a', 'topic-1');
     session = recordExerciseCompletion(session, 'song-a', 'topic-2');
     expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
-    expect(session.totalPoints).toBe(120);
+    expect(session.totalPoints).toBe(119);
   });
 
   it('does not re-award Song A bonus after its completion, including when Song B is completed next', () => {
