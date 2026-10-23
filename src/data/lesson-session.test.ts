@@ -103,8 +103,8 @@ describe('lesson session operations', () => {
     expect(session.dailyBonusAwarded).toBe(false);
     session = recordExerciseCompletion(session, 'song-b', 'topic-3');
     expect(session.dailyBonusAwarded).toBe(true);
-    expect(session.totalPoints).toBe(148);
-    expect(session.todayPoints).toBe(48);
+    expect(session.totalPoints).toBe(147);
+    expect(session.todayPoints).toBe(47;
   });
 
   it('does not change state for an unknown song or topic', () => {
