@@ -128,8 +128,14 @@ describe('lesson session operations', () => {
     const sameTopicAfterSongBonus = recordExerciseCompletion(session, 'song-a', 'topic-1');
     expect(sameTopicAfterSongBonus.totalPoints - songABonusTotal).toBe(1);
 
-    const differentSongImmediately = recordExerciseCompletion(sameTopicAfterSongBonus, 'song-b', 'topic-3');
-    expect(differentSongImmediately.totalPoints - sameTopicAfterSongBonus.totalPoints).toBe(4);
+    // Song A's other topic was already completed to earn the song bonus.
+    // Completing it again immediately must add only its ordinary points.
+    const differentTopicAfterSongBonus = recordExerciseCompletion(sameTopicAfterSongBonus, 'song-a', 'topic-2');
+    expect(differentTopicAfterSongBonus.totalPoints - sameTopicAfterSongBonus.totalPoints).toBe(2);
+    expect(differentTopicAfterSongBonus.songs[0].allGoalsBonusAwarded).toBe(true);
+
+    const differentSongImmediately = recordExerciseCompletion(differentTopicAfterSongBonus, 'song-b', 'topic-3');
+    expect(differentSongImmediately.totalPoints - differentTopicAfterSongBonus.totalPoints).toBe(4);
     expect(differentSongImmediately.songs[0].allGoalsBonusAwarded).toBe(true);
     expect(differentSongImmediately.songs[1].allGoalsBonusAwarded).toBe(false);
     expect(differentSongImmediately.dailyBonusAwarded).toBe(false);
