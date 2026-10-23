@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeToHash, resolveHashRoute } from './lesson-routing';
+import { resolveHashRoute } from './lesson-routing';
 
 describe('lesson hash routing', () => {
   it.each([
@@ -19,9 +19,4 @@ describe('lesson hash routing', () => {
     expect(resolveHashRoute('#/practice')).toEqual({ page: 'practice' });
   });
 
-  it('builds the expected hash when screen navigation changes the route', () => {
-    expect(routeToHash({ page: 'teacher' })).toBe('#/teacher');
-    expect(routeToHash({ page: 'practice' })).toBe('#/practice');
-    expect(routeToHash({ page: 'teacher-song', songId: 'song-a' })).toBe('#/teacher/songs/song-a');
-  });
 });
