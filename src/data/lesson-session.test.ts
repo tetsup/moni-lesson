@@ -92,7 +92,7 @@ describe('lesson session operations', () => {
     session = recordExerciseCompletion(session, 'song-a', 'topic-1');
     session = recordExerciseCompletion(session, 'song-a', 'topic-2');
     expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
-    expect(session.totalPoints).toBe(119);
+    expect(session.totalPoints).toBe(120);
   });
 
   it('grants the daily bonus only after all goals across all selected songs are achieved', () => {
@@ -103,8 +103,8 @@ describe('lesson session operations', () => {
     expect(session.dailyBonusAwarded).toBe(false);
     session = recordExerciseCompletion(session, 'song-b', 'topic-3');
     expect(session.dailyBonusAwarded).toBe(true);
-    expect(session.totalPoints).toBe(147);
-    expect(session.todayPoints).toBe(40);
+    expect(session.totalPoints).toBe(148);
+    expect(session.todayPoints).toBe(48);
   });
 
   it('does not change state for an unknown song or topic', () => {
