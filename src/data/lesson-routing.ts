@@ -35,8 +35,21 @@ export const resolveHashRoute = (hash: string): LessonRoute => {
   return { page: 'home' };
 };
 
-/**
- * Converts a screen route into its canonical hash URL.
- * Kept incomplete until screen navigation is wired to the router.
- */
-export const routeToHash = (_route: LessonRoute): string => '#/';
+/** Converts a screen route into its canonical hash URL. */
+export const routeToHash = (route: LessonRoute): string => {
+  switch (route.page) {
+    case 'home':
+      return '#/';
+    case 'practice':
+    case 'teacher':
+      return `#/${route.page}`;
+    case 'teacher-lesson':
+      return '#/teacher/lesson';
+    case 'teacher-topics':
+      return '#/teacher/topics';
+    case 'teacher-review':
+      return '#/teacher/review';
+    case 'teacher-song':
+      return `#/teacher/songs/${encodeURIComponent(route.songId)}`;
+  }
+};
