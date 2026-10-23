@@ -17,11 +17,9 @@ import {
 import {
   createLessonSession,
   loadLessonSession,
-  recordExerciseCompletion,
   resetLessonSessionForDate,
   saveLessonSession,
   type LessonSession,
-  type LessonSongSetup,
 } from './data/lesson-session';
 
 const today = (): string => {
@@ -45,18 +43,11 @@ export default function App() {
   const [songTitle, setSongTitle] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [selectedSongId, setSelectedSongId] = useState(() => loadDatabase().currentSongId ?? '');
-  const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
 
   const songs = useMemo(() => listSongs(database), [database]);
   const topics = useMemo(() => listTopics(database), [database]);
   const activeSongId = songs.some((song) => song.id === selectedSongId) ? selectedSongId : (songs[0]?.id ?? '');
-  const sessionSongs = session.songs;
-  const currentSong = sessionSongs.find((song) =>
-    song.exercises.some((exercise) => exercise.topicId === currentTopicId),
-  ) ?? sessionSongs[0];
-  const currentExercise = currentSong?.exercises.find((exercise) =>
-    exercise.topicId === currentTopicId,
-  ) ?? currentSong?.exercises[0];
+
 
   useEffect(() => saveLessonSession(session, window.localStorage), [session]);
   useEffect(() => saveLessonDatabase(database, window.localStorage), [database]);
@@ -92,21 +83,10 @@ export default function App() {
     const previous = loadLessonSession(window.localStorage);
     const next = createLessonSession(today(), setup, DEFAULT_DAILY_BONUS_POINTS, previous?.totalPoints ?? session.totalPoints);
     setSession(next);
-    setCurrentTopicId(setup[0]?.exercises[0]?.topicId ?? null);
     setTeacherMode(false);
   };
 
-  const getNextExercise = (songId: string, topicId: string) => {
-    const allExercises = sessionSongs.flatMap((song) =>
-      song.exercises.map((exercise) => ({ songId: song.songId, topicId: exercise.topicId })),
-    );
-    const position = allExercises.findIndex((item) => item.songId === songId && item.topicId === topicId);
-    return allExercises[position + 1];
-  };
 
-  const doneCount = sessionSongs.reduce((count, song) =>
-    count + song.exercises.filter((exercise) => exercise.completionCount >= exercise.targetCount).length, 0);
-  const totalCount = sessionSongs.reduce((count, song) => count + song.exercises.length, 0);
 
   return (
     <Box sx={{ minHeight: '100vh', pb: 4, bgcolor: '#fffafd' }}>
