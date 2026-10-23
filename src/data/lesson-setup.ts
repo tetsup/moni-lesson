@@ -16,7 +16,7 @@ export const DEFAULT_DAILY_BONUS_POINTS = 10;
 export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] => {
   const topics = listTopics(database);
 
-  return listSongs(database).map((song => ({
+  return listSongs(database).map((song) => ({
     songId: song.id,
     songTitle: song.title,
     order: song.order,
@@ -32,7 +32,7 @@ export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] => 
       }];
     }),
     allGoalsBonusPoints: DEFAULT_ALL_GOALS_BONUS_POINTS,
-  }))).filter((song) => song.exercises.length > 0);
+  })).filter((song) => song.exercises.length > 0);
 };
 
 /** The lesson can start only when at least one active topic resolves to a live topic. */
