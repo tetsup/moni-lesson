@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import LessonMode from './components/LessonMode';
 import { Box, Button, Card, CardContent, Chip, Container, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS } from './data/lesson-setup';
@@ -182,58 +183,7 @@ export default function App() {
             </Button>
           </Stack>
         ) : (
-          <>
-            <Card sx={{ mb: 2, borderRadius: 4, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={800}>きょうのレッスン</Typography>
-                <Typography color="text.secondary" sx={{ mt: .5 }}>「できた！」で練習を記録しよう。次のお題へ進むときは「次のお題」を押してね。</Typography>
-                <Typography sx={{ mt: 1, fontWeight: 700 }}>{doneCount} / {totalCount} お題クリア</Typography>
-              </CardContent>
-            </Card>
-            {sessionSongs.length === 0 ? (
-              <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
-                <CardContent>
-                  <Typography fontWeight={800}>まだレッスンのお題がないよ</Typography>
-                  <Typography color="text.secondary" sx={{ mt: .5 }}>先生画面で曲とお題を登録してね。</Typography>
-                  <Button sx={{ mt: 1 }} variant="contained" onClick={() => setTeacherMode(true)}>先生画面を開く</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Stack spacing={1.5}>
-                {sessionSongs.map((song) => (
-                  <Card key={song.songId} sx={{ borderRadius: 4, border: currentSong?.songId === song.songId ? '2px solid #b486c9' : '1px solid #f0e6f2', bgcolor: '#fff' }}>
-                    <CardContent sx={{ p: '16px !important' }}>
-                      <Typography variant="h6" fontWeight={800} sx={{ color: '#80509a', mb: 1 }}>{song.songTitle}</Typography>
-                      <Stack spacing={1}>
-                        {song.exercises.map((exercise) => {
-                          const isCurrent = currentSong?.songId === song.songId && currentExercise?.topicId === exercise.topicId;
-                          const isDone = exercise.completionCount >= exercise.targetCount;
-                          const next = getNextExercise(song.songId, exercise.topicId);
-                          return (
-                            <Box key={exercise.topicId} sx={{ p: 1.5, borderRadius: 3, bgcolor: isCurrent ? '#fff4fa' : '#faf8fc', border: isCurrent ? '1px solid #e8c5dc' : '1px solid #f0eaf3' }}>
-                              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                                <Box sx={{ minWidth: 0, flex: 1 }}>
-                                  <Typography fontWeight={800}>{exercise.topicTitle}</Typography>
-                                  <Typography variant="body2" color="text.secondary">{exercise.completionCount} / {exercise.targetCount} 回{isDone ? ' · 目標達成！' : ''}</Typography>
-                                </Box>
-                                <Stack direction="row" spacing={.75}>
-                                  <Button size="small" variant={isDone ? 'outlined' : 'contained'} onClick={() => {
-                                    setCurrentTopicId(exercise.topicId);
-                                    setSession((previous) => recordExerciseCompletion(previous, song.songId, exercise.topicId));
-                                  }} sx={{ minWidth: 82, borderRadius: 2.5, bgcolor: isDone ? 'transparent' : '#b486c9' }}>できた！</Button>
-                                  <Button size="small" variant="outlined" disabled={!next} onClick={() => next && setCurrentTopicId(next.topicId)} sx={{ minWidth: 94, borderRadius: 2.5, borderColor: '#b486c9', color: '#80509a' }}>次のお題</Button>
-                                </Stack>
-                              </Stack>
-                            </Box>
-                          );
-                        })}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
-            )}
-          </>
+          <LessonMode session={session} onSessionChange={setSession} />
         )}
       </Container>
     </Box>
