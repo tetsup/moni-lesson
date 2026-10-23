@@ -72,6 +72,25 @@ describe('lesson navigation state transitions', () => {
     });
   });
 
+
+  it('advances to the next song when topic IDs are reused across songs', () => {
+    const songsWithSharedTopicId: LessonNavigationSong[] = [
+      { id: 'song-a', title: '曲A', topics: [{ id: 'shared-topic', title: '曲Aのお題' }] },
+      { id: 'song-b', title: '曲B', topics: [{ id: 'shared-topic', title: '曲Bのお題' }] },
+    ];
+    const lesson = selectLessonTopic(
+      createLessonNavigation(songsWithSharedTopicId),
+      songsWithSharedTopicId,
+      'shared-topic',
+    );
+
+    expect(advanceLessonNavigation(lesson, songsWithSharedTopicId)).toEqual({
+      mode: 'lesson',
+      selectedSongId: 'song-b',
+      currentTopicId: 'shared-topic',
+    });
+  });
+
   it('does not leave lesson mode when advancing past the last available song', () => {
     const lesson = selectLessonTopic(createLessonNavigation(songs), songs, 'b-1');
     expect(advanceLessonNavigation(lesson, songs)).toEqual(lesson);
