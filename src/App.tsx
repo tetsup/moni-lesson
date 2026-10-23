@@ -96,12 +96,7 @@ export default function App() {
             <Typography variant="h5" sx={{ color: '#80509a', lineHeight: 1.1, fontWeight: 800 }}>moni lesson</Typography>
             <Typography variant="caption" color="text.secondary">きょうも、音楽と仲よくなろう ♡</Typography>
           </Box>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {!teacherMode && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
-            <Button size="small" variant="outlined" onClick={() => setTeacherMode((value) => !value)} sx={{ borderRadius: 3 }}>
-              {teacherMode ? 'レッスンへ' : '先生画面'}
-            </Button>
-          </Stack>
+          {!teacherMode && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
         </Stack>
 
         {teacherMode ? (
