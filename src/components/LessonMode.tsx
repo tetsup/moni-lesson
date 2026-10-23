@@ -13,7 +13,9 @@ export default function LessonMode({ session, onSessionChange }: Props) {
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
   const songs = session.songs;
   const selectedSong = songs.find((song) => song.songId === selectedSongId) ?? songs[0];
-  const currentSong = songs.find((song) => song.exercises.some((exercise) => exercise.topicId === currentTopicId));
+  // Resolve the current exercise inside the selected song. Topic IDs can be shared
+  // across songs, so a global topic lookup can accidentally keep the previous song.
+  const currentSong = songs.find((song) => song.songId === selectedSongId);
   const currentExercise = currentSong?.exercises.find((exercise) => exercise.topicId === currentTopicId);
   const songIndex = songs.findIndex((song) => song.songId === currentSong?.songId);
   const topicIndex = currentSong?.exercises.findIndex((exercise) => exercise.topicId === currentTopicId) ?? -1;
