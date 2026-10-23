@@ -59,7 +59,7 @@ export default function App() {
           <Box><Typography variant="h5" sx={{ color: '#80509a', lineHeight: 1.1 }}>moni lesson</Typography><Typography variant="caption" color="text.secondary">きょうも、音楽と仲よくなろう ♡</Typography></Box>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Chip icon={<StarsRoundedIcon />} label={`${progress.points} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, px: 1, height: 42, '& .MuiChip-icon': { color: '#e0a32c' }} />
+          <Chip icon={<StarsRoundedIcon />} label={`${progress.points} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, px: 1, height: 42, '& .MuiChip-icon': { color: '#e0a32c' }}} />
           <IconButton aria-label="設定（準備中）" sx={{ bgcolor: '#fff', border: '1px solid #f2e7f4' }}><SettingsRoundedIcon sx={{ color: '#a58eae' }} /></IconButton>
         </Stack>
       </Stack>
