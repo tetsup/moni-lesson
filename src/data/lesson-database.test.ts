@@ -100,7 +100,7 @@ describe('songs', () => {
 
   it('clamps reorder positions and ignores deleted or unknown songs', () => {
     const initial = softDeleteSong(makeDatabase(), 's2');
-    expect(listSongs(moveSong(initial, 's3', 100)).map((song) => song.id)).toEqual(['s3', 's1']);
+    expect(listSongs(moveSong(initial, 's1', 100)).map((song) => song.id)).toEqual(['s3', 's1']);
     expect(moveSong(initial, 's2', 0)).toBe(initial);
     expect(moveSong(initial, 'missing', 0)).toBe(initial);
   });
