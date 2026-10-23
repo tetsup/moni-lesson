@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
+import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Chip, Container, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS } from './data/lesson-setup';
@@ -36,10 +37,16 @@ const loadInitialSession = (): LessonSession => {
 export default function App() {
   const [database, setDatabase] = useState<LessonDatabase>(loadDatabase);
   const [session, setSession] = useState<LessonSession>(loadInitialSession);
-  const [teacherMode, setTeacherMode] = useState(() => {
-    const initialDatabase = loadDatabase();
-    return listSongs(initialDatabase).length === 0 || listTopics(initialDatabase).length === 0;
-  });
+  const [route, setRoute] = useState(() => resolveHashRoute(window.location.hash));
+
+  useEffect(() => {
+    const syncRoute = () => setRoute(resolveHashRoute(window.location.hash));
+    if (!window.location.hash) {
+      window.location.hash = '/';
+    }
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
+  }, []);
   const [songTitle, setSongTitle] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [selectedSongId, setSelectedSongId] = useState(() => loadDatabase().currentSongId ?? '');
@@ -83,7 +90,6 @@ export default function App() {
     const previous = loadLessonSession(window.localStorage);
     const next = createLessonSession(today(), setup, DEFAULT_DAILY_BONUS_POINTS, previous?.totalPoints ?? session.totalPoints);
     setSession(next);
-    setTeacherMode(false);
   };
 
 
@@ -96,10 +102,10 @@ export default function App() {
             <Typography variant="h5" sx={{ color: '#80509a', lineHeight: 1.1, fontWeight: 800 }}>moni lesson</Typography>
             <Typography variant="caption" color="text.secondary">きょうも、音楽と仲よくなろう ♡</Typography>
           </Box>
-          {!teacherMode && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
+          {!route.page.startsWith('teacher') && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
         </Stack>
 
-        {teacherMode ? (
+        {route.page.startsWith('teacher') ? (
           <Stack spacing={2}>
             <Box>
               <Typography variant="h5" fontWeight={800}>先生の設定画面</Typography>
