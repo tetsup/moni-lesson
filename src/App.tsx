@@ -23,13 +23,10 @@ import {
 
 const today = (): string => {
   const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-// These values are the first-pass lesson defaults; lesson setup UI can make them configurable later.
+// First-pass defaults; a later lesson-settings UI can make these configurable.
 const DEFAULT_TARGET_COUNT = 2;
 const DEFAULT_POINTS_PER_COMPLETION = 1;
 const DEFAULT_GOAL_BONUS_POINTS = 5;
@@ -75,6 +72,9 @@ export default function App() {
 
   const songs = useMemo(() => listSongs(database), [database]);
   const sessionSongs = session.songs;
+  const allExercises = sessionSongs.flatMap((song) =>
+    song.exercises.map((exercise) => ({ songId: song.songId, topicId: exercise.topicId })),
+  );
   const currentSong = sessionSongs.find((song) =>
     song.exercises.some((exercise) => exercise.topicId === currentTopicId),
   ) ?? sessionSongs[0];
@@ -86,28 +86,14 @@ export default function App() {
   useEffect(() => saveLessonDatabase(database, window.localStorage), [database]);
 
   const chooseSong = (song: Song) => {
-    const nextDatabase = setCurrentSong(database, song.id);
-    setDatabase(nextDatabase);
-    const songSession = session.songs.find((item) => item.songId === song.id);
+    setDatabase((previous) => setCurrentSong(previous, song.id));
+    const songSession = sessionSongs.find((item) => item.songId === song.id);
     setCurrentTopicId(songSession?.exercises[0]?.topicId ?? null);
   };
 
-  const markDone = () => {
-    if (!currentSong || !currentExercise) return;
-    setSession((previous) => recordExerciseCompletion(previous, currentSong.songId, currentExercise.topicId));
-  };
-
-  const goNext = () => {
-    if (!currentSong || !currentExercise) return;
-    const exercises = currentSong.exercises;
-    const index = exercises.findIndex((exercise) => exercise.topicId === currentExercise.topicId);
-    const nextExercise = exercises.slice(index + 1).find((exercise) =>
-      exercise.completionCount < exercise.targetCount,
-    ) ?? sessionSongs
-      .slice(sessionSongs.findIndex((song) => song.songId === currentSong.songId) + 1)
-      .flatMap((song) => song.exercises)
-      .find((exercise) => exercise.completionCount < exercise.targetCount);
-    setCurrentTopicId(nextExercise?.topicId ?? null);
+  const getNextExercise = (songId: string, topicId: string) => {
+    const position = allExercises.findIndex((item) => item.songId === songId && item.topicId === topicId);
+    return allExercises[position + 1];
   };
 
   const doneCount = sessionSongs.reduce((count, song) =>
@@ -129,7 +115,7 @@ export default function App() {
           <CardContent>
             <Typography variant="h6" fontWeight={800}>きょうのレッスン</Typography>
             <Typography color="text.secondary" sx={{ mt: .5 }}>
-              `できた！` で練習を記録しよう。次のお題へ進むときは「次のお題」を押してね。
+              「できた！」で練習を記録しよう。次のお題へ進むときは「次のお題」を押してね。
             </Typography>
             <Typography sx={{ mt: 1, fontWeight: 700 }}>{doneCount} / {totalCount} お題クリア</Typography>
           </CardContent>
@@ -168,6 +154,7 @@ export default function App() {
                     {song.exercises.map((exercise) => {
                       const isCurrent = currentSong?.songId === song.songId && currentExercise?.topicId === exercise.topicId;
                       const isDone = exercise.completionCount >= exercise.targetCount;
+                      const next = getNextExercise(song.songId, exercise.topicId);
                       return (
                         <Box key={exercise.topicId} sx={{
                           p: 1.5, borderRadius: 3, bgcolor: isCurrent ? '#fff4fa' : '#faf8fc',
@@ -194,17 +181,12 @@ export default function App() {
                               <Button
                                 size="small"
                                 variant="outlined"
+                                disabled={!next}
                                 onClick={() => {
-                                  const songSource = songs.find((item) => item.id === song.songId);
-                                  if (songSource && database.currentSongId !== song.songId) {
-                                    setDatabase(setCurrentSong(database, song.songId));
-                                  }
-                                  setCurrentTopicId(exercise.topicId);
-                                  const position = song.exercises.findIndex((item) => item.topicId === exercise.topicId);
-                                  const next = song.exercises[position + 1] ?? sessionSongs
-                                    .slice(sessionSongs.findIndex((item) => item.songId === song.songId) + 1)
-                                    .flatMap((item) => item.exercises)[0];
-                                  setCurrentTopicId(next?.topicId ?? exercise.topicId);
+                                  if (!next) return;
+                                  const nextSong = songs.find((item) => item.id === next.songId);
+                                  if (nextSong) setDatabase((previous) => setCurrentSong(previous, next.songId));
+                                  setCurrentTopicId(next.topicId);
                                 }}
                                 sx={{ minWidth: 94, borderRadius: 2.5, borderColor: '#b486c9', color: '#80509a' }}
                               >次のお題</Button>
