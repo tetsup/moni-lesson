@@ -4,7 +4,7 @@ import { calculateSpectrumAutocorrelation } from '../audio/spectrum-analysis';
 
 const ENERGY_THRESHOLD = 0.008;
 const INTERVAL_MS = 250;
-const FEATURE_OPTIONS = { energyThreshold: ENERGY_THRESHOLD };
+const FEATURE_OPTIONS = { energyThreshold: 0 };
 
 type AudioFrame = {
   energy: number;
