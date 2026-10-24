@@ -1,7 +1,5 @@
 export type PlayingStatusOptions = {
   windowSize?: number;
-  startThreshold?: number;
-  stopThreshold?: number;
 };
 
 /**
@@ -12,26 +10,21 @@ export class PlayingStatusDetector {
   private readonly scores: number[] = [];
   private playing = false;
   private readonly windowSize: number;
-  private readonly startThreshold: number;
-  private readonly stopThreshold: number;
-
   constructor(options: PlayingStatusOptions = {}) {
     this.windowSize = Math.max(1, Math.floor(options.windowSize ?? 5));
-    this.startThreshold = options.startThreshold ?? 0.5;
-    this.stopThreshold = options.stopThreshold ?? 0.3;
-    if (this.stopThreshold > this.startThreshold) {
-      throw new Error('stopThreshold must be less than or equal to startThreshold');
-    }
   }
 
-  update(score: number): { average: number; isPlaying: boolean } {
+  update(score: number, startThreshold: number, stopThreshold: number): { average: number; isPlaying: boolean } {
+    if (stopThreshold > startThreshold) {
+      throw new Error('stopThreshold must be less than or equal to startThreshold');
+    }
     const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
     this.scores.push(safeScore);
     if (this.scores.length > this.windowSize) this.scores.shift();
 
     const average = this.scores.reduce((sum, value) => sum + value, 0) / this.scores.length;
-    if (!this.playing && average >= this.startThreshold) this.playing = true;
-    else if (this.playing && average < this.stopThreshold) this.playing = false;
+    if (!this.playing && average >= startThreshold) this.playing = true;
+    else if (this.playing && average < stopThreshold) this.playing = false;
 
     return { average, isPlaying: this.playing };
   }
