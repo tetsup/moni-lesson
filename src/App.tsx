@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
 import { resolveHashRoute } from './data/lesson-routing';
-import { Box, Button, Card, CardContent, Chip, Container, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS } from './data/lesson-setup';
 import {
@@ -172,7 +172,7 @@ export default function App() {
                 {songs.length === 0 ? <Typography color="text.secondary">先に曲を登録してね。</Typography> : (
                   <>
                     <TextField select fullWidth size="small" label="曲を選択" value={activeSongId} onChange={(event) => setSelectedSongId(event.target.value)} sx={{ mb: 1.5 }}>
-                      {songs.map((song) => <option key={song.id} value={song.id}>{song.title}</option>)}
+                      {songs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
                     </TextField>
                     {topics.length === 0 ? <Typography color="text.secondary">先にお題を登録してね。</Typography> : (
                       <Stack spacing={1}>
