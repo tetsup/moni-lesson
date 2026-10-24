@@ -86,22 +86,21 @@ export default function App() {
   };
 
   const updateExercisePoints = (topicId: string, field: 'pointsPerCompletion' | 'goalBonusPoints', value: string) => {
-    if (!activeSongId || value.trim() === '') return;
-    const points = Number(value);
+    if (!activeSongId) return;
+    const points = value.trim() === '' ? 0 : Number(value);
     if (!Number.isSafeInteger(points) || points < 0) return;
     setDatabase((previous) => setExercisePoints(previous, activeSongId, topicId, field, points));
   };
 
   const updateSongBonusPoints = (value: string) => {
-    if (!activeSongId || value.trim() === '') return;
-    const points = Number(value);
+    if (!activeSongId) return;
+    const points = value.trim() === '' ? 0 : Number(value);
     if (!Number.isSafeInteger(points) || points < 0) return;
     setDatabase((previous) => setSongBonusPoints(previous, activeSongId, points));
   };
 
   const updateDailyBonusPoints = (value: string) => {
-    if (value.trim() === '') return;
-    const points = Number(value);
+    const points = value.trim() === '' ? 0 : Number(value);
     if (!Number.isSafeInteger(points) || points < 0) return;
     setDatabase((previous) => setDailyBonusPoints(previous, points));
   };
@@ -214,14 +213,14 @@ export default function App() {
                                 </Button>
                               </Stack>
                               <Stack direction="row" spacing={1}>
-                                <TextField size="small" type="number" label="1回のポイント" value={assignment?.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
-                                <TextField size="small" type="number" label="達成ボーナス" value={assignment?.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
+                                <TextField size="small" type="number" label="1回のポイント" value={assignment?.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
+                                <TextField size="small" type="number" label="達成ボーナス" value={assignment?.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
                               </Stack>
                             </Stack>
                           );
                         })}
-                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints ?? DEFAULT_ALL_GOALS_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateSongBonusPoints(event.target.value)} />
-                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateDailyBonusPoints(event.target.value)} />
+                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints ?? DEFAULT_ALL_GOALS_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateSongBonusPoints(event.target.value)} />
+                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateDailyBonusPoints(event.target.value)} />
                       </Stack>
                     )}
                   </>
