@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
+import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 
 type Props = {
   session: LessonSession;
   onSessionChange: (update: (previous: LessonSession) => LessonSession) => void;
+  onNavigate: (route: 'complete') => void;
 };
 
-export default function LessonMode({ session, onSessionChange }: Props) {
+export default function LessonMode({ session, onSessionChange, onNavigate }: Props) {
   const [mode, setMode] = useState<'selection' | 'lesson'>('selection');
   const [selectedSongId, setSelectedSongId] = useState(session.songs[0]?.songId ?? '');
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
@@ -22,8 +24,13 @@ export default function LessonMode({ session, onSessionChange }: Props) {
   const nextExercise = currentSong?.exercises[topicIndex + 1];
   const nextSong = songs[songIndex + 1];
   const nextSongFirstExercise = nextSong?.exercises[0];
-  const nextLabel = !nextExercise && nextSongFirstExercise ? '次の曲' : '次のお題へ';
-  const canAdvance = Boolean(nextExercise || nextSongFirstExercise);
+  const progress = {
+    songs: songs.map((song) => ({ songId: song.songId, topicIds: song.exercises.map((exercise) => exercise.topicId) })),
+    currentSongIndex: songIndex,
+    currentTopicIndex: topicIndex,
+  };
+  const primaryAction = getLessonPrimaryAction(progress);
+  const canAdvance = Boolean(nextExercise || nextSongFirstExercise) || primaryAction.action === 'finish';
 
   const openTopic = (songId: string, topicId: string) => {
     setSelectedSongId(songId);
@@ -37,14 +44,17 @@ export default function LessonMode({ session, onSessionChange }: Props) {
   };
 
   const advance = () => {
-    if (nextExercise && currentSong) {
-      setCurrentTopicId(nextExercise.topicId);
+    const result = resolveLessonAction(progress, primaryAction.action);
+    if (result.type === 'navigate') {
+      onNavigate(result.route);
       return;
     }
-    if (nextSong && nextSongFirstExercise) {
-      setSelectedSongId(nextSong.songId);
-      setCurrentTopicId(nextSongFirstExercise.topicId);
-    }
+    if (result.type !== 'advance') return;
+    const targetSong = songs[result.songIndex];
+    const targetExercise = targetSong?.exercises[result.topicIndex];
+    if (!targetSong || !targetExercise) return;
+    setSelectedSongId(targetSong.songId);
+    setCurrentTopicId(targetExercise.topicId);
   };
 
   if (mode === 'selection') {
@@ -227,7 +237,7 @@ export default function LessonMode({ session, onSessionChange }: Props) {
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
         sx={{ minHeight: 58, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
-        sx={{ minHeight: 54, borderRadius: 4, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{nextLabel}</Button>
+        sx={{ minHeight: 54, borderRadius: 4, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
     <Typography variant="caption" color="text.secondary" textAlign="center">練習できたら「できた！」を押して記録しよう。</Typography>
   </Stack>
   );
