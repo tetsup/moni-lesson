@@ -6,13 +6,12 @@ export type SpectrumAnalysisOptions = {
   autocorrelationLength?: number;
 };
 
-/** RMS gate is evaluated on the raw window, before any normalization. */
+/** Extract normalized log-spectrum autocorrelation features. */
 export function calculateSpectrumAutocorrelation(
   samples: Float32Array,
   sampleRate: number,
   options: SpectrumAnalysisOptions = {},
 ): Float32Array | null {
-  const threshold = options.energyThreshold ?? 0.008;
   const bins = options.logBinCount ?? 256;
   const length = options.autocorrelationLength ?? 64;
   const minFrequency = options.minFrequency ?? 80;
@@ -23,7 +22,7 @@ export function calculateSpectrumAutocorrelation(
   let energy = 0;
   for (const sample of samples) energy += sample * sample;
   const rms = Math.sqrt(energy / samples.length);
-  if (!Number.isFinite(rms) || rms <= threshold) return null;
+  if (!Number.isFinite(rms)) return null;
 
   const size = nextPowerOfTwo(samples.length);
   const real = new Float64Array(size);
