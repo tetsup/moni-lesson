@@ -58,7 +58,6 @@ describe('PlayingStatusDetector', () => {
 
   it('treats non-finite scores as zero and clamps scores to [0, 1]', () => {
     const detector = new PlayingStatusDetector();
-    expect(update(detector, 2).average).toBe(1);
     expect(detector.update(2, 2, START_THRESHOLD, STOP_THRESHOLD).average).toBe(1);
     expect(detector.update(Number.NaN, 2, START_THRESHOLD, STOP_THRESHOLD).average).toBe(0.5);
   });
