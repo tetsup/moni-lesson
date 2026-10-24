@@ -3,6 +3,7 @@ export const LESSON_DATABASE_KEY = 'moni-lesson-database';
 export type ExerciseAssignment = {
   topicId: string;
   active: boolean;
+  targetCount?: number;
   pointsPerCompletion?: number;
   goalBonusPoints?: number;
 };
@@ -192,6 +193,23 @@ export const setSongExercise = (
       exercises: hasExercise
         ? item.exercises.map((exercise) => exercise.topicId === topicId ? { ...exercise, active } : exercise)
         : [...item.exercises, { topicId, active }],
+    }),
+  };
+};
+
+export const setExerciseTargetCount = (
+  database: LessonDatabase,
+  songId: string,
+  topicId: string,
+  targetCount: number,
+): LessonDatabase => {
+  if (!Number.isSafeInteger(targetCount) || targetCount < 1) return database;
+  return {
+    ...database,
+    songs: database.songs.map((song) => song.id !== songId ? song : {
+      ...song,
+      exercises: song.exercises.map((exercise) =>
+        exercise.topicId === topicId ? { ...exercise, targetCount } : exercise),
     }),
   };
 };
