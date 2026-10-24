@@ -16,6 +16,8 @@ import {
   setExercisePoints,
   setSongBonusPoints,
   setDailyBonusPoints,
+  softDeleteSong,
+  softDeleteTopic,
   type LessonDatabase,
 } from './data/lesson-database';
 import {
@@ -84,6 +86,19 @@ export default function App() {
   const toggleTopicForSong = (topicId: string, active: boolean) => {
     if (!activeSongId) return;
     setDatabase((previous) => setSongExercise(previous, activeSongId, topicId, active));
+  };
+
+  const deleteSongFromTeacher = (songId: string) => {
+    const song = songs.find((item) => item.id === songId);
+    if (!song || !window.confirm('「' + song.title + '」を削除しますか？')) return;
+    setDatabase((previous) => softDeleteSong(previous, songId));
+    setSelectedSongId((current) => current === songId ? '' : current);
+  };
+
+  const deleteTopicFromTeacher = (topicId: string) => {
+    const topic = topics.find((item) => item.id === topicId);
+    if (!topic || !window.confirm('お題「' + topic.title + '」を削除しますか？')) return;
+    setDatabase((previous) => softDeleteTopic(previous, topicId));
   };
 
   const pointDraftKey = (key: string) => `${activeSongId}:${key}`;
