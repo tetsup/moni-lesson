@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 
@@ -236,6 +236,29 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Box>
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
         sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
+      <Stack direction="row" alignItems="center" spacing={1.5}>
+        <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', borderRadius: 999 }}>
+          <LinearProgress
+            variant="determinate"
+            value={Math.min(
+              currentExercise.completionCount,
+              currentExercise.targetCount * 1.2,
+            ) / (currentExercise.targetCount * 1.2) * 100}
+            sx={{
+              height: 12,
+              borderRadius: 999,
+              bgcolor: '#eadcf1',
+              '& .MuiLinearProgress-bar': {
+                borderRadius: 999,
+                bgcolor: '#b486c9',
+              },
+            }}
+          />
+        </Box>
+        <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: '#80509a' }}>
+          {currentExercise.completionCount} / {currentExercise.targetCount}回
+        </Typography>
+      </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
         sx={{ minHeight: 54, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
     <Typography variant="caption" color="text.secondary" textAlign="center">練習できたら「できた！」を押して記録しよう。</Typography>
