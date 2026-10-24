@@ -3,7 +3,12 @@ import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } fro
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 
-export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {\n  const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);\n  return Boolean(exercise && exercise.completionCount >= exercise.targetCount);\n};\n\ntype Props = {
+export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
+  const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
+  return Boolean(exercise && exercise.completionCount >= exercise.targetCount);
+};
+
+type Props = {
   session: LessonSession;
   onSessionChange: (update: (previous: LessonSession) => LessonSession) => void;
   onNavigate: (route: 'complete') => void;
