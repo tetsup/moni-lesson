@@ -3,7 +3,7 @@ import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } fro
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 
-export const isExerciseGoalAchieved = (completionCount: number, targetCount: number): boolean =>\n  completionCount >= targetCount;\n\ntype Props = {
+export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {\n  const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);\n  return Boolean(exercise && exercise.completionCount >= exercise.targetCount);\n};\n\ntype Props = {
   session: LessonSession;
   onSessionChange: (update: (previous: LessonSession) => LessonSession) => void;
   onNavigate: (route: 'complete') => void;
@@ -19,7 +19,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   // across songs, so a global topic lookup can accidentally keep the previous song.
   const currentSong = songs.find((song) => song.songId === selectedSongId);
   const currentExercise = currentSong?.exercises.find((exercise) => exercise.topicId === currentTopicId);
-  const isGoalAchieved = Boolean(currentExercise && isExerciseGoalAchieved(currentExercise.completionCount, currentExercise.targetCount));
+  const isGoalAchieved = isExerciseGoalAchieved(session, selectedSongId, currentTopicId);
   const songIndex = songs.findIndex((song) => song.songId === currentSong?.songId);
   const topicIndex = currentSong?.exercises.findIndex((exercise) => exercise.topicId === currentTopicId) ?? -1;
   const nextExercise = currentSong?.exercises[topicIndex + 1];
