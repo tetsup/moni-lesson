@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { PlayingStatusDetector } from './playing-status';
 import { calculateSimilarity, calculateSpectrumAutocorrelation } from './spectrum-analysis';
 
+const AVERAGE_WINDOW_SIZE = 5;
 const START_THRESHOLD = 0.5;
 const STOP_THRESHOLD = 0.3;
 const update = (detector: PlayingStatusDetector, score: number) =>
-  detector.update(score, START_THRESHOLD, STOP_THRESHOLD);
+  detector.update(score, AVERAGE_WINDOW_SIZE, START_THRESHOLD, STOP_THRESHOLD);
 
 describe('PlayingStatusDetector', () => {
   it('uses a rolling average of up to five scores', () => {
@@ -56,9 +57,10 @@ describe('PlayingStatusDetector', () => {
   });
 
   it('treats non-finite scores as zero and clamps scores to [0, 1]', () => {
-    const detector = new PlayingStatusDetector({ windowSize: 2 });
+    const detector = new PlayingStatusDetector();
     expect(update(detector, 2).average).toBe(1);
-    expect(update(detector, Number.NaN).average).toBe(0.5);
+    expect(detector.update(2, 2, START_THRESHOLD, STOP_THRESHOLD).average).toBe(1);
+    expect(detector.update(Number.NaN, 2, START_THRESHOLD, STOP_THRESHOLD).average).toBe(0.5);
   });
 });
 
