@@ -4,6 +4,8 @@ import {
   addTopic,
   emptyLessonDatabase,
   setSongExercise,
+  setExercisePoints,
+  setSongBonusPoints,
 } from './lesson-database';
 import { canStartLesson, makeLessonSetup } from './lesson-setup';
 
@@ -38,6 +40,23 @@ describe('lesson setup', () => {
       }],
       allGoalsBonusPoints: 5,
     }]);
+  });
+
+  it('uses teacher-configured points for exercises and song bonuses', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+    database = setSongExercise(database, song.id, topic.id, true);
+    database = setExercisePoints(database, song.id, topic.id, 'pointsPerCompletion', 3);
+    database = setExercisePoints(database, song.id, topic.id, 'goalBonusPoints', 12);
+    database = setSongBonusPoints(database, song.id, 20);
+
+    expect(makeLessonSetup(database)[0]).toMatchObject({
+      exercises: [{ topicId: topic.id, pointsPerCompletion: 3, goalBonusPoints: 12 }],
+      allGoalsBonusPoints: 20,
+    });
   });
 
   it('does not enable start for inactive or deleted topics', () => {
