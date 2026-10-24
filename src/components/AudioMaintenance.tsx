@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
 import { calculateSpectrumAutocorrelation } from '../audio/spectrum-analysis';
 
@@ -11,10 +11,15 @@ type AudioFrame = {
   features: Float32Array | null;
 };
 
+const HISTORY_SIZE = 5;
+
 export default function AudioMaintenance() {
   const [enabled, setEnabled] = useState(false);
   const [recording, setRecording] = useState(false);
   const [frame, setFrame] = useState<AudioFrame>({ energy: 0, features: null });
+  const [history, setHistory] = useState<AudioFrame[]>([]);
+  const [hold, setHold] = useState(false);
+  const holdRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,7 +79,11 @@ export default function AudioMaintenance() {
           for (const sample of samples) sum += sample * sample;
           const energy = Math.sqrt(sum / samples.length);
           const features = calculateSpectrumAutocorrelation(samples, context.sampleRate, FEATURE_OPTIONS);
-          setFrame({ energy, features });
+          const nextFrame = { energy, features };
+          if (!holdRef.current) {
+            setFrame(nextFrame);
+            setHistory((current) => [...current, nextFrame].slice(-HISTORY_SIZE));
+          }
         }, INTERVAL_MS);
       } catch (cause) {
         stop();
@@ -93,6 +102,14 @@ export default function AudioMaintenance() {
   }, [enabled]);
 
   const features = frame.features;
+  const averageEnergy = history.length ? history.reduce((sum, item) => sum + item.energy, 0) / history.length : 0;
+  const featureCount = history.find((item) => item.features)?.features?.length ?? 0;
+  const averageFeatures = featureCount > 0
+    ? Array.from({ length: featureCount }, (_, index) => {
+        const values = history.flatMap((item) => item.features && item.features.length === featureCount ? [item.features[index]] : []);
+        return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+      })
+    : null;
 
   return (
     <Stack spacing={2}>
@@ -109,15 +126,24 @@ export default function AudioMaintenance() {
             <Box>
               <Typography variant="subtitle1" fontWeight={800}>マイク入力</Typography>
               <Typography variant="body2" color="text.secondary">
-                {recording ? '約250msごとに更新中' : '停止中'}
+                {recording ? (hold ? '測定中・表示をホールド' : '約250msごとに更新中') : '停止中'}
               </Typography>
             </Box>
-            <Button variant="contained" onClick={() => {
-              setError(null);
-              setEnabled((current) => !current);
-            }} sx={{ borderRadius: 2, minWidth: 112 }}>
-              {enabled ? '停止' : '測定開始'}
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button variant={hold ? 'contained' : 'outlined'} color={hold ? 'secondary' : 'primary'} onClick={() => {
+                const next = !holdRef.current;
+                holdRef.current = next;
+                setHold(next);
+              }} sx={{ borderRadius: 2, minWidth: 96 }}>
+                {hold ? 'ホールド中' : 'ホールド'}
+              </Button>
+              <Button variant="contained" onClick={() => {
+                setError(null);
+                setEnabled((current) => !current);
+              }} sx={{ borderRadius: 2, minWidth: 112 }}>
+                {enabled ? '停止' : '測定開始'}
+              </Button>
+            </Stack>
           </Stack>
           {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
@@ -144,6 +170,12 @@ export default function AudioMaintenance() {
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             RMS がしきい値以下の場合、特徴量は null になります。値はマイク入力の振幅に依存します。
           </Typography>
+          <Typography variant="subtitle2" sx={{ mt: 2 }}>直近{HISTORY_SIZE}回のエネルギー</Typography>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            {history.map((item, index) => <Chip key={index} size="small" variant="outlined" label={item.energy.toFixed(6)} />)}
+            {history.length === 0 && <Typography variant="body2" color="text.secondary">まだ測定値がありません</Typography>}
+          </Stack>
+          <Typography variant="body1" fontWeight={800} sx={{ mt: 1 }}>直近{history.length}回の平均: {averageEnergy.toFixed(6)} RMS</Typography>
         </CardContent>
       </Card>
 
@@ -168,6 +200,16 @@ export default function AudioMaintenance() {
                   }} />
                 ))}
               </Box>
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>直近{HISTORY_SIZE}回の特徴量（lag 1）</Typography>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+                {history.map((item, index) => <Chip key={index} size="small" variant="outlined" label={item.features ? item.features[1]?.toFixed(6) : 'null'} />)}
+              </Stack>
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>直近{history.length}回の特徴量平均</Typography>
+              {!averageFeatures ? <Typography variant="body2" color="text.secondary">平均を計算できる特徴量がありません</Typography> : (
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 1 }}>
+                  {averageFeatures.map((value, index) => <Box key={index} sx={{ bgcolor: '#f3edf7', p: 1, borderRadius: 1 }}><Typography variant="caption" color="text.secondary">lag {index}</Typography><Typography variant="body2" fontFamily="monospace">{value.toFixed(6)}</Typography></Box>)}
+                </Box>
+              )}
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 2 }}>
                 {Array.from(features, (value, index) => ({ value, index })).map(({ value, index }) => (
                   <Box key={index} sx={{ bgcolor: '#faf7fc', p: 1, borderRadius: 1 }}>
