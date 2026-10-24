@@ -6,7 +6,7 @@ import {
 } from './lesson-database';
 import type { LessonSongSetup } from './lesson-session';
 
-export const DEFAULT_TARGET_COUNT = 2;
+export const DEFAULT_TARGET_COUNT = 10;
 export const DEFAULT_POINTS_PER_COMPLETION = 1;
 export const DEFAULT_GOAL_BONUS_POINTS = 5;
 export const DEFAULT_ALL_GOALS_BONUS_POINTS = 5;
