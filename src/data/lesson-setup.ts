@@ -27,11 +27,11 @@ export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] => 
         topicId: topic.id,
         topicTitle: topic.title,
         targetCount: DEFAULT_TARGET_COUNT,
-        pointsPerCompletion: DEFAULT_POINTS_PER_COMPLETION,
-        goalBonusPoints: DEFAULT_GOAL_BONUS_POINTS,
+        pointsPerCompletion: assignment.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION,
+        goalBonusPoints: assignment.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS,
       }];
     }),
-    allGoalsBonusPoints: DEFAULT_ALL_GOALS_BONUS_POINTS,
+    allGoalsBonusPoints: song.allGoalsBonusPoints ?? DEFAULT_ALL_GOALS_BONUS_POINTS,
   })).filter((song) => song.exercises.length > 0);
 };
 
