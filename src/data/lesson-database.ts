@@ -3,6 +3,8 @@ export const LESSON_DATABASE_KEY = 'moni-lesson-database';
 export type ExerciseAssignment = {
   topicId: string;
   active: boolean;
+  pointsPerCompletion?: number;
+  goalBonusPoints?: number;
 };
 
 export type Song = {
@@ -11,6 +13,7 @@ export type Song = {
   order: number;
   deleted: boolean;
   exercises: ExerciseAssignment[];
+  allGoalsBonusPoints?: number;
 };
 
 export type Topic = {
@@ -25,6 +28,7 @@ export type LessonDatabase = {
   songs: Song[];
   topics: Topic[];
   currentSongId: string | null;
+  dailyBonusPoints?: number;
 };
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
@@ -184,6 +188,42 @@ export const setSongExercise = (
         : [...item.exercises, { topicId, active }],
     }),
   };
+};
+
+export const setExercisePoints = (
+  database: LessonDatabase,
+  songId: string,
+  topicId: string,
+  field: 'pointsPerCompletion' | 'goalBonusPoints',
+  points: number,
+): LessonDatabase => {
+  if (!Number.isSafeInteger(points) || points < 0) return database;
+  return {
+    ...database,
+    songs: database.songs.map((song) => song.id !== songId ? song : {
+      ...song,
+      exercises: song.exercises.map((exercise) =>
+        exercise.topicId === topicId ? { ...exercise, [field]: points } : exercise),
+    }),
+  };
+};
+
+export const setSongBonusPoints = (
+  database: LessonDatabase,
+  songId: string,
+  points: number,
+): LessonDatabase => {
+  if (!Number.isSafeInteger(points) || points < 0) return database;
+  return {
+    ...database,
+    songs: database.songs.map((song) =>
+      song.id === songId ? { ...song, allGoalsBonusPoints: points } : song),
+  };
+};
+
+export const setDailyBonusPoints = (database: LessonDatabase, points: number): LessonDatabase => {
+  if (!Number.isSafeInteger(points) || points < 0) return database;
+  return { ...database, dailyBonusPoints: points };
 };
 
 export const getActiveExercises = (database: LessonDatabase, songId: string): ExerciseAssignment[] => {
