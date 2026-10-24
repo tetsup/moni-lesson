@@ -78,18 +78,31 @@ describe('songs', () => {
     expect(addSong(db, '  ')).toBe(db);
   });
 
-  it('soft-deletes a song without removing it and clears it if it was current', () => {
-    const db = setCurrentSong(makeDatabase(), 's2');
+  it('soft-deletes a song, clears its topic references, and clears it if it was current', () => {
+    let db = makeDatabase();
+    db = setSongExercise(db, 's2', 't1', true);
+    db = setSongExercise(db, 's2', 't2', false);
+    db = setCurrentSong(db, 's2');
     const deleted = softDeleteSong(db, 's2');
-    expect(deleted.songs.find((song) => song.id === 's2')?.deleted).toBe(true);
+    expect(deleted.songs.find((song) => song.id === 's2')).toMatchObject({ deleted: true, exercises: [] });
     expect(deleted.songs).toHaveLength(3);
     expect(deleted.currentSongId).toBeNull();
     expect(listSongs(deleted).map((song) => song.id)).toEqual(['s1', 's3']);
+    expect(deleted.topics.every((topic) => !topic.deleted)).toBe(true);
   });
 
   it('does not change state when asked to delete an unknown song', () => {
     const db = makeDatabase();
     expect(softDeleteSong(db, 'missing')).toBe(db);
+  });
+
+  it('does not mutate the original database when soft-deleting a song', () => {
+    let db = makeDatabase();
+    db = setSongExercise(db, 's2', 't1', true);
+    const deleted = softDeleteSong(db, 's2');
+    expect(db.songs.find((song) => song.id === 's2')?.exercises).toEqual([{ topicId: 't1', active: true }]);
+    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
   });
 
   it('reorders active songs and normalizes their order values', () => {
@@ -126,16 +139,44 @@ describe('topics', () => {
     expect(addTopic(db, ' \n ')).toBe(db);
   });
 
-  it('soft-deletes a topic without removing it from storage', () => {
-    const db = softDeleteTopic(makeDatabase(), 't2');
-    expect(db.topics).toHaveLength(3);
-    expect(db.topics.find((topic) => topic.id === 't2')?.deleted).toBe(true);
-    expect(listTopics(db).map((topic) => topic.id)).toEqual(['t1', 't3']);
+  it('soft-deletes a topic and removes its references from every song', () => {
+    let db = makeDatabase();
+    db = setSongExercise(db, 's1', 't2', true);
+    db = setSongExercise(db, 's2', 't2', false);
+    db = setSongExercise(db, 's3', 't1', true);
+    const deleted = softDeleteTopic(db, 't2');
+    expect(deleted.topics).toHaveLength(3);
+    expect(deleted.topics.find((topic) => topic.id === 't2')?.deleted).toBe(true);
+    expect(listTopics(deleted).map((topic) => topic.id)).toEqual(['t1', 't3']);
+    expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's3')?.exercises).toEqual([{ topicId: 't1', active: true }]);
   });
 
   it('does not change state when asked to delete an unknown topic', () => {
     const db = makeDatabase();
     expect(softDeleteTopic(db, 'missing')).toBe(db);
+  });
+
+  it('removes deleted topic references from every song, including deleted songs', () => {
+    let db = makeDatabase();
+    db = setSongExercise(db, 's1', 't2', true);
+    db = setSongExercise(db, 's2', 't2', false);
+    db = setSongExercise(db, 's3', 't1', true);
+    db = softDeleteSong(db, 's2');
+    const deleted = softDeleteTopic(db, 't2');
+    expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's3')?.exercises).toEqual([{ topicId: 't1', active: true }]);
+  });
+
+  it('does not mutate the original database when soft-deleting a topic', () => {
+    let db = makeDatabase();
+    db = setSongExercise(db, 's1', 't1', true);
+    db = setSongExercise(db, 's1', 't2', true);
+    const deleted = softDeleteTopic(db, 't2');
+    expect(db.songs[0].exercises).toHaveLength(2);
+    expect(deleted.songs[0].exercises).toEqual([{ topicId: 't1', active: true }]);
   });
 
   it('reorders active topics and normalizes their order values', () => {
