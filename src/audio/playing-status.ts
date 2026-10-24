@@ -1,7 +1,3 @@
-export type PlayingStatusOptions = {
-  windowSize?: number;
-};
-
 /**
  * Smooths similarity scores and applies hysteresis to determine playing status.
  * Every score, including zero for quiet frames, enters the rolling window.
@@ -9,18 +5,14 @@ export type PlayingStatusOptions = {
 export class PlayingStatusDetector {
   private readonly scores: number[] = [];
   private playing = false;
-  private readonly windowSize: number;
-  constructor(options: PlayingStatusOptions = {}) {
-    this.windowSize = Math.max(1, Math.floor(options.windowSize ?? 5));
-  }
-
-  update(score: number, startThreshold: number, stopThreshold: number): { average: number; isPlaying: boolean } {
+  update(score: number, windowSize: number, startThreshold: number, stopThreshold: number): { average: number; isPlaying: boolean } {
     if (stopThreshold > startThreshold) {
       throw new Error('stopThreshold must be less than or equal to startThreshold');
     }
+    const safeWindowSize = Math.max(1, Math.floor(windowSize));
     const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
     this.scores.push(safeScore);
-    if (this.scores.length > this.windowSize) this.scores.shift();
+    while (this.scores.length > safeWindowSize) this.scores.shift();
 
     const average = this.scores.reduce((sum, value) => sum + value, 0) / this.scores.length;
     if (!this.playing && average >= startThreshold) this.playing = true;
