@@ -6,6 +6,7 @@ import {
   recordExerciseCompletion,
   resetLessonSessionForDate,
   saveLessonSession,
+  updateLessonSessionForSetup,
 } from './lesson-session';
 
 class MemoryStorage {
@@ -68,6 +69,62 @@ describe('lesson session operations', () => {
       goalBonusAwarded: false,
     });
     expect(session).toMatchObject({ date: '2026-10-23', totalPoints: 100, todayPoints: 0 });
+  });
+
+  it('preserves current progress and earned points when the lesson setup changes', () => {
+    let session = setup();
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    expect(session.songs[0].exercises[0].goalBonusAwarded).toBe(true);
+    const earnedTotal = session.totalPoints;
+    const earnedToday = session.todayPoints;
+
+    const updated = updateLessonSessionForSetup(session, session.date, [
+      {
+        songId: 'song-a',
+        songTitle: 'Song A',
+        order: 0,
+        exercises: [
+          { topicId: 'topic-1', topicTitle: 'Topic 1 updated', targetCount: 2, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-4', topicTitle: 'New Topic', targetCount: 2, pointsPerCompletion: 1, goalBonusPoints: 5 },
+        ],
+        allGoalsBonusPoints: 7,
+      },
+    ], 10);
+
+    expect(updated.totalPoints).toBe(earnedTotal);
+    expect(updated.todayPoints).toBe(earnedToday);
+    expect(updated.songs[0].exercises[0]).toMatchObject({
+      topicTitle: 'Topic 1 updated',
+      completionCount: 2,
+      goalBonusAwarded: true,
+    });
+    expect(updated.songs[0].exercises[1]).toMatchObject({
+      topicId: 'topic-4',
+      completionCount: 0,
+      goalBonusAwarded: false,
+    });
+    expect(updated.songs[0].allGoalsBonusAwarded).toBe(session.songs[0].allGoalsBonusAwarded);
+    expect(updated.dailyBonusAwarded).toBe(session.dailyBonusAwarded);
+  });
+
+  it('starts fresh daily progress for a different date while preserving lifetime points', () => {
+    const session = recordExerciseCompletion(setup(), 'song-a', 'topic-1');
+    const updated = updateLessonSessionForSetup(session, '2026-10-24', [
+      {
+        songId: 'song-a',
+        songTitle: 'Song A',
+        order: 0,
+        exercises: [
+          { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, pointsPerCompletion: 1, goalBonusPoints: 5 },
+        ],
+        allGoalsBonusPoints: 7,
+      },
+    ], 10);
+    expect(updated.totalPoints).toBe(session.totalPoints);
+    expect(updated.todayPoints).toBe(0);
+    expect(updated.songs[0].exercises[0].completionCount).toBe(0);
+    expect(updated.songs[0].exercises[0].goalBonusAwarded).toBe(false);
   });
 
   it('adds points for every completion', () => {
