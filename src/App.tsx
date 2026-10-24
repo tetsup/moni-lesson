@@ -18,6 +18,7 @@ import {
 import {
   createLessonSession,
   loadLessonSession,
+  updateLessonSessionForSetup,
   resetLessonSessionForDate,
   saveLessonSession,
   type LessonSession,
@@ -89,8 +90,8 @@ export default function App() {
   const openLesson = () => {
     const setup = makeLessonSetup(database);
     if (setup.length === 0) return;
-    const previous = loadLessonSession(window.localStorage);
-    const next = createLessonSession(today(), setup, DEFAULT_DAILY_BONUS_POINTS, previous?.totalPoints ?? session.totalPoints);
+    const previous = loadLessonSession(window.localStorage) ?? session;
+    const next = updateLessonSessionForSetup(previous, today(), setup, DEFAULT_DAILY_BONUS_POINTS);
     setSession(next);
     setRoute({ page: 'practice' });
     window.location.hash = '/practice';
