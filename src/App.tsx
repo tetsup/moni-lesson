@@ -262,9 +262,12 @@ export default function App() {
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲ごとのお題を設定</Typography>
                 {songs.length === 0 ? <Typography color="text.secondary">先に曲を登録してね。</Typography> : (
                   <>
-                    <TextField select fullWidth size="small" label="曲を選択" value={activeSongId} onChange={(event) => setSelectedSongId(event.target.value)} sx={{ mb: 1.5 }}>
-                      {songs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
-                    </TextField>
+                    <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+                      <TextField select fullWidth size="small" label="曲を選択" value={activeSongId} onChange={(event) => setSelectedSongId(event.target.value)}>
+                        {songs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
+                      </TextField>
+                      <Button color="error" variant="outlined" onClick={() => deleteSongFromTeacher(activeSongId)} disabled={!activeSongId} sx={{ flexShrink: 0 }}>曲を削除</Button>
+                    </Stack>
                     {topics.length === 0 ? <Typography color="text.secondary">先にお題を登録してね。</Typography> : (
                       <Stack spacing={1}>
                         {topics.map((topic) => {
@@ -275,9 +278,12 @@ export default function App() {
                             <Stack key={topic.id} spacing={1} sx={{ p: 1.2, borderRadius: 2.5, bgcolor: '#faf7fc' }}>
                               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                                 <Typography fontWeight={700}>{topic.title}</Typography>
-                                <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
-                                  {active ? 'レッスンに使う' : '使わない'}
-                                </Button>
+                                <Stack direction="row" spacing={0.5}>
+                                  <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
+                                    {active ? 'レッスンに使う' : '使わない'}
+                                  </Button>
+                                  <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>
+                                </Stack>
                               </Stack>
                               <Stack direction="row" spacing={1}>
                                 <TextField size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
