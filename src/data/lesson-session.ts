@@ -74,6 +74,43 @@ export const createLessonSession = (
   todayPoints: 0,
 });
 
+/**
+ * Rebuilds the current lesson from teacher settings without discarding today's progress.
+ * Earned points are historical and are never withdrawn when the setup changes.
+ */
+export const updateLessonSessionForSetup = (
+  previous: LessonSession,
+  date: string,
+  songs: LessonSongSetup[],
+  dailyBonusPoints: number,
+): LessonSession => {
+  const next = createLessonSession(date, songs, dailyBonusPoints, previous.totalPoints);
+  if (previous.date !== date) return next;
+
+  return {
+    ...next,
+    todayPoints: previous.todayPoints,
+    dailyBonusAwarded: previous.dailyBonusAwarded,
+    songs: next.songs.map((song) => {
+      const oldSong = previous.songs.find((item) => item.songId === song.songId);
+      if (!oldSong) return song;
+      return {
+        ...song,
+        allGoalsBonusAwarded: oldSong.allGoalsBonusAwarded,
+        exercises: song.exercises.map((exercise) => {
+          const oldExercise = oldSong.exercises.find((item) => item.topicId === exercise.topicId);
+          if (!oldExercise) return exercise;
+          return {
+            ...exercise,
+            completionCount: oldExercise.completionCount,
+            goalBonusAwarded: oldExercise.goalBonusAwarded,
+          };
+        }),
+      };
+    }),
+  };
+};
+
 const isLessonSession = (value: unknown): value is LessonSession => {
   if (!value || typeof value !== 'object') return false;
   const session = value as LessonSession;
