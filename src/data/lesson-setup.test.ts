@@ -5,6 +5,7 @@ import {
   emptyLessonDatabase,
   setSongExercise,
   setExercisePoints,
+  setExerciseTargetCount,
   setSongBonusPoints,
 } from './lesson-database';
 import { canStartLesson, makeLessonSetup } from './lesson-setup';
@@ -40,6 +41,30 @@ describe('lesson setup', () => {
       }],
       allGoalsBonusPoints: 5,
     }]);
+  });
+
+  it('uses teacher-configured repetition target for each topic', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+    database = setSongExercise(database, song.id, topic.id, true);
+    database = setExerciseTargetCount(database, song.id, topic.id, 7);
+
+    expect(makeLessonSetup(database)[0].exercises[0].targetCount).toBe(7);
+  });
+
+  it('keeps the default repetition target for older assignments and rejects invalid targets', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+    database = setSongExercise(database, song.id, topic.id, true);
+    expect(makeLessonSetup(database)[0].exercises[0].targetCount).toBe(2);
+    expect(setExerciseTargetCount(database, song.id, topic.id, 0)).toBe(database);
+    expect(setExerciseTargetCount(database, song.id, topic.id, -1)).toBe(database);
   });
 
   it('uses teacher-configured points for exercises and song bonuses', () => {
