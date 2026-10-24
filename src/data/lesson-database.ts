@@ -99,7 +99,9 @@ export const softDeleteSong = (database: LessonDatabase, songId: string): Lesson
   if (!database.songs.some((song) => song.id === songId)) return database;
   return {
     ...database,
-    songs: database.songs.map((song) => song.id === songId ? { ...song, deleted: true } : song),
+    songs: database.songs.map((song) => song.id === songId
+      ? { ...song, deleted: true, exercises: [] }
+      : song),
     currentSongId: database.currentSongId === songId ? null : database.currentSongId,
   };
 };
@@ -147,6 +149,10 @@ export const softDeleteTopic = (database: LessonDatabase, topicId: string): Less
   return {
     ...database,
     topics: database.topics.map((topic) => topic.id === topicId ? { ...topic, deleted: true } : topic),
+    songs: database.songs.map((song) => ({
+      ...song,
+      exercises: song.exercises.filter((exercise) => exercise.topicId !== topicId),
+    })),
   };
 };
 
