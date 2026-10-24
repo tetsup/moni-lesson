@@ -119,6 +119,15 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
           <Typography sx={{ mt: 2 }}>できた回数：{currentExercise.completionCount} / {currentExercise.targetCount}</Typography>
         </CardContent>
       </Card>
+      {isGoalAchieved ? (
+        <Box aria-label="お題達成のお祝い画面" role="status" sx={{ position: 'relative', height: { xs: 250, sm: 270 }, overflow: 'hidden', borderRadius: 5, bgcolor: '#fff4fa', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+          {Array.from({ length: 20 }, (_, i) => (
+            <Box key={i} aria-hidden="true" sx={{ position: 'absolute', top: -18, left: `${(i * 37) % 100}%`, width: 9, height: 15, borderRadius: 1, bgcolor: ['#e58eae', '#a56cc1', '#75aa9a', '#f2c14e'][i % 4], animation: `confettiFall ${1.8 + (i % 4) * 0.35}s linear ${i * 0.07}s infinite`, '@keyframes confettiFall': { '0%': { transform: 'translateY(-10px) rotate(0deg)', opacity: 1 }, '100%': { transform: 'translateY(300px) rotate(540deg)', opacity: 0 } } }} />
+          ))}
+          <Typography variant="h3" fontWeight={900} sx={{ color: '#80509a', zIndex: 1 }}>お題達成！</Typography>
+          <Typography variant="h5" fontWeight={800} sx={{ color: '#b486c9', zIndex: 1 }}>よく頑張ったね！</Typography>
+        </Box>
+      ) : (
       <Box
         aria-label="グランドピアノと流れる音符"
         role="img"
@@ -240,6 +249,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
           ))}
         </Box>
       </Box>
+      )}
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
         sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -253,10 +263,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
             sx={{
               height: 12,
               borderRadius: 999,
-              bgcolor: '#eadcf1',
+              bgcolor: isGoalAchieved ? '#ffe7a8' : '#eadcf1',
               '& .MuiLinearProgress-bar': {
                 borderRadius: 999,
-                bgcolor: '#b486c9',
+                bgcolor: isGoalAchieved ? '#e6a817' : '#b486c9',
               },
             }}
           />
