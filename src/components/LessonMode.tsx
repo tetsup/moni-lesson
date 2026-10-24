@@ -64,7 +64,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
           <Typography variant="h5" fontWeight={800}>曲とお題を選ぼう</Typography>
           <Typography color="text.secondary">曲を選ぶと、その曲のお題が表示されるよ。</Typography>
         </Box>
-        <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+        <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
           <CardContent>
             <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲</Typography>
             <Stack spacing={1}>
@@ -77,7 +77,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
             </Stack>
           </CardContent>
         </Card>
-        <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+        <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
           <CardContent>
             <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>{selectedSong?.songTitle ?? 'お題'}</Typography>
             {!selectedSong || selectedSong.exercises.length === 0 ? (
@@ -106,7 +106,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   return (
     <Stack spacing={2}>
       <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start' }}>← 戻る</Button>
-      <Card sx={{ borderRadius: 4, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
+      <Card sx={{ borderRadius: 2, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
         <CardContent>
           <Typography color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
           <Typography variant="h4" fontWeight={900} sx={{ mt: 1, color: '#80509a' }}>{currentExercise.topicTitle}</Typography>
@@ -235,9 +235,9 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
         </Box>
       </Box>
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
-        sx={{ minHeight: 58, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
+        sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
-        sx={{ minHeight: 54, borderRadius: 4, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
+        sx={{ minHeight: 54, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
     <Typography variant="caption" color="text.secondary" textAlign="center">練習できたら「できた！」を押して記録しよう。</Typography>
   </Stack>
   );
