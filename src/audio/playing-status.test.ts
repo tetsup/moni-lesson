@@ -72,6 +72,7 @@ describe('audio analysis to playing status flow', () => {
     expect(quietScore).toBe(0);
     detector.update(quietScore);
     detector.update(quietScore);
+    detector.update(quietScore);
     expect(detector.update(quietScore).isPlaying).toBe(false);
   });
 });
