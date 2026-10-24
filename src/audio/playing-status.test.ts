@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { PlayingStatusDetector } from './playing-status';
 import { calculateSimilarity, calculateSpectrumAutocorrelation } from './spectrum-analysis';
 
+const START_THRESHOLD = 0.5;
+const STOP_THRESHOLD = 0.3;
+const update = (detector: PlayingStatusDetector, score: number) =>
+  detector.update(score, START_THRESHOLD, STOP_THRESHOLD);
+
 describe('PlayingStatusDetector', () => {
-  const START_THRESHOLD = 0.5;
-  const STOP_THRESHOLD = 0.3;
-  const update = (detector: PlayingStatusDetector, score: number) =>
-    update(detector, score, START_THRESHOLD, STOP_THRESHOLD);
   it('uses a rolling average of up to five scores', () => {
     const detector = new PlayingStatusDetector();
     expect(update(detector, 1).average).toBeCloseTo(1);
