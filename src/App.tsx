@@ -3,7 +3,7 @@ import LessonMode from './components/LessonMode';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Chip, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
-import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS } from './data/lesson-setup';
+import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSong,
   addTopic,
@@ -13,6 +13,9 @@ import {
   loadLessonDatabase,
   saveLessonDatabase,
   setSongExercise,
+  setExercisePoints,
+  setSongBonusPoints,
+  setDailyBonusPoints,
   type LessonDatabase,
 } from './data/lesson-database';
 import {
@@ -82,6 +85,27 @@ export default function App() {
     setDatabase((previous) => setSongExercise(previous, activeSongId, topicId, active));
   };
 
+  const updateExercisePoints = (topicId: string, field: 'pointsPerCompletion' | 'goalBonusPoints', value: string) => {
+    if (!activeSongId || value.trim() === '') return;
+    const points = Number(value);
+    if (!Number.isSafeInteger(points) || points < 0) return;
+    setDatabase((previous) => setExercisePoints(previous, activeSongId, topicId, field, points));
+  };
+
+  const updateSongBonusPoints = (value: string) => {
+    if (!activeSongId || value.trim() === '') return;
+    const points = Number(value);
+    if (!Number.isSafeInteger(points) || points < 0) return;
+    setDatabase((previous) => setSongBonusPoints(previous, activeSongId, points));
+  };
+
+  const updateDailyBonusPoints = (value: string) => {
+    if (value.trim() === '') return;
+    const points = Number(value);
+    if (!Number.isSafeInteger(points) || points < 0) return;
+    setDatabase((previous) => setDailyBonusPoints(previous, points));
+  };
+
   const navigateToCompletion = () => {
     setRoute({ page: 'complete' });
     window.location.hash = '/complete';
@@ -91,7 +115,7 @@ export default function App() {
     const setup = makeLessonSetup(database);
     if (setup.length === 0) return;
     const previous = loadLessonSession(window.localStorage) ?? session;
-    const next = updateLessonSessionForSetup(previous, today(), setup, DEFAULT_DAILY_BONUS_POINTS);
+    const next = updateLessonSessionForSetup(previous, today(), setup, database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS);
     setSession(next);
     setRoute({ page: 'practice' });
     window.location.hash = '/practice';
@@ -182,14 +206,22 @@ export default function App() {
                           const assignment = song?.exercises.find((item) => item.topicId === topic.id);
                           const active = assignment?.active ?? false;
                           return (
-                            <Stack key={topic.id} direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 1.2, borderRadius: 2.5, bgcolor: '#faf7fc' }}>
-                              <Typography fontWeight={700}>{topic.title}</Typography>
-                              <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5 }}>
-                                {active ? 'レッスンに使う' : '使わない'}
-                              </Button>
+                            <Stack key={topic.id} spacing={1} sx={{ p: 1.2, borderRadius: 2.5, bgcolor: '#faf7fc' }}>
+                              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                                <Typography fontWeight={700}>{topic.title}</Typography>
+                                <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
+                                  {active ? 'レッスンに使う' : '使わない'}
+                                </Button>
+                              </Stack>
+                              <Stack direction="row" spacing={1}>
+                                <TextField size="small" type="number" label="1回のポイント" value={assignment?.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
+                                <TextField size="small" type="number" label="達成ボーナス" value={assignment?.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
+                              </Stack>
                             </Stack>
                           );
                         })}
+                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints ?? DEFAULT_ALL_GOALS_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateSongBonusPoints(event.target.value)} />
+                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateDailyBonusPoints(event.target.value)} />
                       </Stack>
                     )}
                   </>
