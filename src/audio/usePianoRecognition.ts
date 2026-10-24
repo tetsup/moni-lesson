@@ -6,6 +6,7 @@ import {
   type SpectrumAnalysisOptions,
 } from './spectrum-analysis';
 
+const PLAYING_AVERAGE_WINDOW_SIZE = 5;
 const PLAYING_START_THRESHOLD = 0.5;
 const PLAYING_STOP_THRESHOLD = 0.3;
 
@@ -100,7 +101,7 @@ export function usePianoRecognition({
             analysisOptions,
           );
           const similarity = calculateSimilarity(features, model);
-          const playingStatus = playingDetector.update(similarity, PLAYING_START_THRESHOLD, PLAYING_STOP_THRESHOLD);
+          const playingStatus = playingDetector.update(similarity, PLAYING_AVERAGE_WINDOW_SIZE, PLAYING_START_THRESHOLD, PLAYING_STOP_THRESHOLD);
           setState({
             isRecording: true,
             similarity,
