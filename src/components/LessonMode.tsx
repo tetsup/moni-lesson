@@ -121,42 +121,85 @@ export default function LessonMode({ session, onSessionChange }: Props) {
         <Box sx={{ position: 'absolute', top: 0, left: '6%', right: '6%', height: '70%', borderBottom: '3px solid #e7c5d9' }} />
         <Box sx={{ position: 'absolute', bottom: 24, width: '82%', height: 16, borderRadius: '50%', bgcolor: '#c9a3c0', opacity: .25 }} />
 
-        {/* Piano sits behind the animated notes. */}
+        {/* The piano is an inline SVG; animated notes remain a separate overlay. */}
         <Box
+          component="svg"
+          viewBox="0 0 900 700"
+          role="img"
+          aria-label="笑顔のグランドピアノ"
           sx={{
             position: 'relative',
             zIndex: 1,
-            width: { xs: 285, sm: 320 },
+            width: { xs: '100%', sm: 390 },
             maxWidth: '100%',
-            height: 220,
-            mt: 3,
+            height: '100%',
+            overflow: 'visible',
+            mt: 1,
             animation: 'pianoBob 2.2s ease-in-out infinite',
             '@keyframes pianoBob': {
               '0%,100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-5px)' },
+              '50%': { transform: 'translateY(-4px)' },
             },
           }}
         >
-          <Box sx={{ position: 'absolute', top: 4, left: 20, width: '84%', height: 104, bgcolor: '#24212b', border: '3px solid #100f15', borderRadius: '10px 78% 8px 8px', transform: 'skewY(-5deg)', boxShadow: 'inset 0 6px 0 #494550, 0 6px 0 #111' }} />
-          <Box sx={{ position: 'absolute', top: 20, left: 42, width: '70%', height: 70, bgcolor: '#393540', border: '3px solid #17151c', clipPath: 'polygon(0 0, 100% 0, 88% 100%, 0 100%)', transform: 'rotate(-8deg)', transformOrigin: 'left center' }} />
-          <Box sx={{ position: 'absolute', top: 84, left: 15, right: 9, height: 92, bgcolor: '#17151c', border: '3px solid #08070b', borderRadius: '20px 34px 13px 13px', boxShadow: 'inset 0 8px 0 #37333d, 0 9px 0 #09080c' }}>
-            <Box sx={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2.2 }}>
-              {[0, 1].map((eye) => (
-                <Box key={eye} sx={{ width: 14, height: 18, borderRadius: '50%', bgcolor: '#fff', border: '2px solid #d2c3d8', position: 'relative' }}>
-                  <Box sx={{ position: 'absolute', width: 5, height: 7, borderRadius: '50%', bgcolor: '#282330', top: 4, left: 4 }} />
-                </Box>
-              ))}
-            </Box>
-            <Box sx={{ position: 'absolute', top: 41, left: '50%', transform: 'translateX(-50%)', width: 24, height: 12, borderBottom: '3px solid #f3a4c3', borderRadius: '0 0 50% 50%' }} />
-            <Stack direction="row" sx={{ position: 'absolute', left: 9, right: 9, bottom: 7, height: 25, gap: '2px' }}>
-              {Array.from({ length: 14 }, (_, i) => <Box key={i} sx={{ flex: 1, bgcolor: '#fffafc', borderRadius: '0 0 3px 3px', border: '1px solid #cfc6d2' }} />)}
-            </Stack>
-          </Box>
-          {[-1, 0, 1].map((leg) => <Box key={leg} sx={{ position: 'absolute', top: 158, left: `${43 + leg * 26}%`, width: 13, height: 38, bgcolor: '#111015', borderRadius: 2 }} />)}
-          <Box sx={{ position: 'absolute', bottom: 0, right: 12, width: 42, height: 23, borderRadius: '50%', bgcolor: '#17151c', border: '3px solid #08070b' }} />
+          <defs>
+            <linearGradient id="pianoBody" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#514e59" />
+              <stop offset=".48" stopColor="#302e38" />
+              <stop offset="1" stopColor="#1b1a21" />
+            </linearGradient>
+            <linearGradient id="pianoLid" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#504d58" />
+              <stop offset=".55" stopColor="#2b2933" />
+              <stop offset="1" stopColor="#17151c" />
+            </linearGradient>
+            <linearGradient id="pianoGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#f8dda0" />
+              <stop offset=".5" stopColor="#d8b56c" />
+              <stop offset="1" stopColor="#b28a4e" />
+            </linearGradient>
+            <linearGradient id="pianoKey" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#fffdfd" />
+              <stop offset="1" stopColor="#e9e5e9" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="438" cy="621" rx="286" ry="17" fill="#d8c9df" opacity=".32" />
+          <g transform="translate(8 0) skewX(-3)">
+            <path d="M167 318 L604 83 Q624 72 640 88 L658 108 Q665 119 651 130 L287 345 Z" fill="url(#pianoLid)" stroke="#111117" strokeWidth="5" strokeLinejoin="round" />
+            <path d="M184 314 L612 88 Q625 83 638 98 L643 104 L278 322 Z" fill="none" stroke="url(#pianoGold)" strokeWidth="6" strokeLinejoin="round" />
+            <path d="M584 130 L647 330 L631 333 L566 143 Z" fill="#17161d" stroke="#09090d" strokeWidth="4" />
+            <path d="M153 326 Q166 310 195 309 L666 309 Q691 310 706 330 L735 407 L716 466 L150 466 L129 402 Z" fill="url(#pianoBody)" stroke="#111117" strokeWidth="5" strokeLinejoin="round" />
+            <path d="M186 450 L247 450 L235 541 Q231 565 219 588 L181 588 Q174 564 177 540 Z" fill="url(#pianoBody)" stroke="#111117" strokeWidth="5" />
+            <path d="M633 450 L694 450 L704 540 Q707 564 696 588 L658 588 Q646 565 645 541 Z" fill="url(#pianoBody)" stroke="#111117" strokeWidth="5" />
+            <path d="M430 451 L457 451 L453 515 Q451 528 444 536 L433 536 Q426 527 428 515 Z" fill="#25232c" stroke="#111117" strokeWidth="5" />
+            <path d="M178 583 Q199 595 223 585 L224 601 Q220 614 200 614 Q180 614 176 601 Z M654 583 Q678 596 699 584 L701 601 Q697 614 678 614 Q659 614 653 601 Z" fill="url(#pianoGold)" stroke="#9b7024" strokeWidth="4" />
+            <path d="M131 365 Q132 337 162 329 L680 329 Q710 331 720 356 L744 430 Q750 454 728 470 L151 470 Q125 464 124 440 Z" fill="url(#pianoBody)" stroke="#111117" strokeWidth="5" strokeLinejoin="round" />
+            <path d="M144 365 Q148 346 169 344 L679 344 Q696 346 701 364 L714 414 L143 414 Z" fill="#2b2932" stroke="#111117" strokeWidth="3" />
+            <g>
+              <ellipse cx="334" cy="378" rx="20" ry="25" fill="#fffdfd" stroke="#d7cbdc" strokeWidth="3" />
+              <ellipse cx="339" cy="381" rx="10" ry="15" fill="#24212b" />
+              <circle cx="343" cy="373" r="5" fill="#fff" />
+              <ellipse cx="518" cy="378" rx="20" ry="25" fill="#fffdfd" stroke="#d7cbdc" strokeWidth="3" />
+              <ellipse cx="523" cy="381" rx="10" ry="15" fill="#24212b" />
+              <circle cx="527" cy="373" r="5" fill="#fff" />
+              <ellipse cx="294" cy="400" rx="15" ry="9" fill="#ff8ca8" opacity=".95" />
+              <ellipse cx="558" cy="400" rx="15" ry="9" fill="#ff8ca8" opacity=".95" />
+              <path d="M405 389 Q426 409 447 389 Q445 414 426 416 Q407 414 405 389Z" fill="#ff6f91" stroke="#17151c" strokeWidth="3" strokeLinejoin="round" />
+            </g>
+            <path d="M156 420 L706 420 L721 448 Q724 456 712 459 L155 459 Q144 456 148 447 Z" fill="#0c0b10" stroke="#08070b" strokeWidth="3" />
+            {Array.from({ length: 21 }, (_, i) => (
+              <rect key={i} x={160 + i * 26} y="422" width="26" height="34" rx="1" fill="url(#pianoKey)" stroke="#bcb6c2" strokeWidth="1.4" />
+            ))}
+            {Array.from({ length: 21 }, (_, i) => {
+              const key = i % 7;
+              return [0, 1, 3, 4, 5].includes(key) ? (
+                <path key={i} d={`M${178 + i * 26} 422 h16 v18 q0 3 -3 3 h-10 q-3 0 -3 -3 z`} fill="#17161d" stroke="#08070b" strokeWidth="1.5" />
+              ) : null;
+            })}
+          </g>
         </Box>
 
-        {/* Animated notes have a higher stacking order so they pass in front of the piano. */}
+        {/* Animated notes are deliberately outside the SVG and pass in front of it. */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none' }}>
           {['♪', '♫', '♬'].map((note, i) => (
             <Typography
