@@ -35,7 +35,7 @@ describe('lesson setup', () => {
       exercises: [{
         topicId: topic.id,
         topicTitle: '右手だけ',
-        targetCount: 2,
+        targetCount: 10,
         pointsPerCompletion: 1,
         goalBonusPoints: 5,
       }],
@@ -62,7 +62,7 @@ describe('lesson setup', () => {
     database = addTopic(database, '右手だけ');
     const topic = database.topics[0];
     database = setSongExercise(database, song.id, topic.id, true);
-    expect(makeLessonSetup(database)[0].exercises[0].targetCount).toBe(2);
+    expect(makeLessonSetup(database)[0].exercises[0].targetCount).toBe(10);
     expect(setExerciseTargetCount(database, song.id, topic.id, 0)).toBe(database);
     expect(setExerciseTargetCount(database, song.id, topic.id, -1)).toBe(database);
   });
