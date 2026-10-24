@@ -51,6 +51,7 @@ export default function App() {
   const [songTitle, setSongTitle] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [selectedSongId, setSelectedSongId] = useState(() => loadDatabase().currentSongId ?? '');
+  const [pointDrafts, setPointDrafts] = useState<Record<string, string>>({});
 
   const songs = useMemo(() => listSongs(database), [database]);
   const topics = useMemo(() => listTopics(database), [database]);
@@ -85,24 +86,75 @@ export default function App() {
     setDatabase((previous) => setSongExercise(previous, activeSongId, topicId, active));
   };
 
+  const pointDraftKey = (key: string) => `${activeSongId}:${key}`;
+
+  const pointInputValue = (key: string, savedValue: number | undefined, defaultValue: number) =>
+    pointDrafts[pointDraftKey(key)] ?? String(savedValue ?? defaultValue);
+
+  const changePointDraft = (
+    key: string,
+    value: string,
+    save: (points: number) => void,
+  ) => {
+    setPointDrafts((previous) => ({ ...previous, [pointDraftKey(key)]: value }));
+    if (value.trim() === '') return;
+    const points = Number(value);
+    if (Number.isSafeInteger(points) && points >= 0) save(points);
+  };
+
+  const commitPointDraft = (
+    key: string,
+    value: string,
+    save: (points: number) => void,
+  ) => {
+    const points = value.trim() === '' ? 0 : Number(value);
+    if (!Number.isSafeInteger(points) || points < 0) {
+      setPointDrafts((previous) => ({ ...previous, [pointDraftKey(key)]: '0' }));
+      save(0);
+      return;
+    }
+    setPointDrafts((previous) => ({ ...previous, [pointDraftKey(key)]: String(points) }));
+    save(points);
+  };
+
   const updateExercisePoints = (topicId: string, field: 'pointsPerCompletion' | 'goalBonusPoints', value: string) => {
     if (!activeSongId) return;
-    const points = value.trim() === '' ? 0 : Number(value);
-    if (!Number.isSafeInteger(points) || points < 0) return;
-    setDatabase((previous) => setExercisePoints(previous, activeSongId, topicId, field, points));
+    changePointDraft(`${topicId}:${field}`, value, (points) => {
+      setDatabase((previous) => setExercisePoints(previous, activeSongId, topicId, field, points));
+    });
+  };
+
+  const commitExercisePoints = (topicId: string, field: 'pointsPerCompletion' | 'goalBonusPoints', value: string) => {
+    if (!activeSongId) return;
+    commitPointDraft(`${topicId}:${field}`, value, (points) => {
+      setDatabase((previous) => setExercisePoints(previous, activeSongId, topicId, field, points));
+    });
   };
 
   const updateSongBonusPoints = (value: string) => {
     if (!activeSongId) return;
-    const points = value.trim() === '' ? 0 : Number(value);
-    if (!Number.isSafeInteger(points) || points < 0) return;
-    setDatabase((previous) => setSongBonusPoints(previous, activeSongId, points));
+    changePointDraft('songBonus', value, (points) => {
+      setDatabase((previous) => setSongBonusPoints(previous, activeSongId, points));
+    });
+  };
+
+  const commitSongBonusPoints = (value: string) => {
+    if (!activeSongId) return;
+    commitPointDraft('songBonus', value, (points) => {
+      setDatabase((previous) => setSongBonusPoints(previous, activeSongId, points));
+    });
   };
 
   const updateDailyBonusPoints = (value: string) => {
-    const points = value.trim() === '' ? 0 : Number(value);
-    if (!Number.isSafeInteger(points) || points < 0) return;
-    setDatabase((previous) => setDailyBonusPoints(previous, points));
+    changePointDraft('dailyBonus', value, (points) => {
+      setDatabase((previous) => setDailyBonusPoints(previous, points));
+    });
+  };
+
+  const commitDailyBonusPoints = (value: string) => {
+    commitPointDraft('dailyBonus', value, (points) => {
+      setDatabase((previous) => setDailyBonusPoints(previous, points));
+    });
   };
 
   const navigateToCompletion = () => {
@@ -213,14 +265,14 @@ export default function App() {
                                 </Button>
                               </Stack>
                               <Stack direction="row" spacing={1}>
-                                <TextField size="small" type="number" label="1回のポイント" value={assignment?.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
-                                <TextField size="small" type="number" label="達成ボーナス" value={assignment?.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
+                                <TextField size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
+                                <TextField size="small" type="number" label="達成ボーナス" value={pointInputValue(`${topic.id}:goalBonusPoints`, assignment?.goalBonusPoints, DEFAULT_GOAL_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
                               </Stack>
                             </Stack>
                           );
                         })}
-                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints ?? DEFAULT_ALL_GOALS_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateSongBonusPoints(event.target.value)} />
-                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateDailyBonusPoints(event.target.value)} />
+                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={pointInputValue('songBonus', songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints, DEFAULT_ALL_GOALS_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateSongBonusPoints(event.target.value)} onBlur={(event) => commitSongBonusPoints(event.target.value)} />
+                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={pointInputValue('dailyBonus', database.dailyBonusPoints, DEFAULT_DAILY_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onFocus={(event) => event.target.select()} onChange={(event) => updateDailyBonusPoints(event.target.value)} onBlur={(event) => commitDailyBonusPoints(event.target.value)} />
                       </Stack>
                     )}
                   </>
