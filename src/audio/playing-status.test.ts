@@ -42,6 +42,7 @@ describe('PlayingStatusDetector', () => {
     detector.update(1);
     expect(detector.update(0).isPlaying).toBe(true);
     expect(detector.update(0).isPlaying).toBe(true);
+    expect(detector.update(0).isPlaying).toBe(true);
     expect(detector.update(0).isPlaying).toBe(false);
     detector.reset();
     expect(detector.update(0.5)).toEqual({ average: 0.5, isPlaying: true });
