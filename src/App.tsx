@@ -111,14 +111,14 @@ export default function App() {
 
         {route.page === 'complete' ? (
           <Stack spacing={2}>
-            <Card sx={{ borderRadius: 4, bgcolor: '#fff0f8', border: '1px solid #f0d7e8', textAlign: 'center' }}>
+            <Card sx={{ borderRadius: 2, bgcolor: '#fff0f8', border: '1px solid #f0d7e8', textAlign: 'center' }}>
               <CardContent sx={{ py: 4 }}>
                 <Typography variant="h4" fontWeight={900} sx={{ color: '#80509a' }}>今日も頑張ったね！</Typography>
                 <Typography color="text.secondary" sx={{ mt: 2 }}>今日のポイント</Typography>
                 <Typography variant="h2" fontWeight={900} sx={{ color: '#80509a' }}>{session.todayPoints}<Typography component="span" variant="h5" fontWeight={800}> pt</Typography></Typography>
               </CardContent>
             </Card>
-            <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>今日取り組んだお題</Typography>
                 {session.songs.map((song) => {
@@ -137,7 +137,7 @@ export default function App() {
                 })}
               </CardContent>
             </Card>
-            <Button fullWidth variant="contained" size="large" onClick={() => { setRoute({ page: 'practice' }); window.location.hash = '/practice'; }} sx={{ minHeight: 56, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>
+            <Button fullWidth variant="contained" size="large" onClick={() => { setRoute({ page: 'practice' }); window.location.hash = '/practice'; }} sx={{ minHeight: 56, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>
               レッスン画面へ戻る
             </Button>
           </Stack>
@@ -147,7 +147,7 @@ export default function App() {
               <Typography variant="h5" fontWeight={800}>先生の設定画面</Typography>
               <Typography color="text.secondary">曲とお題を登録して、レッスンで使うお題を選んでね。</Typography>
             </Box>
-            <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲を登録</Typography>
                 <Stack direction="row" spacing={1}>
@@ -156,7 +156,7 @@ export default function App() {
                 </Stack>
               </CardContent>
             </Card>
-            <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>お題を登録</Typography>
                 <Stack direction="row" spacing={1}>
@@ -166,7 +166,7 @@ export default function App() {
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>追加したお題は、選択中の曲に自動で有効登録されるよ。</Typography>
               </CardContent>
             </Card>
-            <Card sx={{ borderRadius: 4, border: '1px solid #f0e6f2' }}>
+            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
                 <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲ごとのお題を設定</Typography>
                 {songs.length === 0 ? <Typography color="text.secondary">先に曲を登録してね。</Typography> : (
@@ -195,7 +195,7 @@ export default function App() {
                 )}
               </CardContent>
             </Card>
-            <Button fullWidth variant="contained" size="large" onClick={openLesson} disabled={!canStartLesson(database)} sx={{ minHeight: 58, borderRadius: 4, fontWeight: 900, bgcolor: '#b486c9' }}>
+            <Button fullWidth variant="contained" size="large" onClick={openLesson} disabled={!canStartLesson(database)} sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>
               レッスン画面へ
             </Button>
           </Stack>
