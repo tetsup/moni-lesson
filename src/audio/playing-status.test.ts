@@ -29,6 +29,7 @@ describe('PlayingStatusDetector', () => {
     expect(detector.update(1).isPlaying).toBe(true);
     expect(detector.update(0).isPlaying).toBe(true);
     expect(detector.update(0).isPlaying).toBe(true);
+    expect(detector.update(0).isPlaying).toBe(true);
     expect(detector.update(0).isPlaying).toBe(false);
   });
 
@@ -70,6 +71,7 @@ describe('audio analysis to playing status flow', () => {
     const quietFeature = calculateSpectrumAutocorrelation(tone(440, 0.001), 16000);
     const quietScore = calculateSimilarity(quietFeature, model);
     expect(quietScore).toBe(0);
+    detector.update(quietScore);
     detector.update(quietScore);
     detector.update(quietScore);
     detector.update(quietScore);
