@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PlayingStatusDetector } from './playing-status';
 import {
   calculateSimilarity,
   calculateSpectrumAutocorrelation,
@@ -9,6 +10,8 @@ export type PianoRecognitionState = {
   isRecording: boolean;
   similarity: number;
   isRecognized: boolean;
+  isPlaying: boolean;
+  averageSimilarity: number;
   error: Error | null;
 };
 
@@ -30,12 +33,14 @@ export function usePianoRecognition({
     isRecording: false,
     similarity: 0,
     isRecognized: false,
+    isPlaying: false,
+    averageSimilarity: 0,
     error: null,
   });
 
   useEffect(() => {
     if (!enabled) {
-      setState({ isRecording: false, similarity: 0, isRecognized: false, error: null });
+      setState({ isRecording: false, similarity: 0, isRecognized: false, isPlaying: false, averageSimilarity: 0, error: null });
       return;
     }
 
@@ -46,6 +51,7 @@ export function usePianoRecognition({
     let source: MediaStreamAudioSourceNode | undefined;
     let analyser: AnalyserNode | undefined;
     let samples: Float32Array | undefined;
+    const playingDetector = new PlayingStatusDetector();
 
     const stop = () => {
       if (timer) clearInterval(timer);
@@ -80,7 +86,7 @@ export function usePianoRecognition({
         analyser.smoothingTimeConstant = 0;
         source.connect(analyser);
         samples = new Float32Array(analyser.fftSize);
-        setState({ isRecording: true, similarity: 0, isRecognized: false, error: null });
+        setState({ isRecording: true, similarity: 0, isRecognized: false, isPlaying: false, averageSimilarity: 0, error: null });
 
         timer = setInterval(() => {
           if (!analyser || !audioContext || !samples) return;
@@ -91,10 +97,13 @@ export function usePianoRecognition({
             analysisOptions,
           );
           const similarity = calculateSimilarity(features, model);
+          const playingStatus = playingDetector.update(similarity);
           setState({
             isRecording: true,
             similarity,
             isRecognized: features !== null && similarity >= similarityThreshold,
+            isPlaying: playingStatus.isPlaying,
+            averageSimilarity: playingStatus.average,
             error: null,
           });
         }, Math.max(100, intervalMs));
@@ -102,7 +111,7 @@ export function usePianoRecognition({
         stop();
         if (!disposed) {
           const error = cause instanceof Error ? cause : new Error(String(cause));
-          setState({ isRecording: false, similarity: 0, isRecognized: false, error });
+          setState({ isRecording: false, similarity: 0, isRecognized: false, isPlaying: false, averageSimilarity: 0, error });
         }
       }
     };
