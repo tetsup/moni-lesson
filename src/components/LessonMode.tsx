@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
+import MoniSupport from './MoniSupport';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -112,6 +113,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   return (
     <Stack spacing={2}>
       <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start' }}>← 戻る</Button>
+      <MoniSupport message={isGoalAchieved ? 'やったね！ 目標達成だよ！' : currentExercise.completionCount > 0 ? 'いい感じ！ その調子でいこう♪' : 'だいじょうぶ、ゆっくりでいいよ！'} />
       <Card sx={{ borderRadius: 2, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
         <CardContent>
           <Typography color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
