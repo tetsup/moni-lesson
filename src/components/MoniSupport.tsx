@@ -55,7 +55,7 @@ export default function MoniSupport({
           sx={{
             position: 'relative',
             p: 1.5,
-            borderRadius: 3,
+            borderRadius: 1.5,
             border: '1px solid #f0d7e8',
             bgcolor: '#fff',
           }}
