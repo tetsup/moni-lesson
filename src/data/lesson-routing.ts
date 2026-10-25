@@ -1,4 +1,4 @@
-export type LessonRoute = { page: 'practice' } | { page: 'teacher' } | { page: 'complete' };
+export type LessonRoute = { page: 'practice' } | { page: 'teacher' } | { page: 'complete' } | { page: 'admin' };
 
 export type LessonProgress = {
   songs: Array<{ songId: string; topicIds: string[] }>;
@@ -71,9 +71,10 @@ export const resolveLessonAction = (
   return { type: 'invalid' };
 };
 
-export const resolveHashRoute = (hash: string): LessonRoute =>
-  hash.replace(/^#/, '').replace(/\/+$/, '') === '/teacher'
-    ? { page: 'teacher' }
-    : hash.replace(/^#/, '').replace(/\/+$/, '') === '/complete'
-      ? { page: 'complete' }
-      : { page: 'practice' };
+export const resolveHashRoute = (hash: string): LessonRoute => {
+  const path = hash.replace(/^#/, '').replace(/\/+$/, '') || '/';
+  if (path === '/teacher') return { page: 'teacher' };
+  if (path === '/complete') return { page: 'complete' };
+  if (path === '/admin') return { page: 'admin' };
+  return { page: 'practice' };
+};

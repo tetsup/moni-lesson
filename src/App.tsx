@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
+import AudioMaintenance from './components/AudioMaintenance';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Chip, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
@@ -208,7 +209,9 @@ export default function App() {
           {route.page === 'practice' && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
         </Stack>
 
-        {route.page === 'complete' ? (
+        {route.page === 'admin' ? (
+          <AudioMaintenance />
+        ) : route.page === 'complete' ? (
           <Stack spacing={2}>
             <Card sx={{ borderRadius: 2, bgcolor: '#fff0f8', border: '1px solid #f0d7e8', textAlign: 'center' }}>
               <CardContent sx={{ py: 4 }}>
