@@ -1,10 +1,15 @@
 import { Avatar, Box, Paper, Stack, Typography } from '@mui/material';
+import { MONI_CHARACTER_IMAGES, type MoniExpression } from '../data/moni-character';
 
 type Props = {
   message?: string;
+  expression?: MoniExpression;
 };
 
-export default function MoniSupport({ message = 'だいじょうぶ、ゆっくりでいいよ！' }: Props) {
+export default function MoniSupport({
+  message = 'だいじょうぶ、ゆっくりでいいよ！',
+  expression = 'normal',
+}: Props) {
   return (
     <Stack
       direction="row"
@@ -18,8 +23,8 @@ export default function MoniSupport({ message = 'だいじょうぶ、ゆっく�
       }}
     >
       <Avatar
-        src="/moni-chan.png"
-        alt="モニちゃん"
+        src={MONI_CHARACTER_IMAGES[expression]}
+        alt={expression === 'happy' ? '喜んでいるモニちゃん' : 'モニちゃん'}
         variant="rounded"
         imgProps={{ style: { objectFit: 'contain' } }}
         sx={{
