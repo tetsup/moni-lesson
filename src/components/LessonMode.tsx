@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
+import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
+import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 import { type MoniExpression } from '../data/moni-character';
 import MoniSupport from './MoniSupport';
+import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -125,17 +127,25 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   }
 
   return (
-    <Stack spacing={2}>
-      <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start' }}>← 戻る</Button>
+    <Stack spacing={1}>
+      <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start', minHeight: 30, py: 0 }}>← 戻る</Button>
       <MoniSupport
         expression={getMoniExpression(isGoalAchieved)}
         message={getMoniMessage(isGoalAchieved, currentExercise.completionCount)}
       />
-      <Card sx={{ borderRadius: 2, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
-        <CardContent>
-          <Typography color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
-          <Typography variant="h4" fontWeight={900} sx={{ mt: 1, color: '#80509a' }}>{currentExercise.topicTitle}</Typography>
-          <Typography sx={{ mt: 2 }}>できた回数：{currentExercise.completionCount} / {currentExercise.targetCount}</Typography>
+      <Card sx={{ borderRadius: LESSON_CARD_BORDER_RADIUS, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
+        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+          <Typography variant="body2" color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mt: 0.5 }}>
+            <Typography variant="h5" fontWeight={900} sx={{ minWidth: 0, color: '#80509a', overflowWrap: 'anywhere' }}>{currentExercise.topicTitle}</Typography>
+            <Chip
+              icon={<StarsRoundedIcon sx={{ fontSize: 18 }} />}
+              label={currentExercise.goalBonusPoints}
+              size="small"
+              aria-label={`達成ボーナス ${currentExercise.goalBonusPoints}ポイント`}
+              sx={{ flexShrink: 0, fontWeight: 900, bgcolor: '#fff0bd', color: '#8a6412', border: '1px solid #f1d68b', '& .MuiChip-icon': { color: '#d99a13' } }}
+            />
+          </Stack>
         </CardContent>
       </Card>
       <Box
@@ -143,7 +153,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
         role="img"
         sx={{
           position: 'relative',
-          height: { xs: 250, sm: 270 },
+          height: { xs: 180, sm: 210 },
           overflow: 'hidden',
           borderRadius: 5,
           background: 'linear-gradient(180deg,#fff4fa 0%,#f9e8f2 70%,#f0d4e6 70%,#e9c9df 100%)',
@@ -270,7 +280,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Box>
 
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
-        sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
+        sx={{ minHeight: 48, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Stack direction="row" alignItems="center" spacing={1.5}>
         <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', borderRadius: 999 }}>
           <LinearProgress
@@ -295,8 +305,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
         </Typography>
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
-        sx={{ minHeight: 54, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
-    <Typography variant="caption" color="text.secondary" textAlign="center">練習できたら「できた！」を押して記録しよう。</Typography>
+        sx={{ minHeight: 44, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
   </Stack>
   );
 }

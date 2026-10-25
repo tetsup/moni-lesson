@@ -1,0 +1,1 @@
+export const LESSON_CARD_BORDER_RADIUS = 1.5;

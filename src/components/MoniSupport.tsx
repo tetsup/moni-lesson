@@ -1,5 +1,6 @@
 import { Avatar, Box, Paper, Stack, Typography } from '@mui/material';
 import { MONI_CHARACTER_IMAGES, type MoniExpression } from '../data/moni-character';
+import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 type Props = {
   message?: string;
@@ -17,7 +18,7 @@ export default function MoniSupport({
       spacing={1.5}
       sx={{
         p: 1.5,
-        borderRadius: 4,
+        borderRadius: LESSON_CARD_BORDER_RADIUS,
         border: '1px solid #f0d7e8',
         background: 'linear-gradient(135deg, #fff8fc 0%, #fff0f7 100%)',
       }}
@@ -55,7 +56,7 @@ export default function MoniSupport({
           sx={{
             position: 'relative',
             p: 1.5,
-            borderRadius: 1.5,
+            borderRadius: LESSON_CARD_BORDER_RADIUS,
             border: '1px solid #f0d7e8',
             bgcolor: '#fff',
           }}
@@ -63,7 +64,7 @@ export default function MoniSupport({
           <Typography variant="caption" sx={{ display: 'block', mb: 0.4, color: '#b486c9', fontWeight: 900 }}>
             モニちゃん
           </Typography>
-          <Typography sx={{ color: '#654575', fontWeight: 700, lineHeight: 1.5 }}>
+          <Typography sx={{ color: '#654575', fontWeight: 700, lineHeight: 1.5, minHeight: '3em' }}>
             {message}
           </Typography>
         </Paper>
