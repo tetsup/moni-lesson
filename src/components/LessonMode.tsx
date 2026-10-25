@@ -77,6 +77,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   if (mode === 'selection') {
     return (
       <Stack spacing={2}>
+        <MoniSupport
+          expression="normal"
+          message="きょうは何のお題にチャレンジする？"
+        />
         <Box>
           <Typography variant="h5" fontWeight={800}>曲とお題を選ぼう</Typography>
           <Typography color="text.secondary">曲を選ぶと、その曲のお題が表示されるよ。</Typography>
