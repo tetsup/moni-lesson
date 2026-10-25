@@ -5,6 +5,7 @@ import { recordExerciseCompletion, type LessonSession } from '../data/lesson-ses
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 import { type MoniExpression } from '../data/moni-character';
 import MoniSupport from './MoniSupport';
+import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -132,7 +133,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
         expression={getMoniExpression(isGoalAchieved)}
         message={getMoniMessage(isGoalAchieved, currentExercise.completionCount)}
       />
-      <Card sx={{ borderRadius: 2, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
+      <Card sx={{ borderRadius: LESSON_CARD_BORDER_RADIUS, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
         <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Typography variant="body2" color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mt: 0.5 }}>
