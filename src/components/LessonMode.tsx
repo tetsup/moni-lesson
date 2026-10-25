@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
+import { type MoniExpression } from '../data/moni-character';
+import MoniSupport from './MoniSupport';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -12,6 +14,15 @@ type Props = {
   session: LessonSession;
   onSessionChange: (update: (previous: LessonSession) => LessonSession) => void;
   onNavigate: (route: 'complete') => void;
+};
+
+const getMoniExpression = (isGoalAchieved: boolean): MoniExpression =>
+  isGoalAchieved ? 'happy' : 'normal';
+
+const getMoniMessage = (isGoalAchieved: boolean, completionCount: number): string => {
+  if (isGoalAchieved) return 'やったね！ 目標達成だよ！';
+  if (completionCount > 0) return 'いい感じ！ その調子でいこう♪';
+  return 'だいじょうぶ、ゆっくりでいいよ！';
 };
 
 export default function LessonMode({ session, onSessionChange, onNavigate }: Props) {
@@ -66,6 +77,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   if (mode === 'selection') {
     return (
       <Stack spacing={2}>
+        <MoniSupport
+          expression="normal"
+          message="きょうは何のお題にチャレンジする？"
+        />
         <Box>
           <Typography variant="h5" fontWeight={800}>曲とお題を選ぼう</Typography>
           <Typography color="text.secondary">曲を選ぶと、その曲のお題が表示されるよ。</Typography>
@@ -112,6 +127,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   return (
     <Stack spacing={2}>
       <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start' }}>← 戻る</Button>
+      <MoniSupport
+        expression={getMoniExpression(isGoalAchieved)}
+        message={getMoniMessage(isGoalAchieved, currentExercise.completionCount)}
+      />
       <Card sx={{ borderRadius: 2, bgcolor: '#f7eefb', border: '1px solid #eadcf1' }}>
         <CardContent>
           <Typography color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
