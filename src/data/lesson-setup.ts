@@ -1,4 +1,4 @@
-import { getActiveExercises, listSongs, type LessonDatabase } from './lesson-database';
+import { listSongExercises, listSongs, type LessonDatabase } from './lesson-database';
 import type { LessonSongSetup } from './lesson-session';
 
 export const DEFAULT_TARGET_COUNT = 10;
@@ -14,7 +14,7 @@ export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] =>
     songId: song.id,
     songTitle: song.title,
     order: song.order,
-    exercises: getActiveExercises(database, song.id).map((assignment) => ({
+    exercises: listSongExercises(database, song.id).map((assignment) => ({
       topicId: assignment.topicId,
       topicTitle: assignment.topicTitle,
       targetCount: assignment.targetCount ?? DEFAULT_TARGET_COUNT,
