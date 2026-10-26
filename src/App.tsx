@@ -10,7 +10,7 @@ import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceW
 import MusicNoteRoundedIcon from '@mui/icons-material/MusicNoteRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded';
-import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
+import CardGiftcardRoundedIcon from '@mui/icons-material/CardGiftcardRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSongFromMaster,
@@ -359,7 +359,7 @@ export default function App() {
                 { label: 'レッスン', icon: <MusicNoteRoundedIcon />, active: route.page === 'practice', onClick: returnToLesson },
                 { label: '録音', icon: <MicRoundedIcon />, active: route.page === 'recordings', onClick: openRecordings },
                 { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: false },
-                { label: 'アイテム', icon: <Inventory2RoundedIcon />, active: false },
+                { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: false },
               ].map((item) => (
                 <Box
                   key={item.label}
