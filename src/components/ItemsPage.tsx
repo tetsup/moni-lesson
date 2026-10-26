@@ -18,6 +18,8 @@ import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import ConfirmationNumberRoundedIcon from '@mui/icons-material/ConfirmationNumberRounded';
 import { SHOP_ITEMS, type ShopItem } from './ShopPage';
 
+const CARD_RADIUS = '20px';
+
 type Props = {
   purchasedItems: ShopItem[];
   onUseTicket: (item: ShopItem) => void;
@@ -65,7 +67,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
       </Box>
 
       {SHOP_ITEMS.length === 0 ? (
-        <Card>
+        <Card sx={{ borderRadius: CARD_RADIUS }}>
           <CardContent sx={{ py: 4, textAlign: 'center' }}>
             <Inventory2RoundedIcon sx={{ fontSize: 40, color: '#b486c9', mb: 1 }} />
             <Typography fontWeight={800} sx={{ color: '#654575' }}>
@@ -96,6 +98,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
                 aria-pressed={selected}
                 sx={{
                   minWidth: 0,
+                  borderRadius: CARD_RADIUS,
                   p: 0,
                   textAlign: 'left',
                   overflow: 'hidden',
@@ -180,7 +183,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
             sx={{
               maxWidth: 600,
               mx: 'auto',
-              borderRadius: 4,
+              borderRadius: CARD_RADIUS,
               border: '1px solid #e4cdea',
               bgcolor: 'rgba(255,255,255,0.98)',
               boxShadow: '0 -6px 28px rgba(91,55,105,0.2)',
@@ -267,7 +270,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
         maxWidth="xs"
         PaperProps={{
           sx: {
-            borderRadius: 5,
+            borderRadius: CARD_RADIUS,
             overflow: 'visible',
             bgcolor: '#fffafd',
             border: '2px solid #d9b8e7',
@@ -309,9 +312,6 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
                   <Typography fontWeight={900} sx={{ color: '#b05287', fontSize: '1.05rem' }}>
                     おうちの人に見せてね！
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#654575' }}>
-                    とじると きえちゃうよ！
-                  </Typography>
                 </Stack>
                 <Stack
                   alignItems="center"
@@ -326,15 +326,28 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
                     bgcolor: 'rgba(255,255,255,0.45)',
                   }}
                 >
-                  <ConfirmationNumberRoundedIcon sx={{ fontSize: 25 }} />
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, writingMode: 'vertical-rl', letterSpacing: '0.12em' }}>
-                    もぎり
+                  <Typography
+                    sx={{
+                      fontSize: '0.8rem',
+                      fontWeight: 900,
+                      writingMode: 'vertical-rl',
+                      overflowWrap: 'anywhere',
+                      maxHeight: 180,
+                      color: '#654575',
+                    }}
+                  >
+                    {ticketInUse.name}
                   </Typography>
                 </Stack>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-                この画面をおうちの人に見せてね
-              </Typography>
+              <Stack spacing={0.5} alignItems="center">
+                <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                  この画面をおうちの人に見せてね
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                  とじると きえちゃうよ！
+                </Typography>
+              </Stack>
             </Stack>
           </DialogContent>
         )}
