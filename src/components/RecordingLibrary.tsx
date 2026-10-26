@@ -177,23 +177,19 @@ export default function RecordingLibrary({ onBack }: Props) {
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Button
-                    variant="contained"
-                    size="small"
+                  <IconButton
                     onClick={() => void togglePlayback(recording)}
                     aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
                     sx={{
-                      minWidth: 0,
-                      width: 40,
-                      height: 40,
-                      p: 0,
-                      flexShrink: 0,
                       bgcolor: '#b486c9',
+                      color: 'white',
                       borderRadius: 2,
+                      flexShrink: 0,
+                      '&:hover': { bgcolor: '#9f6bb5' },
                     }}
                   >
                     {isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
-                  </Button>
+                  </IconButton>
                   <Slider
                     aria-label={`${recording.topicTitle} 再生位置`}
                     min={0}
