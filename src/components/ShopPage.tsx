@@ -176,7 +176,7 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
                 borderRadius: 3,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 0.25,
+                gap: 0.5,
                 lineHeight: 1.2,
                 fontWeight: 800,
                 fontSize: { xs: '0.7rem', sm: '0.8rem' },
@@ -189,8 +189,12 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
                 },
               }}
             >
-              {categoryIcon(category.id)}
-              {category.label}
+              <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ minWidth: 0 }}>
+                {categoryIcon(category.id)}
+                <Typography component="span" sx={{ minWidth: 0, fontSize: 'inherit', overflowWrap: 'anywhere' }}>
+                  {category.label}
+                </Typography>
+              </Stack>
               <Typography component="span" sx={{ fontSize: 10, opacity: 0.8 }}>
                 {count > 0 ? `${count}点` : '準備中'}
               </Typography>
