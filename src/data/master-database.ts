@@ -64,11 +64,21 @@ export const saveMasterDatabase = (database: MasterDatabase, storage: StorageLik
   storage.setItem(MASTER_DATABASE_KEY, JSON.stringify(database));
 };
 
-export const listMasterSongs = (database: MasterDatabase): MasterSong[] =>
-  database.songs.filter((song) => !song.deleted).sort((a, b) => a.order - b.order);
+/** Lists non-deleted master songs, optionally filtered by a case-insensitive partial title match. */
+export const listMasterSongs = (database: MasterDatabase, searchText = ''): MasterSong[] => {
+  const query = searchText.trim().toLocaleLowerCase();
+  return database.songs
+    .filter((song) => !song.deleted && song.title.toLocaleLowerCase().includes(query))
+    .sort((a, b) => a.order - b.order);
+};
 
-export const listMasterTopics = (database: MasterDatabase): MasterTopic[] =>
-  database.topics.filter((topic) => !topic.deleted).sort((a, b) => a.order - b.order);
+/** Lists non-deleted master topics, optionally filtered by a case-insensitive partial title match. */
+export const listMasterTopics = (database: MasterDatabase, searchText = ''): MasterTopic[] => {
+  const query = searchText.trim().toLocaleLowerCase();
+  return database.topics
+    .filter((topic) => !topic.deleted && topic.title.toLocaleLowerCase().includes(query))
+    .sort((a, b) => a.order - b.order);
+};
 
 export const addMasterSong = (database: MasterDatabase, title: string): MasterDatabase => {
   const normalizedTitle = title.trim();
