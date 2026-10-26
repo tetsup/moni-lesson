@@ -167,11 +167,6 @@ export const resetLessonSessionForDate = (
 
 const hasGoals = (song: LessonSong): boolean => song.exercises.length > 0;
 
-const isExerciseGoalAchieved = (exercise: LessonExercise): boolean =>
-  exercise.repeatAllowed
-    ? exercise.completionCount > 0 && exercise.completionCount % exercise.targetCount === 0
-    : exercise.completionCount >= exercise.targetCount;
-
 const areSongGoalsAchieved = (song: LessonSong): boolean =>
   hasGoals(song) && song.exercises.every((exercise) => exercise.completionCount >= exercise.targetCount);
 
