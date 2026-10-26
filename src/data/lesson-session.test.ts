@@ -134,6 +134,42 @@ describe('lesson session operations', () => {
     expect(session.songs[0].exercises[0].completionCount).toBe(1);
   });
 
+  it('grants repeatable exercise bonuses at every target multiple', () => {
+    const initial = setup();
+    initial.songs[0].exercises[0].repeatAllowed = true;
+    initial.songs[0].exercises[1].targetCount = 10;
+
+    const first = recordExerciseCompletion(initial, 'song-a', 'topic-1');
+    const firstGoal = recordExerciseCompletion(first, 'song-a', 'topic-1');
+    const third = recordExerciseCompletion(firstGoal, 'song-a', 'topic-1');
+    const secondGoal = recordExerciseCompletion(third, 'song-a', 'topic-1');
+
+    expect(firstGoal.totalPoints - first.totalPoints).toBe(6);
+    expect(secondGoal.totalPoints - third.totalPoints).toBe(6);
+    expect(secondGoal.songs[0].exercises[0].completionCount).toBe(4);
+    expect(secondGoal.songs[0].allGoalsBonusAwarded).toBe(false);
+  });
+
+  it('awards the song bonus only the first time all goals are achieved, not on a later repeat milestone', () => {
+    let session = setup();
+    session.songs[0].exercises[0].repeatAllowed = true;
+    session.songs[0].exercises[1].targetCount = 1;
+
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-2');
+    expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
+    const afterFirstSongBonus = session.totalPoints;
+
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    const afterThree = session.totalPoints;
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+
+    expect(afterThree - afterFirstSongBonus).toBe(1);
+    expect(session.totalPoints - afterThree).toBe(6);
+    expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
+  });
+
   it('grants an exercise goal bonus once at its target count', () => {
     const first = recordExerciseCompletion(setup(), 'song-a', 'topic-1');
     const second = recordExerciseCompletion(first, 'song-a', 'topic-1');
