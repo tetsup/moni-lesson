@@ -17,6 +17,7 @@ import {
   setSongExercise,
   setExercisePoints,
   setExerciseTargetCount,
+  setExerciseMinimumInterval,
   setSongBonusPoints,
   setDailyBonusPoints,
   softDeleteSong,
@@ -140,6 +141,13 @@ export default function App() {
     const targetCount = Number(value);
     if (!Number.isSafeInteger(targetCount) || targetCount < 1) return;
     setDatabase((previous) => setExerciseTargetCount(previous, activeSongId, topicId, targetCount));
+  };
+
+  const updateExerciseMinimumInterval = (topicId: string, value: string) => {
+    if (!activeSongId || value.trim() === '') return;
+    const seconds = Number(value);
+    if (!Number.isSafeInteger(seconds) || seconds < 0) return;
+    setDatabase((previous) => setExerciseMinimumInterval(previous, activeSongId, topicId, seconds));
   };
 
   const updateExercisePoints = (topicId: string, field: 'pointsPerCompletion' | 'goalBonusPoints', value: string) => {
@@ -314,10 +322,15 @@ export default function App() {
                                   <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>
                                 </Stack>
                               </Stack>
-                              <Stack direction="row" spacing={1}>
-                                <TextField size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
-                                <TextField size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
-                                <TextField size="small" type="number" label="達成ボーナス" value={pointInputValue(`${topic.id}:goalBonusPoints`, assignment?.goalBonusPoints, DEFAULT_GOAL_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
+                              <Stack spacing={1}>
+                                <Stack direction="row" spacing={1}>
+                                  <TextField fullWidth size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
+                                  <TextField fullWidth size="small" type="number" label="最低間隔（秒）" value={assignment?.minimumIntervalSeconds ?? 0} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExerciseMinimumInterval(topic.id, event.target.value)} />
+                                </Stack>
+                                <Stack direction="row" spacing={1}>
+                                  <TextField fullWidth size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
+                                  <TextField fullWidth size="small" type="number" label="達成ボーナス" value={pointInputValue(`${topic.id}:goalBonusPoints`, assignment?.goalBonusPoints, DEFAULT_GOAL_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
+                                </Stack>
                               </Stack>
                             </Stack>
                           );

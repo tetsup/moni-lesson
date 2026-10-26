@@ -6,6 +6,7 @@ export type ExerciseAssignment = {
   targetCount?: number;
   pointsPerCompletion?: number;
   goalBonusPoints?: number;
+  minimumIntervalSeconds?: number;
 };
 
 export type Song = {
@@ -210,6 +211,23 @@ export const setExerciseTargetCount = (
       ...song,
       exercises: song.exercises.map((exercise) =>
         exercise.topicId === topicId ? { ...exercise, targetCount } : exercise),
+    }),
+  };
+};
+
+export const setExerciseMinimumInterval = (
+  database: LessonDatabase,
+  songId: string,
+  topicId: string,
+  seconds: number,
+): LessonDatabase => {
+  if (!Number.isSafeInteger(seconds) || seconds < 0) return database;
+  return {
+    ...database,
+    songs: database.songs.map((song) => song.id !== songId ? song : {
+      ...song,
+      exercises: song.exercises.map((exercise) =>
+        exercise.topicId === topicId ? { ...exercise, minimumIntervalSeconds: seconds } : exercise),
     }),
   };
 };

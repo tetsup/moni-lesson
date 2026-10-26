@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
@@ -31,6 +31,15 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const [mode, setMode] = useState<'selection' | 'lesson'>('selection');
   const [selectedSongId, setSelectedSongId] = useState(session.songs[0]?.songId ?? '');
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  useEffect(() => {
+    const startedAt = Date.now();
+    setElapsedSeconds(0);
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [mode, selectedSongId, currentTopicId]);
   const songs = session.songs;
   const selectedSong = songs.find((song) => song.songId === selectedSongId) ?? songs[0];
   // Resolve the current exercise inside the selected song. Topic IDs can be shared
@@ -280,6 +289,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Box>
 
       <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
+        disabled={elapsedSeconds < currentExercise.minimumIntervalSeconds}
         sx={{ minHeight: 48, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Stack direction="row" alignItems="center" spacing={1.5}>
         <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', borderRadius: 999 }}>
