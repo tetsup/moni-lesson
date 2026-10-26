@@ -15,7 +15,6 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import RestaurantRoundedIcon from '@mui/icons-material/RestaurantRounded';
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
-import ConfirmationNumberRoundedIcon from '@mui/icons-material/ConfirmationNumberRounded';
 import { SHOP_ITEMS, type ShopItem } from './ShopPage';
 
 const CARD_RADIUS = '20px';
@@ -305,7 +304,20 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
                   spacing={0.75}
                   sx={{ flex: 1, minWidth: 0, p: 2 }}
                 >
-                  <ConfirmationNumberRoundedIcon sx={{ fontSize: 36, color: '#a56abe' }} />
+                  <Box
+                    aria-hidden="true"
+                    sx={{
+                      width: 52,
+                      height: 52,
+                      display: 'grid',
+                      placeItems: 'center',
+                      borderRadius: 2,
+                      bgcolor: ticketInUse.icon === 'hug' ? '#ffe5f0' : '#fff0cf',
+                      color: ticketInUse.icon === 'hug' ? '#d65d91' : '#b57b21',
+                    }}
+                  >
+                    {itemIcon(ticketInUse, 36)}
+                  </Box>
                   <Typography variant="h5" fontWeight={900} sx={{ color: '#654575', overflowWrap: 'anywhere' }}>
                     {ticketInUse.name}
                   </Typography>
