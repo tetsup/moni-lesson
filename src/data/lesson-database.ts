@@ -20,7 +20,7 @@ export type Song = {
 };
 
 export type LessonDatabase = {
-  version: 1;
+  version: 2;
   songs: Song[];
   currentSongId: string | null;
   dailyBonusPoints?: number;
@@ -82,20 +82,6 @@ export const listSongs = (database: LessonDatabase): Song[] =>
   database.songs.filter((song) => !song.deleted).sort((a, b) => a.order - b.order);
 
 
-export const addSong = (database: LessonDatabase, title: string): LessonDatabase => {
-  const normalizedTitle = title.trim();
-  if (!normalizedTitle) return database;
-  return {
-    ...database,
-    songs: [...database.songs, {
-      id: createId(),
-      title: normalizedTitle,
-      order: Math.max(-1, ...database.songs.map((song) => song.order)) + 1,
-      deleted: false,
-      exercises: [],
-    }],
-  };
-};
 
 export const deleteSong = (database: LessonDatabase, songId: string): LessonDatabase => {
   if (!database.songs.some((song) => song.id === songId)) return database;
@@ -123,9 +109,6 @@ export const addSongFromMaster = (
     }],
   };
 };
-
-/** @deprecated Use deleteSong; retained temporarily for existing callers. */
-export const softDeleteSong = deleteSong;
 
 export const moveSong = (database: LessonDatabase, songId: string, toIndex: number): LessonDatabase => {
   const ordered = listSongs(database);
