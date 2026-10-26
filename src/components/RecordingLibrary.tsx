@@ -195,7 +195,7 @@ export default function RecordingLibrary({ onBack }: Props) {
                     {isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
                   </Button>
                   <Slider
-                    aria-label={`${recording.topicTitle} 再生位置`
+                    aria-label={`${recording.topicTitle} 再生位置`}
                     min={0}
                     max={Math.max(duration, recording.durationMs / 1000, 0.1)}
                     step={0.1}
