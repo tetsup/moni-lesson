@@ -9,7 +9,6 @@ import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_PO
 import {
   addSongFromMaster,
   addTopicFromMaster,
-  getActiveExercises,
   listSongs,
   loadLessonDatabase,
   saveLessonDatabase,
