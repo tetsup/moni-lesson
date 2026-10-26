@@ -176,11 +176,12 @@ export default function RecordingLibrary({ onBack }: Props) {
                     {formatDate(recording.recordedAt)} ・ {recording.attemptNumber}回目 ・ {formatDuration(recording.durationMs)}
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1.5} alignItems="center">
                   <Button
                     variant="contained"
                     size="small"
                     onClick={() => void togglePlayback(recording)}
+                    aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
                     sx={{
                       minWidth: 40,
                       width: 40,
@@ -189,16 +190,12 @@ export default function RecordingLibrary({ onBack }: Props) {
                       flexShrink: 0,
                       bgcolor: '#b486c9',
                       borderRadius: 2,
-                      '& .MuiButton-startIcon': { m: 0 },
                     }}
                   >
                     {isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
                   </Button>
                   <Slider
-                    aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
-                  />
-                  <Slider
-                    aria-label={`${recording.topicTitle} 再生位置`}
+                    aria-label={`${recording.topicTitle} 再生位置`
                     min={0}
                     max={Math.max(duration, recording.durationMs / 1000, 0.1)}
                     step={0.1}
@@ -206,7 +203,7 @@ export default function RecordingLibrary({ onBack }: Props) {
                     onChange={seek}
                     disabled={!isPlaying || !(Number.isFinite(duration) && duration > 0)}
                     size="small"
-                    sx={{ flex: 1, py: 1 }}
+                    sx={{ flex: 1, py: 1, '& .MuiSlider-thumb': { width: 18, height: 18 }, '& .MuiSlider-track': { height: 5 }, '& .MuiSlider-rail': { height: 5 } }}
                   />
                   <IconButton aria-label={`${recording.topicTitle} をダウンロード`} onClick={() => void download(recording)} sx={{ border: '1px solid #d9c1e5', borderRadius: 2, flexShrink: 0 }}>
                     <DownloadRoundedIcon />
