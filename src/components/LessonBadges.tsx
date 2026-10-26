@@ -1,4 +1,5 @@
 import { Box, Chip } from '@mui/material';
+import type { ReactNode } from 'react';
 import type { LessonExercise, LessonSong } from '../data/lesson-session';
 
 type ExerciseBadgeValues = Pick<
@@ -14,7 +15,7 @@ const badgeSx = {
 };
 
 type BadgeRowProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   'aria-label': string;
 };
 
