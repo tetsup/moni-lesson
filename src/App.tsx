@@ -4,6 +4,7 @@ import TeacherMode from './components/TeacherMode';
 import AudioMaintenance from './components/AudioMaintenance';
 import RecordingLibrary from './components/RecordingLibrary';
 import ShopPage, { type ShopItem } from './components/ShopPage';
+import ItemsPage from './components/ItemsPage';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
@@ -268,6 +269,11 @@ export default function App() {
     return true;
   };
 
+  const openItems = () => {
+    setRoute({ page: 'items' });
+    window.location.hash = '/items';
+  };
+
   const openRecordings = () => {
     setRoute({ page: 'recordings' });
     window.location.hash = '/recordings';
@@ -358,6 +364,8 @@ export default function App() {
           <TeacherMode database={database} setDatabase={setDatabase} masterDatabase={masterDatabase} setMasterDatabase={setMasterDatabase} onOpenLesson={openLesson} />
         ) : route.page === 'shop' ? (
           <ShopPage totalPoints={session.totalPoints} onPurchase={purchaseShopItem} />
+        ) : route.page === 'items' ? (
+          <ItemsPage purchasedItems={purchasedItems} />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
@@ -385,11 +393,11 @@ export default function App() {
                 { label: 'レッスン', icon: <MusicNoteRoundedIcon />, active: route.page === 'practice', onClick: returnToLesson },
                 { label: '録音', icon: <MicRoundedIcon />, active: route.page === 'recordings', onClick: openRecordings },
                 { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: route.page === 'shop', onClick: openShop },
-                { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: false },
+                { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: route.page === 'items', onClick: openItems },
               ].map((item) => (
                 <Box
                   key={item.label}
-                  component={item.onClick ? 'button' : 'div'}
+                  component="button"
                   onClick={item.onClick}
                   aria-current={item.active ? 'page' : undefined}
                   sx={{
@@ -405,7 +413,7 @@ export default function App() {
                     justifyContent: 'center',
                     gap: 0.25,
                     py: 1,
-                    cursor: item.onClick ? 'pointer' : 'default',
+                    cursor: 'pointer',
                     font: 'inherit',
                     '& .MuiSvgIcon-root': { fontSize: 29 },
                     '&:focus-visible': { outline: '2px solid #b486c9', outlineOffset: -2, borderRadius: 2 },
