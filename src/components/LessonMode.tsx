@@ -288,14 +288,9 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
         )}
       </Box>
 
-      <Stack spacing={0.5}>
-        <Typography variant="caption" color="text.secondary" textAlign="center">
-          経過 {elapsedSeconds}秒
-        </Typography>
-        <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
-          disabled={elapsedSeconds < currentExercise.minimumIntervalSeconds}
-          sx={{ minHeight: 48, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
-      </Stack>
+      <Button fullWidth size="large" variant="contained" onClick={completeCurrent}
+        disabled={elapsedSeconds < currentExercise.minimumIntervalSeconds}
+        sx={{ minHeight: 48, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>できた！</Button>
       <Stack direction="row" alignItems="center" spacing={1.5}>
         <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', borderRadius: 999 }}>
           <LinearProgress
