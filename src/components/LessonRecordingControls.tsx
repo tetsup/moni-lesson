@@ -177,17 +177,8 @@ export default function LessonRecordingControls({
   }, [stopSignal]);
 
   useEffect(() => () => {
-    const recording = activeRef.current;
-    if (recording) {
-      window.clearTimeout(recording.timer);
-      try {
-        if (recording.recorder.state !== 'inactive') recording.recorder.stop();
-        recording.recorder.stream?.getTracks().forEach((track) => track.stop());
-        void recording.writable.abort?.();
-      } catch {
-        // Best-effort cleanup when leaving the lesson screen.
-      }
-    }
+    // Leaving the lesson screen must finalize the recording, not discard its temporary file.
+    void stopRecording();
   }, []);
 
   return (
