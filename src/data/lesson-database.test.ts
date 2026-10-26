@@ -110,7 +110,7 @@ describe('songs', () => {
     expect(deleteSong(db, 'missing')).toBe(db);
   });
 
-  it('does not mutate the original database when soft-deleting a song', () => {
+  it('does not mutate the original database when deleting a song', () => {
     let db = makeDatabase();
     db = setSongExercise(db, 's2', 't1', true);
     const deleted = deleteSong(db, 's2');
@@ -175,7 +175,7 @@ describe('topics', () => {
     expect(deleted.topics.find((topic) => topic.id === 't2')).toBeUndefined();
     expect(listTopics(deleted).map((topic) => topic.id)).toEqual(['t1', 't3']);
     expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
-    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's2')).toBeUndefined();
     expect(deleted.songs.find((song) => song.id === 's3')?.exercises).toEqual([{ topicId: 't1', active: true }]);
   });
 
@@ -236,7 +236,7 @@ describe('song exercises (topic ID references)', () => {
     const db = makeDatabase();
     expect(setSongExercise(db, 'missing', 't1', true)).toBe(db);
     expect(setSongExercise(db, 's1', 'missing', true)).toBe(db);
-    expect(setSongExercise(deleteSong(db, 's1'), 's1', 't1', true).songs[0].exercises).toEqual([]);
+    expect(setSongExercise(deleteSong(db, 's1'), 's1', 't1', true).songs.some((song) => song.id === 's1')).toBe(false);
     expect(setSongExercise(deleteTopic(db, 't1'), 's1', 't1', true).songs[0].exercises).toEqual([]);
   });
 
