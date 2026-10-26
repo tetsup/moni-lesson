@@ -49,6 +49,8 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const currentSong = songs.find((song) => song.songId === selectedSongId);
   const currentExercise = currentSong?.exercises.find((exercise) => exercise.topicId === currentTopicId);
   const isGoalAchieved = isExerciseGoalAchieved(session, selectedSongId, currentTopicId);
+  const hasRepeatProgress = currentExercise?.repeatAllowed &&
+    currentExercise.completionCount >= currentExercise.targetCount;
   const songIndex = songs.findIndex((song) => song.songId === currentSong?.songId);
   const topicIndex = currentSong?.exercises.findIndex((exercise) => exercise.topicId === currentTopicId) ?? -1;
   const nextExercise = currentSong?.exercises[topicIndex + 1];
@@ -308,17 +310,15 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
             sx={{
               height: 12,
               borderRadius: 999,
-              bgcolor: isGoalAchieved ? '#ffe7a8' : '#eadcf1',
+              bgcolor: hasRepeatProgress ? '#fff0bd' : isGoalAchieved ? '#ffe7a8' : '#eadcf1',
               '& .MuiLinearProgress-bar': {
                 borderRadius: 999,
-                bgcolor: isGoalAchieved
-                  ? (currentExercise.repeatAllowed ? '#e6a817' : '#d94b4b')
-                  : '#b486c9',
+                bgcolor: hasRepeatProgress ? '#e6a817' : isGoalAchieved ? '#d94b4b' : '#b486c9',
               },
             }}
           />
         </Box>
-        <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: '#80509a' }}>
+        <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: hasRepeatProgress ? '#8a6412' : isGoalAchieved ? '#d94b4b' : '#80509a' }}>
           {currentExercise.completionCount} / {currentExercise.repeatAllowed
             ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
             : currentExercise.targetCount}回
