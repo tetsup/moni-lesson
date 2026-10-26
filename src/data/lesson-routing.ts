@@ -1,4 +1,4 @@
-export type LessonRoute = { page: 'practice' } | { page: 'teacher' } | { page: 'complete' } | { page: 'admin' } | { page: 'recordings' };
+export type LessonRoute = { page: 'practice' } | { page: 'teacher' } | { page: 'complete' } | { page: 'admin' } | { page: 'recordings' } | { page: 'shop' };
 
 export type LessonProgress = {
   songs: Array<{ songId: string; topicIds: string[] }>;
@@ -77,5 +77,6 @@ export const resolveHashRoute = (hash: string): LessonRoute => {
   if (path === '/complete') return { page: 'complete' };
   if (path === '/admin') return { page: 'admin' };
   if (path === '/recordings') return { page: 'recordings' };
+  if (path === '/shop') return { page: 'shop' };
   return { page: 'practice' };
 };
