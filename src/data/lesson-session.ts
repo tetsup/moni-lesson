@@ -6,6 +6,7 @@ export type LessonExercise = {
   topicId: string;
   topicTitle: string;
   targetCount: number;
+  minimumIntervalSeconds: number;
   pointsPerCompletion: number;
   goalBonusPoints: number;
   completionCount: number;
@@ -39,6 +40,7 @@ export type LessonSongSetup = {
     topicId: string;
     topicTitle: string;
     targetCount: number;
+    minimumIntervalSeconds: number;
     pointsPerCompletion: number;
     goalBonusPoints: number;
   }>;
