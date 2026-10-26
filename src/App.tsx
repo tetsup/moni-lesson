@@ -7,6 +7,10 @@ import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
+import MusicNoteRoundedIcon from '@mui/icons-material/MusicNoteRounded';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded';
+import CardGiftcardRoundedIcon from '@mui/icons-material/CardGiftcardRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSongFromMaster,
@@ -263,7 +267,7 @@ export default function App() {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 4, bgcolor: '#fffafd' }}>
+    <Box sx={{ minHeight: '100vh', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd' }}>
       <Container maxWidth="sm" sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
           <Box>
@@ -332,6 +336,90 @@ export default function App() {
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
       </Container>
+      {route.page !== 'teacher' && route.page !== 'admin' && (
+        <Box
+          component="nav"
+          aria-label="メインメニュー"
+          sx={{
+            position: 'fixed',
+            zIndex: (theme) => theme.zIndex.appBar,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            bgcolor: 'rgba(255, 250, 253, 0.97)',
+            borderTop: '1px solid #eaddec',
+            boxShadow: '0 -3px 12px rgba(91, 55, 105, 0.08)',
+            pb: 'env(safe-area-inset-bottom)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <Container maxWidth="sm" sx={{ px: { xs: 1, sm: 2 } }}>
+            <Stack direction="row" alignItems="stretch" justifyContent="space-between" sx={{ minHeight: 76 }}>
+              {[
+                { label: 'レッスン', icon: <MusicNoteRoundedIcon />, active: route.page === 'practice', onClick: returnToLesson },
+                { label: '録音', icon: <MicRoundedIcon />, active: route.page === 'recordings', onClick: openRecordings },
+                { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: false },
+                { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: false },
+              ].map((item) => (
+                <Box
+                  key={item.label}
+                  component={item.onClick ? 'button' : 'div'}
+                  onClick={item.onClick}
+                  aria-current={item.active ? 'page' : undefined}
+                  sx={{
+                    appearance: 'none',
+                    border: 0,
+                    background: 'transparent',
+                    color: item.active ? '#80509a' : '#8f8294',
+                    flex: '1 1 0',
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.25,
+                    py: 1,
+                    cursor: item.onClick ? 'pointer' : 'default',
+                    font: 'inherit',
+                    '& .MuiSvgIcon-root': { fontSize: 29 },
+                    '&:focus-visible': { outline: '2px solid #b486c9', outlineOffset: -2, borderRadius: 2 },
+                  }}
+                >
+                  {item.icon}
+                  <Typography component="span" sx={{ fontSize: 11, lineHeight: 1.3, fontWeight: item.active ? 800 : 600, whiteSpace: 'nowrap' }}>
+                    {item.label}
+                  </Typography>
+                </Box>
+              ))}
+              <Box
+                aria-label={`所持ポイント ${session.totalPoints}ポイント`}
+                sx={{
+                  minWidth: 84,
+                  px: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#80509a',
+                  borderLeft: '1px solid #eaddec',
+                  ml: 0.5,
+                }}
+              >
+                <Chip
+                  icon={<AccountBalanceWalletRoundedIcon />}
+                  label={`${session.totalPoints} pt`}
+                  size="small"
+                  sx={{
+                    bgcolor: '#eee5f5',
+                    color: '#80509a',
+                    fontWeight: 800,
+                    '& .MuiChip-icon': { color: '#80509a' },
+                  }}
+                />
+              </Box>
+            </Stack>
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 }
