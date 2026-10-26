@@ -34,6 +34,21 @@ describe('LessonMode goal display state', () => {
     expect(isExerciseGoalAchieved(achieved, 'song-a', 'topic-a')).toBe(true);
   });
 
+  it('shows a repeatable goal as achieved only at each target multiple', () => {
+    const initial = setup();
+    initial.songs[0].exercises[1].repeatAllowed = true;
+
+    const first = recordExerciseCompletion(initial, 'song-a', 'topic-b');
+    const achieved = recordExerciseCompletion(first, 'song-a', 'topic-b');
+    const betweenGoals = recordExerciseCompletion(achieved, 'song-a', 'topic-b');
+    const achievedAgain = recordExerciseCompletion(betweenGoals, 'song-a', 'topic-b');
+
+    expect(isExerciseGoalAchieved(first, 'song-a', 'topic-b')).toBe(false);
+    expect(isExerciseGoalAchieved(achieved, 'song-a', 'topic-b')).toBe(true);
+    expect(isExerciseGoalAchieved(betweenGoals, 'song-a', 'topic-b')).toBe(false);
+    expect(isExerciseGoalAchieved(achievedAgain, 'song-a', 'topic-b')).toBe(true);
+  });
+
   it('updates correctly when switching topics in the same song, for achieved and unachieved topics', () => {
     const session = recordExerciseCompletion(setup(), 'song-a', 'topic-a');
 
