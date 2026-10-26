@@ -105,7 +105,7 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
       <Box
         sx={{
           position: 'relative',
-          minHeight: { xs: 184, sm: 220 },
+          minHeight: { xs: 280, sm: 340 },
           mx: -2,
           mt: -2,
           px: 2,
@@ -122,7 +122,7 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
             position: 'absolute',
             zIndex: -2,
             inset: -12,
-            background: `radial-gradient(ellipse at 18% 20%, rgba(255, 222, 239, .95) 0 9%, transparent 30%), radial-gradient(ellipse at 82% 25%, rgba(219, 198, 250, .9) 0 12%, transparent 34%), radial-gradient(ellipse at 70% 85%, rgba(255, 229, 196, .9) 0 12%, transparent 35%), linear-gradient(135deg, #fbe6f3, #e7dafa 48%, #fff0d9)`,
+            backgroundImage: 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792993306/moni-shop.png)',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
             filter: 'blur(7px)',
@@ -135,7 +135,7 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
             position: 'absolute',
             zIndex: -1,
             inset: 0,
-            background: 'linear-gradient(90deg, rgba(255,247,253,.55), rgba(255,250,247,.35))',
+            background: 'linear-gradient(90deg, rgba(255,247,253,.45), rgba(255,250,247,.25))',
           }}
         />
         <Box sx={{ width: '100%', maxWidth: 560, mx: 'auto' }}>
