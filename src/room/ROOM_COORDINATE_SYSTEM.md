@@ -9,7 +9,8 @@
 - Use a consistent isometric view: the projected X and Y floor axes are diagonal in opposite screen directions, while Z is vertical on screen. Use approximately 30-degree floor-axis diagonals and keep the convention consistent across the room and all assets.
 - Logical dimensions are unitless. Do not bake a pixel-per-unit scale into the data model.
 - A placement's (x, y, z) is the logical lower/back anchor of the item, not its image's top-left corner.
-- FurnitureImage.anchor is a pixel coordinate within the source image, measured from the image's top-left. It identifies the exact pixel that should line up with the placement's logical anchor.
+- `FurnitureImage.anchor` is a pixel coordinate within the furniture image, measured from its top-left. It identifies the exact pixel that should line up with the placement's logical anchor.
+- `RoomSkinDefinition.anchor` is the corresponding pixel coordinate in the room background image for logical room origin (0, 0, 0). The renderer aligns this pixel with `projection.origin`.
 
 ## Furniture dimensions
 
@@ -21,6 +22,7 @@
 
 ## Asset generation requirements
 
+- Store images in Cloudinary and provide their full URLs in the catalog definitions; the renderer does not build or transform URLs.
 - Create transparent-background PNG assets for individual furniture, with no room, floor, wall, detached cast shadow, labels, or UI.
 - Use one consistent camera, projection, lighting, outline/rendering style, and apparent scale across every item.
 - Keep the full object inside the canvas and specify its logical size and image-space anchor alongside each asset.
@@ -28,14 +30,19 @@
 - The room skin is a separate background image. Furniture assets must not include the room background.
 - Initial renderer uses fixed category layers: wall-mounted, then floor-covering, then solid furniture. Solid items are drawn back-to-front by increasing Y. Do not rely on overlap/collision logic.
 
+## Renderer
+
+`RoomRenderer` accepts one `skin`, a list of `furniture` placements, their `definitions`, a projection, and the viewport width/height. It draws the background first and then all placements whose furniture definitions exist. Unknown furniture IDs are skipped. It does not fetch catalog data, change state, or apply image transformations.
+
+The projection origin is relative to the renderer's top-left corner. The room image's top-left is calculated as `projection.origin - skin.anchor`; each furniture image's top-left is calculated as its projected placement anchor minus `definition.image.anchor`.
 
 ## Screen projection helper
 
 The projection helper uses configurable pixel scales rather than embedding a fixed pixels-per-unit ratio in room state:
 
 - `unitWidth`: horizontal pixel separation between the projected +X and +Y directions for one logical unit.
-- `unitDepth`: downward pixel component of either floor-axis direction per logical unit.
+- `unitDepth`: vertical pixel component of either floor-axis direction per logical unit.
 - `unitHeight`: upward screen pixels per logical Z unit.
 - `origin`: screen position corresponding to logical `(0, 0, 0)`.
 
-With these values, `+X` projects right/down, `+Y` projects left/down, and `+Z` projects straight up. Furniture image top-left is computed by subtracting its pixel-space image anchor from the projected placement point.
+With these values, +X projects right/down, +Y projects left/down, and +Z projects straight up.
