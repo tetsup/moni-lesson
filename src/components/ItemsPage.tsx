@@ -287,38 +287,50 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
               <Box
                 sx={{
                   width: '100%',
-                  position: 'relative',
-                  p: 2.5,
-                  borderRadius: 4,
-                  border: '2px dashed #c49bd7',
+                  display: 'flex',
+                  alignItems: 'stretch',
+                  borderRadius: 0,
+                  border: '2px solid #c49bd7',
                   background: 'linear-gradient(145deg, #fff0f8 0%, #f5eaff 100%)',
+                  overflow: 'hidden',
                   textAlign: 'center',
-                  '&::before, &::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: '50%',
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    bgcolor: '#fffafd',
-                    border: '1px solid #d9b8e7',
-                    transform: 'translateY(-50%)',
-                  },
-                  '&::before': { left: -11 },
-                  '&::after': { right: -11 },
                 }}
               >
-                <ConfirmationNumberRoundedIcon sx={{ fontSize: 42, color: '#a56abe' }} />
-                <Typography variant="h5" fontWeight={900} sx={{ color: '#654575', overflowWrap: 'anywhere', mt: 0.5 }}>
-                  {ticketInUse.name}
-                </Typography>
-                <Box sx={{ borderTop: '1px dashed #c49bd7', my: 1.5 }} />
-                <Typography fontWeight={900} sx={{ color: '#b05287', fontSize: '1.1rem' }}>
-                  おうちの人に見せてね！
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#654575', mt: 0.75 }}>
-                  とじると きえちゃうよ！
-                </Typography>
+                <Stack
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={0.75}
+                  sx={{ flex: 1, minWidth: 0, p: 2 }}
+                >
+                  <ConfirmationNumberRoundedIcon sx={{ fontSize: 36, color: '#a56abe' }} />
+                  <Typography variant="h5" fontWeight={900} sx={{ color: '#654575', overflowWrap: 'anywhere' }}>
+                    {ticketInUse.name}
+                  </Typography>
+                  <Typography fontWeight={900} sx={{ color: '#b05287', fontSize: '1.05rem' }}>
+                    おうちの人に見せてね！
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#654575' }}>
+                    とじると きえちゃうよ！
+                  </Typography>
+                </Stack>
+                <Stack
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={0.75}
+                  sx={{
+                    width: 68,
+                    flexShrink: 0,
+                    borderLeft: '2px dotted #c49bd7',
+                    p: 1,
+                    color: '#a56abe',
+                    bgcolor: 'rgba(255,255,255,0.45)',
+                  }}
+                >
+                  <ConfirmationNumberRoundedIcon sx={{ fontSize: 25 }} />
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, writingMode: 'vertical-rl', letterSpacing: '0.12em' }}>
+                    もぎり
+                  </Typography>
+                </Stack>
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
                 この画面をおうちの人に見せてね
