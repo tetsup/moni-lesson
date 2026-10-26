@@ -45,10 +45,18 @@ export type FurniturePlacement = {
   facing: FurnitureFacing;
 };
 
+/**
+ * Room background image and the pixel within it that represents logical (0, 0, 0).
+ * Coordinates are measured from the image's top-left corner.
+ */
 export type RoomSkinDefinition = {
   id: string;
   name: string;
   backgroundImage: string;
+  anchor: {
+    x: number;
+    y: number;
+  };
   layoutId: string;
 };
 
