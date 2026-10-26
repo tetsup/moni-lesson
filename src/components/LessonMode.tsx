@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 import { type MoniExpression } from '../data/moni-character';
