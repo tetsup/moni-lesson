@@ -102,50 +102,14 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
 
   return (
     <Stack spacing={2}>
-      <Box
-        sx={{
-          position: 'relative',
-          minHeight: { xs: 280, sm: 340 },
-          mx: -2,
-          mt: -2,
-          px: 2,
-          py: 2,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          isolation: 'isolate',
-        }}
-      >
-        <Box
-          aria-hidden="true"
-          sx={{
-            position: 'absolute',
-            zIndex: -2,
-            inset: -12,
-            backgroundImage: 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792993306/moni-shop.png)',
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            filter: 'blur(7px)',
-            transform: 'scale(1.04)',
-          }}
-        />
-        <Box
-          aria-hidden="true"
-          sx={{
-            position: 'absolute',
-            zIndex: -1,
-            inset: 0,
-            background: 'linear-gradient(90deg, rgba(255,247,253,.45), rgba(255,250,247,.25))',
-          }}
-        />
-        <Box sx={{ width: '100%', maxWidth: 560, mx: 'auto' }}>
+      <Card sx={{ borderRadius: 3, bgcolor: 'rgba(255,255,255,0.94)', border: '1px solid #f0e6f2', boxShadow: '0 4px 16px rgba(91,55,105,0.12)' }}>
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
           <MoniSupport
             expression={messageExpression}
             message={message}
-            variant="floating"
           />
-        </Box>
-      </Box>
+        </CardContent>
+      </Card>
 
       {notice && <Alert severity="error" onClose={() => setNotice('')}>{notice}</Alert>}
 
