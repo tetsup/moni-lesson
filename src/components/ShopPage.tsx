@@ -102,43 +102,50 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
 
   return (
     <Stack spacing={2}>
-      <Box>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <ShoppingBagRoundedIcon sx={{ color: '#d18b3d', fontSize: 30 }} />
-          <Typography variant="h5" fontWeight={900} sx={{ color: '#80509a' }}>
-            モニちゃんのおみせ
-          </Typography>
-        </Stack>
-        <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
-          がんばってためたポイントで、ごほうびをゲットしよう！
-        </Typography>
-      </Box>
-
-      <Card
+      <Box
         sx={{
+          position: 'relative',
+          minHeight: { xs: 184, sm: 220 },
+          mx: -2,
+          mt: -2,
+          px: 2,
+          py: 2,
           overflow: 'hidden',
-          borderRadius: 4,
-          border: '1px solid #f1d7a6',
-          background: 'linear-gradient(135deg, #fff7d9 0%, #fff0e8 52%, #ffe4ef 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          isolation: 'isolate',
         }}
       >
-        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-            <StarsRoundedIcon sx={{ color: '#d99a13' }} />
-            <Typography fontWeight={900} sx={{ color: '#8d6821' }}>
-              いらっしゃいませ！
-            </Typography>
-            <Box sx={{ flex: 1 }} />
-            <Chip
-              icon={<ShoppingBagRoundedIcon />}
-              label={`${totalPoints.toLocaleString()} pt`}
-              size="small"
-              sx={{ bgcolor: '#fff', color: '#80509a', fontWeight: 900 }}
-            />
-          </Stack>
-          <MoniSupport expression={messageExpression} message={message} />
-        </CardContent>
-      </Card>
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            zIndex: -2,
+            inset: -12,
+            backgroundImage: 'url(/src/assets/moni-shop-background.svg)',
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            filter: 'blur(7px)',
+            transform: 'scale(1.04)',
+          }}
+        />
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            zIndex: -1,
+            inset: 0,
+            background: 'linear-gradient(90deg, rgba(255,247,253,.55), rgba(255,250,247,.35))',
+          }}
+        />
+        <Box sx={{ width: '100%', maxWidth: 560, mx: 'auto' }}>
+          <MoniSupport
+            expression={messageExpression}
+            message={message}
+            variant="floating"
+          />
+        </Box>
+      </Box>
 
       {notice && <Alert severity="error" onClose={() => setNotice('')}>{notice}</Alert>}
 
