@@ -7,6 +7,7 @@ import MoniSupport from './MoniSupport';
 import { ExerciseBadges, SongBadges } from './LessonBadges';
 import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 import LessonMetronome from './LessonMetronome';
+import LessonRecordingControls from './LessonRecordingControls';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -36,6 +37,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [timerResetToken, setTimerResetToken] = useState(0);
+  const [recordingStopSignal, setRecordingStopSignal] = useState(0);
   useEffect(() => {
     const startedAt = Date.now();
     setElapsedSeconds(0);
@@ -74,6 +76,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
 
   const completeCurrent = () => {
     if (!currentSong || !currentExercise) return;
+    setRecordingStopSignal((previous) => previous + 1);
     onSessionChange((previous) => recordExerciseCompletion(previous, currentSong.songId, currentExercise.topicId));
     setTimerResetToken((previous) => previous + 1);
   };
@@ -81,6 +84,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const advance = () => {
     const result = resolveLessonAction(progress, primaryAction.action);
     if (result.type === 'navigate') {
+      setRecordingStopSignal((previous) => previous + 1);
       onNavigate(result.route);
       return;
     }
@@ -88,6 +92,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
     const targetSong = songs[result.songIndex];
     const targetExercise = targetSong?.exercises[result.topicIndex];
     if (!targetSong || !targetExercise) return;
+    setRecordingStopSignal((previous) => previous + 1);
     setSelectedSongId(targetSong.songId);
     setCurrentTopicId(targetExercise.topicId);
   };
@@ -150,7 +155,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
 
   return (
     <Stack spacing={1}>
-      <Button variant="text" onClick={() => setMode('selection')} sx={{ alignSelf: 'flex-start', minHeight: 30, py: 0 }}>← 戻る</Button>
+      <Button variant="text" onClick={() => { setRecordingStopSignal((previous) => previous + 1); setMode('selection'); }} sx={{ alignSelf: 'flex-start', minHeight: 30, py: 0 }}>← 戻る</Button>
       <MoniSupport
         expression={getMoniExpression(isGoalAchieved)}
         message={getMoniMessage(isGoalAchieved, currentExercise.completionCount)}
@@ -329,7 +334,18 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
         sx={{ minHeight: 44, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
-      <LessonMetronome />
+      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ '& > *': { minWidth: 0 } }}>
+        <Box sx={{ flex: 2, minWidth: 0 }}><LessonMetronome /></Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <LessonRecordingControls
+            songId={currentSong.songId}
+            songTitle={currentSong.songTitle}
+            topicId={currentExercise.topicId}
+            topicTitle={currentExercise.topicTitle}
+            stopSignal={recordingStopSignal}
+          />
+        </Box>
+      </Stack>
   </Stack>
   );
 }
