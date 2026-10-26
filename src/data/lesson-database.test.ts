@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  LESSON_DATABASE_KEY, addSongFromMaster, addTopicFromMaster, emptyLessonDatabase,
+  LESSON_DATABASE_KEY, addSongFromMaster, addTopicFromMaster, emptyLessonDatabase, moveExercise,
   listSongExercises, listSongs, loadLessonDatabase, removeTopicFromSong,
   saveLessonDatabase, setCurrentSong, setExerciseRepeatAllowed, setExerciseTargetCount,
   deleteSong, type LessonDatabase,
@@ -103,6 +103,21 @@ describe('topic assignments on a song', () => {
     expect(addTopicFromMaster(added, 's1', topic)).toBe(added);
     expect(addTopicFromMaster(initial, 'missing', topic)).toBe(initial);
     expect(addTopicFromMaster(initial, 's1', { ...topic, deleted: true })).toBe(initial);
+  });
+
+  it('reorders topics within one song and preserves topic settings', () => {
+    let db = addTopicFromMaster(makeDatabase(), 's1', topic);
+    db = addTopicFromMaster(db, 's1', { id: 't2', title: 'Warm-up', deleted: false });
+    db = addTopicFromMaster(db, 's1', { id: 't3', title: 'Scales', deleted: false });
+    db = setExerciseTargetCount(db, 's1', 't2', 5);
+    const reordered = moveExercise(db, 's1', 't2', 0);
+    expect(reordered.songs[0].exercises.map((exercise) => exercise.topicId)).toEqual(['t2', 't1', 't3']);
+    expect(reordered.songs[0].exercises[0]).toMatchObject({ topicId: 't2', targetCount: 5 });
+    expect(reordered.songs[1]).toEqual(db.songs[1]);
+    expect(moveExercise(reordered, 's1', 't2', 0)).toBe(reordered);
+    expect(moveExercise(db, 'missing', 't2', 0)).toBe(db);
+    expect(moveExercise(db, 's1', 'missing', 0)).toBe(db);
+    expect(moveExercise(db, 's1', 't2', Number.NaN)).toBe(db);
   });
 
   it('treats assignment presence as selected; there is no active flag', () => {
