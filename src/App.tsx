@@ -332,8 +332,19 @@ export default function App() {
                                 <Stack direction="row" spacing={1}>
                                   <TextField fullWidth size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
                                   <FormControlLabel
-                                    control={<Checkbox checked={assignment?.repeatAllowed ?? false} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.checked)} />}
-                                    label="繰り返しOK"
+                                    control={<Checkbox size="small" checked={assignment?.repeatAllowed ?? false} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.checked)} />}
+                                    label="リピート"
+                                    sx={{
+                                      flex: 1,
+                                      minWidth: 0,
+                                      m: 0,
+                                      height: 40,
+                                      px: 1,
+                                      border: '1px solid',
+                                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                                      borderRadius: 1,
+                                      '& .MuiFormControlLabel-label': { whiteSpace: 'nowrap' },
+                                    }}
                                   />
                                   <TextField fullWidth size="small" type="number" label="最低間隔（秒）" value={assignment?.minimumIntervalSeconds ?? 0} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExerciseMinimumInterval(topic.id, event.target.value)} />
                                 </Stack>
