@@ -331,10 +331,10 @@ export default function App() {
                               <Stack spacing={1}>
                                 <Stack direction="row" spacing={1}>
                                   <TextField fullWidth size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
-                                  <TextField select fullWidth size="small" label="繰り返し" value={(assignment?.repeatAllowed ?? false) ? 'yes' : 'no'} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.value === 'yes')}>
-                                    <MenuItem value="no">なし</MenuItem>
-                                    <MenuItem value="yes">あり</MenuItem>
-                                  </TextField>
+                                  <FormControlLabel
+                                    control={<Checkbox checked={assignment?.repeatAllowed ?? false} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.checked)} />}
+                                    label="繰り返しOK"
+                                  />
                                   <TextField fullWidth size="small" type="number" label="最低間隔（秒）" value={assignment?.minimumIntervalSeconds ?? 0} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExerciseMinimumInterval(topic.id, event.target.value)} />
                                 </Stack>
                                 <Stack direction="row" spacing={1}>
