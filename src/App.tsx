@@ -267,7 +267,7 @@ export default function App() {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 'calc(92px + env(safe-area-inset-bottom))', bgcolor: '#fffafd' }}>
+    <Box sx={{ minHeight: '100vh', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd' }}>
       <Container maxWidth="sm" sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
           <Box>
