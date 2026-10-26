@@ -5,8 +5,6 @@ import { RoomRenderer } from '../room/room-renderer';
 import type { RoomSkinDefinition } from '../room/room-types';
 
 const ROOM_IMAGE = 'https://res.cloudinary.com/ifw9eftr/image/upload/v1793003543/room-simple-natural.png';
-const SOURCE_WIDTH = 1792;
-const SOURCE_HEIGHT = 1344;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3;
 const ZOOM_STEP = 1.2;
@@ -39,11 +37,31 @@ const midpointOf = (a: Point, b: Point): Point => ({
 
 export default function MyRoomPage() {
   const [viewportSize, setViewportSize] = useState<Size>({ width: 0, height: 0 });
+  const [imageSize, setImageSize] = useState<Size | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
   const pointersRef = useRef<PointerPoint[]>([]);
   const gestureRef = useRef<Gesture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (!cancelled) {
+        setImageSize({ width: image.naturalWidth, height: image.naturalHeight });
+      }
+    };
+    image.onerror = () => {
+      if (!cancelled) setImageSize(null);
+    };
+    image.src = ROOM_IMAGE;
+    return () => {
+      cancelled = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, []);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -59,12 +77,12 @@ export default function MyRoomPage() {
     return () => observer.disconnect();
   }, []);
 
-  const baseScale = viewportSize.width > 0 && viewportSize.height > 0
-    ? Math.min(viewportSize.width / SOURCE_WIDTH, viewportSize.height / SOURCE_HEIGHT)
+  const baseScale = imageSize && viewportSize.width > 0 && viewportSize.height > 0
+    ? Math.min(viewportSize.width / imageSize.width, viewportSize.height / imageSize.height)
     : 1;
   const scale = baseScale * zoom;
-  const renderWidth = SOURCE_WIDTH * baseScale;
-  const renderHeight = SOURCE_HEIGHT * baseScale;
+  const renderWidth = (imageSize?.width ?? 0) * baseScale;
+  const renderHeight = (imageSize?.height ?? 0) * baseScale;
   const centeredOffset = {
     x: (viewportSize.width - renderWidth) / 2,
     y: (viewportSize.height - renderHeight) / 2,
@@ -205,7 +223,8 @@ export default function MyRoomPage() {
             }}
           >
             <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-              <RoomRenderer
+              {imageSize && (
+                <RoomRenderer
                 skin={SAMPLE_ROOM_SKIN}
                 furniture={[]}
                 definitions={[]}
@@ -221,7 +240,8 @@ export default function MyRoomPage() {
                 width={viewportSize.width}
                 height={viewportSize.height}
                 scale={scale}
-              />
+                />
+              )}
             </Box>
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
