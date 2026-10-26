@@ -21,8 +21,8 @@ const setup = () => createLessonSession('2026-10-23', [
     songTitle: 'Song A',
     order: 0,
     exercises: [
-      { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
-      { topicId: 'topic-2', topicTitle: 'Topic 2', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 2, goalBonusPoints: 3 },
+      { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+      { topicId: 'topic-2', topicTitle: 'Topic 2', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 2, goalBonusPoints: 3 },
     ],
     allGoalsBonusPoints: 7,
   },
@@ -31,7 +31,7 @@ const setup = () => createLessonSession('2026-10-23', [
     songTitle: 'Song B',
     order: 1,
     exercises: [
-      { topicId: 'topic-3', topicTitle: 'Topic 3', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 4, goalBonusPoints: 6 },
+      { topicId: 'topic-3', topicTitle: 'Topic 3', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 4, goalBonusPoints: 6 },
     ],
     allGoalsBonusPoints: 8,
   },
@@ -85,8 +85,8 @@ describe('lesson session operations', () => {
         songTitle: 'Song A',
         order: 0,
         exercises: [
-          { topicId: 'topic-1', topicTitle: 'Topic 1 updated', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
-          { topicId: 'topic-4', topicTitle: 'New Topic', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-1', topicTitle: 'Topic 1 updated', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-4', topicTitle: 'New Topic', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
         ],
         allGoalsBonusPoints: 7,
       },
@@ -116,7 +116,7 @@ describe('lesson session operations', () => {
         songTitle: 'Song A',
         order: 0,
         exercises: [
-          { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
         ],
         allGoalsBonusPoints: 7,
       },
