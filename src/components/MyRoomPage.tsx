@@ -218,8 +218,8 @@ export default function MyRoomPage() {
                   unitDepth: 32 * scale,
                   unitHeight: 48 * scale,
                 }}
-                width={renderWidth}
-                height={renderHeight}
+                width={viewportSize.width}
+                height={viewportSize.height}
                 scale={scale}
               />
             </Box>
