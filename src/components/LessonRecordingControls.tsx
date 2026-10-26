@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Stack, Typography } from '@mui/material';
+import { Button, Stack, Typography } from '@mui/material';
 import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import {
@@ -31,7 +31,6 @@ type Props = {
   songTitle: string;
   topicId: string;
   topicTitle: string;
-  completionCount: number;
   stopSignal: number;
 };
 
@@ -48,6 +47,10 @@ type ActiveRecording = {
   writeQueue: Promise<void>;
   startedAt: number;
   timer: number;
+  songId: string;
+  songTitle: string;
+  topicId: string;
+  topicTitle: string;
 };
 
 const getSupportedMimeType = (): string => {
@@ -56,7 +59,7 @@ const getSupportedMimeType = (): string => {
 };
 
 export default function LessonRecordingControls({
-  songId, songTitle, topicId, topicTitle, completionCount, stopSignal,
+  songId, songTitle, topicId, topicTitle, stopSignal,
 }: Props) {
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -97,10 +100,10 @@ export default function LessonRecordingControls({
         id: recording.id,
         filePath: `${'recordings'}/${recording.finalName}`,
         recordedAt: recording.recordedAt,
-        songId,
-        songTitle,
-        topicId,
-        topicTitle,
+        songId: recording.songId,
+        songTitle: recording.songTitle,
+        topicId: recording.topicId,
+        topicTitle: recording.topicTitle,
         attemptNumber: recording.attemptNumber,
         durationMs: Math.max(0, Date.now() - recording.startedAt),
         mimeType: recording.mimeType,
@@ -145,6 +148,7 @@ export default function LessonRecordingControls({
         id, recordedAt, attemptNumber, mimeType: recorder.mimeType || 'audio/webm',
         tempName, finalName, directory, writable, recorder,
         writeQueue: Promise.resolve(), startedAt, timer: 0,
+        songId, songTitle, topicId, topicTitle,
       };
       recorder.addEventListener('dataavailable', (event: BlobEvent) => {
         if (event.data.size > 0) {
