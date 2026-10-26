@@ -7,24 +7,27 @@ import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
-  addSong,
-  addTopic,
+  addSongFromMaster,
+  addTopicFromMaster,
   getActiveExercises,
   listSongs,
-  listTopics,
   loadLessonDatabase,
   saveLessonDatabase,
-  setSongExercise,
+  removeTopicFromSong,
   setExercisePoints,
   setExerciseTargetCount,
   setExerciseRepeatAllowed,
   setExerciseMinimumInterval,
   setSongBonusPoints,
   setDailyBonusPoints,
-  softDeleteSong,
-  softDeleteTopic,
+  deleteSong,
   type LessonDatabase,
 } from './data/lesson-database';
+import {
+  addMasterSong, addMasterTopic, listMasterSongs, listMasterTopics,
+  loadMasterDatabase, saveMasterDatabase, seedMasterDatabase,
+  softDeleteMasterSong, softDeleteMasterTopic, type MasterDatabase,
+} from './data/master-database';
 import {
   createLessonSession,
   loadLessonSession,
@@ -40,6 +43,16 @@ const today = (): string => {
 };
 
 const loadDatabase = (): LessonDatabase => loadLessonDatabase(window.localStorage);
+const loadMaster = (): MasterDatabase => {
+  const current = loadMasterDatabase(window.localStorage);
+  try {
+    const raw = window.localStorage.getItem('moni-lesson-database');
+    const legacy = raw ? JSON.parse(raw) : null;
+    return seedMasterDatabase(current, legacy?.songs ?? [], legacy?.topics ?? []);
+  } catch {
+    return current;
+  }
+};
 const loadInitialSession = (): LessonSession => {
   const saved = loadLessonSession(window.localStorage);
   return saved ? resetLessonSessionForDate(saved, today()) : createLessonSession(today(), [], DEFAULT_DAILY_BONUS_POINTS);
@@ -47,6 +60,7 @@ const loadInitialSession = (): LessonSession => {
 
 export default function App() {
   const [database, setDatabase] = useState<LessonDatabase>(loadDatabase);
+  const [masterDatabase, setMasterDatabase] = useState<MasterDatabase>(loadMaster);
   const [session, setSession] = useState<LessonSession>(loadInitialSession);
   const [route, setRoute] = useState(() => resolveHashRoute(window.location.hash));
 
@@ -61,16 +75,20 @@ export default function App() {
   const [pointDrafts, setPointDrafts] = useState<Record<string, string>>({});
 
   const songs = useMemo(() => listSongs(database), [database]);
-  const topics = useMemo(() => listTopics(database), [database]);
+  const topics = useMemo(() => listMasterTopics(masterDatabase), [masterDatabase]);
   const activeSongId = songs.some((song) => song.id === selectedSongId) ? selectedSongId : (songs[0]?.id ?? '');
 
 
   useEffect(() => saveLessonSession(session, window.localStorage), [session]);
   useEffect(() => saveLessonDatabase(database, window.localStorage), [database]);
+  useEffect(() => saveMasterDatabase(masterDatabase, window.localStorage), [masterDatabase]);
 
   const addSongFromTeacher = () => {
     if (!songTitle.trim()) return;
-    const next = addSong(database, songTitle);
+    const nextMaster = addMasterSong(masterDatabase, songTitle);
+    const masterSong = listMasterSongs(nextMaster).at(-1);
+    setMasterDatabase(nextMaster);
+    const next = masterSong ? addSongFromMaster(database, masterSong) : database;
     const added = listSongs(next).at(-1);
     setDatabase(next);
     setSongTitle('');
@@ -79,31 +97,31 @@ export default function App() {
 
   const addTopicFromTeacher = () => {
     if (!topicTitle.trim()) return;
-    const next = addTopic(database, topicTitle);
-    const added = listTopics(next).at(-1);
-    setDatabase(next);
+    setMasterDatabase((previous) => addMasterTopic(previous, topicTitle));
     setTopicTitle('');
-    if (added && activeSongId) {
-      setDatabase((previous) => setSongExercise(previous, activeSongId, added.id, true));
-    }
   };
 
-  const toggleTopicForSong = (topicId: string, active: boolean) => {
+  const toggleTopicForSong = (topicId: string, selected: boolean) => {
     if (!activeSongId) return;
-    setDatabase((previous) => setSongExercise(previous, activeSongId, topicId, active));
+    const topic = topics.find((item) => item.id === topicId);
+    if (!topic) return;
+    setDatabase((previous) => selected
+      ? addTopicFromMaster(previous, activeSongId, topic)
+      : removeTopicFromSong(previous, activeSongId, topicId));
   };
 
   const deleteSongFromTeacher = (songId: string) => {
     const song = songs.find((item) => item.id === songId);
     if (!song || !window.confirm('「' + song.title + '」を削除しますか？')) return;
-    setDatabase((previous) => softDeleteSong(previous, songId));
+    setDatabase((previous) => deleteSong(previous, songId));
+    setMasterDatabase((previous) => softDeleteMasterSong(previous, songId));
     setSelectedSongId((current) => current === songId ? '' : current);
   };
 
   const deleteTopicFromTeacher = (topicId: string) => {
     const topic = topics.find((item) => item.id === topicId);
-    if (!topic || !window.confirm('お題「' + topic.title + '」を削除しますか？')) return;
-    setDatabase((previous) => softDeleteTopic(previous, topicId));
+    if (!topic || !window.confirm('マスターのお題「' + topic.title + '」を非表示にしますか？')) return;
+    setMasterDatabase((previous) => softDeleteMasterTopic(previous, topicId));
   };
 
   const pointDraftKey = (key: string) => `${activeSongId}:${key}`;
@@ -316,14 +334,14 @@ export default function App() {
                         {topics.map((topic) => {
                           const song = songs.find((item) => item.id === activeSongId);
                           const assignment = song?.exercises.find((item) => item.topicId === topic.id);
-                          const active = assignment?.active ?? false;
+                          const active = Boolean(assignment);
                           return (
                             <Stack key={topic.id} spacing={1} sx={{ p: 1.2, borderRadius: 2.5, bgcolor: '#faf7fc' }}>
                               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                                 <Typography fontWeight={700}>{topic.title}</Typography>
                                 <Stack direction="row" spacing={0.5}>
                                   <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
-                                    {active ? 'レッスンに使う' : '使わない'}
+                                    {active ? '選択済み' : 'お題を追加'}
                                   </Button>
                                   <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>
                                 </Stack>
