@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import {
   Alert, Box, Button, Card, CardContent, IconButton, Slider, Stack, TextField, Typography,
 } from '@mui/material';
@@ -110,7 +110,7 @@ export default function RecordingLibrary({ onBack }: Props) {
     }
   };
 
-  const seek = (_event: Event, value: number | number[]) => {
+  const seek = (_event: Event | SyntheticEvent, value: number | number[]) => {
     const next = Array.isArray(value) ? value[0] : value;
     if (audioRef.current) audioRef.current.currentTime = next;
     setCurrentTime(next);
