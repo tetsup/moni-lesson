@@ -88,7 +88,6 @@ export default function LessonMetronome() {
     timersRef.current = [];
     setPlaying(true);
 
-    const firstAt = context.currentTime + 0.08;
     let beat = 0;
     const scheduleNext = () => {
       if (generationRef.current !== generation) return;
