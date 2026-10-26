@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -10,7 +10,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { addSongFromMaster, addTopicFromMaster, deleteSong, listSongs, moveSong, removeTopicFromSong, setExerciseMinimumInterval, setExercisePoints, setExerciseRepeatAllowed, setExerciseTargetCount, setSongBonusPoints, setDailyBonusPoints, type LessonDatabase, type ExerciseAssignment } from '../data/lesson-database';
 import { addMasterSong, addMasterTopic, listMasterSongs, listMasterTopics, softDeleteMasterSong, softDeleteMasterTopic, type MasterDatabase, type MasterSong, type MasterTopic } from '../data/master-database';
 import { DEFAULT_ALL_GOALS_BONUS_POINTS, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, canStartLesson } from '../data/lesson-setup';
-type Props = { database: LessonDatabase; setDatabase: React.Dispatch<React.SetStateAction<LessonDatabase>>; masterDatabase: MasterDatabase; setMasterDatabase: React.Dispatch<React.SetStateAction<MasterDatabase>>; onOpenLesson: () => void };
+type Props = { database: LessonDatabase; setDatabase: Dispatch<SetStateAction<LessonDatabase>>; masterDatabase: MasterDatabase; setMasterDatabase: Dispatch<SetStateAction<MasterDatabase>>; onOpenLesson: () => void };
 export default function TeacherMode({database,setDatabase,masterDatabase,setMasterDatabase,onOpenLesson}: Props) {
  const [page,setPage]=useState<'today'|'masters'>('today'), [masterTab,setMasterTab]=useState<'songs'|'topics'>('songs');
  const [newTitle,setNewTitle]=useState(''), [songOpen,setSongOpen]=useState(false), [topicSong,setTopicSong]=useState<string|null>(null);
