@@ -53,8 +53,18 @@ const loadMaster = (): MasterDatabase => {
   }
 };
 const loadInitialSession = (): LessonSession => {
+  const date = today();
   const saved = loadLessonSession(window.localStorage);
-  return saved ? resetLessonSessionForDate(saved, today()) : createLessonSession(today(), [], DEFAULT_DAILY_BONUS_POINTS);
+  const previous = saved
+    ? resetLessonSessionForDate(saved, date)
+    : createLessonSession(date, [], DEFAULT_DAILY_BONUS_POINTS);
+  const database = loadDatabase();
+  return updateLessonSessionForSetup(
+    previous,
+    date,
+    makeLessonSetup(database),
+    database.dailyBonusPoints ?? DEFAULT_DAILY_BONUS_POINTS,
+  );
 };
 
 export default function App() {
