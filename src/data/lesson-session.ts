@@ -205,7 +205,7 @@ export const recordExerciseCompletion = (
       : !exercise.goalBonusAwarded);
 
   if (reachedGoal) {
-    nextExercise.goalBonusAwarded = !exercise.repeatAllowed;
+    nextExercise.goalBonusAwarded = true;
     earnedPoints += exercise.goalBonusPoints;
   }
 
