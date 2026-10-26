@@ -98,14 +98,30 @@ export const addSong = (database: LessonDatabase, title: string): LessonDatabase
   };
 };
 
-export const softDeleteSong = (database: LessonDatabase, songId: string): LessonDatabase => {
+export const deleteSong = (database: LessonDatabase, songId: string): LessonDatabase => {
   if (!database.songs.some((song) => song.id === songId)) return database;
   return {
     ...database,
-    songs: database.songs.map((song) => song.id === songId
-      ? { ...song, deleted: true, exercises: [] }
-      : song),
+    songs: database.songs.filter((song) => song.id !== songId),
     currentSongId: database.currentSongId === songId ? null : database.currentSongId,
+  };
+};
+
+/** Adds a master song as a new entry in today's lesson list. Lesson settings start empty. */
+export const addSongFromMaster = (
+  database: LessonDatabase,
+  masterSong: { id: string; title: string; deleted: boolean },
+): LessonDatabase => {
+  if (masterSong.deleted || database.songs.some((song) => song.id === masterSong.id)) return database;
+  return {
+    ...database,
+    songs: [...database.songs, {
+      id: masterSong.id,
+      title: masterSong.title,
+      order: Math.max(-1, ...database.songs.map((song) => song.order)) + 1,
+      deleted: false,
+      exercises: [],
+    }],
   };
 };
 
@@ -147,15 +163,32 @@ export const addTopic = (database: LessonDatabase, title: string): LessonDatabas
   };
 };
 
-export const softDeleteTopic = (database: LessonDatabase, topicId: string): LessonDatabase => {
+export const deleteTopic = (database: LessonDatabase, topicId: string): LessonDatabase => {
   if (!database.topics.some((topic) => topic.id === topicId)) return database;
   return {
     ...database,
-    topics: database.topics.map((topic) => topic.id === topicId ? { ...topic, deleted: true } : topic),
+    topics: database.topics.filter((topic) => topic.id !== topicId),
     songs: database.songs.map((song) => ({
       ...song,
       exercises: song.exercises.filter((exercise) => exercise.topicId !== topicId),
     })),
+  };
+};
+
+/** Adds a master topic to today's lesson database; it can then be assigned to any song. */
+export const addTopicFromMaster = (
+  database: LessonDatabase,
+  masterTopic: { id: string; title: string; deleted: boolean },
+): LessonDatabase => {
+  if (masterTopic.deleted || database.topics.some((topic) => topic.id === masterTopic.id)) return database;
+  return {
+    ...database,
+    topics: [...database.topics, {
+      id: masterTopic.id,
+      title: masterTopic.title,
+      order: Math.max(-1, ...database.topics.map((topic) => topic.order)) + 1,
+      deleted: false,
+    }],
   };
 };
 
