@@ -4,6 +4,7 @@ export type ExerciseAssignment = {
   topicId: string;
   active: boolean;
   targetCount?: number;
+  repeatAllowed?: boolean;
   pointsPerCompletion?: number;
   goalBonusPoints?: number;
   minimumIntervalSeconds?: number;
@@ -214,6 +215,20 @@ export const setExerciseTargetCount = (
     }),
   };
 };
+
+export const setExerciseRepeatAllowed = (
+  database: LessonDatabase,
+  songId: string,
+  topicId: string,
+  repeatAllowed: boolean,
+): LessonDatabase => ({
+  ...database,
+  songs: database.songs.map((song) => song.id !== songId ? song : {
+    ...song,
+    exercises: song.exercises.map((exercise) =>
+      exercise.topicId === topicId ? { ...exercise, repeatAllowed } : exercise),
+  }),
+});
 
 export const setExerciseMinimumInterval = (
   database: LessonDatabase,
