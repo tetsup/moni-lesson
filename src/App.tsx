@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
 import TeacherMode from './components/TeacherMode';
 import AudioMaintenance from './components/AudioMaintenance';
+import RecordingLibrary from './components/RecordingLibrary';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
@@ -239,6 +240,16 @@ export default function App() {
     window.location.hash = '/complete';
   };
 
+  const openRecordings = () => {
+    setRoute({ page: 'recordings' });
+    window.location.hash = '/recordings';
+  };
+
+  const returnToLesson = () => {
+    setRoute({ page: 'practice' });
+    window.location.hash = '/practice';
+  };
+
   const openLesson = () => {
     const setup = makeLessonSetup(database);
     if (setup.length === 0) return;
@@ -279,7 +290,9 @@ export default function App() {
           )}
         </Stack>
 
-        {route.page === 'admin' ? (
+        {route.page === 'recordings' ? (
+          <RecordingLibrary onBack={returnToLesson} />
+        ) : route.page === 'admin' ? (
           <AudioMaintenance />
         ) : route.page === 'complete' ? (
           <Stack spacing={2}>
@@ -316,7 +329,7 @@ export default function App() {
         ) : route.page === 'teacher' ? (
           <TeacherMode database={database} setDatabase={setDatabase} masterDatabase={masterDatabase} setMasterDatabase={setMasterDatabase} onOpenLesson={openLesson} />
         ) : (
-          <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} />
+          <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
       </Container>
     </Box>

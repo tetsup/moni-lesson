@@ -44,6 +44,7 @@ type Props = {
   session: LessonSession;
   onSessionChange: (update: (previous: LessonSession) => LessonSession) => void;
   onNavigate: (route: "complete") => void;
+  onOpenRecordings: () => void;
 };
 
 const getMoniExpression = (isGoalAchieved: boolean): MoniExpression =>
@@ -62,6 +63,7 @@ export default function LessonMode({
   session,
   onSessionChange,
   onNavigate,
+  onOpenRecordings,
 }: Props) {
   const [mode, setMode] = useState<"selection" | "lesson">("selection");
   const [selectedSongId, setSelectedSongId] = useState(
@@ -762,6 +764,7 @@ export default function LessonMode({
           topicId={currentExercise.topicId}
           topicTitle={currentExercise.topicTitle}
           stopSignal={recordingStopSignal}
+          onOpenLibrary={onOpenRecordings}
         />
       </Box>
     </Stack>
