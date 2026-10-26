@@ -14,15 +14,17 @@ export type RoomRendererProps = {
   projection: IsometricProjection;
   width: number;
   height: number;
+  /** Uniform display scale applied to source images and their pixel anchors. */
+  scale?: number;
   className?: string;
 };
 
 /**
  * Renders one room-skin image and every known furniture placement.
  *
- * The projection origin is expressed in pixels relative to this component's
- * top-left corner. Image URLs and their pixel anchors are supplied by the
- * caller/catalog; no asset-specific values are embedded in the renderer.
+ * The projection origin is expressed in display pixels relative to this
+ * component's top-left corner. Image URLs and their pixel anchors are supplied
+ * by the caller/catalog; no asset-specific values are embedded in the renderer.
  */
 export const RoomRenderer = ({
   skin,
@@ -31,6 +33,7 @@ export const RoomRenderer = ({
   projection,
   width,
   height,
+  scale = 1,
   className,
 }: RoomRendererProps) => {
   const definitionById = new Map(definitions.map((definition) => [definition.id, definition]));
@@ -41,8 +44,10 @@ export const RoomRenderer = ({
 
   const backgroundStyle: CSSProperties = {
     position: 'absolute',
-    left: projection.origin.x - skin.anchor.x,
-    top: projection.origin.y - skin.anchor.y,
+    left: projection.origin.x - skin.anchor.x * scale,
+    top: projection.origin.y - skin.anchor.y * scale,
+    width: 1792 * scale,
+    height: 1344 * scale,
     maxWidth: 'none',
     pointerEvents: 'none',
     userSelect: 'none',
@@ -84,8 +89,10 @@ export const RoomRenderer = ({
             data-facing={placement.facing}
             style={{
               position: 'absolute',
-              left: position.x,
-              top: position.y,
+              left: position.x + definition.image.anchor.x * (1 - scale),
+              top: position.y + definition.image.anchor.y * (1 - scale),
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
               maxWidth: 'none',
               pointerEvents: 'none',
               userSelect: 'none',
