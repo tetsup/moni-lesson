@@ -34,6 +34,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const [selectedSongId, setSelectedSongId] = useState(session.songs[0]?.songId ?? '');
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerResetToken, setTimerResetToken] = useState(0);
   useEffect(() => {
     const startedAt = Date.now();
     setElapsedSeconds(0);
@@ -41,7 +42,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
     }, 250);
     return () => window.clearInterval(timer);
-  }, [mode, selectedSongId, currentTopicId]);
+  }, [mode, selectedSongId, currentTopicId, timerResetToken]);
   const songs = session.songs;
   const selectedSong = songs.find((song) => song.songId === selectedSongId) ?? songs[0];
   // Resolve the current exercise inside the selected song. Topic IDs can be shared
@@ -73,6 +74,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const completeCurrent = () => {
     if (!currentSong || !currentExercise) return;
     onSessionChange((previous) => recordExerciseCompletion(previous, currentSong.songId, currentExercise.topicId));
+    setTimerResetToken((previous) => previous + 1);
   };
 
   const advance = () => {
