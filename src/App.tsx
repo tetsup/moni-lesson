@@ -4,6 +4,7 @@ import AudioMaintenance from './components/AudioMaintenance';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Chip, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
+import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSong,
@@ -206,7 +207,24 @@ export default function App() {
             <Typography variant="h5" sx={{ color: '#80509a', lineHeight: 1.1, fontWeight: 800 }}>moni lesson</Typography>
             <Typography variant="caption" color="text.secondary">きょうも、音楽と仲よくなろう ♡</Typography>
           </Box>
-          {route.page === 'practice' && <Chip icon={<StarsRoundedIcon />} label={`${session.todayPoints} pt`} sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, height: 40 }} />}
+          {route.page === 'practice' && (
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Chip
+                icon={<AccountBalanceWalletRoundedIcon />}
+                label={`${session.totalPoints} pt`}
+                aria-label={`所持ポイント ${session.totalPoints}ポイント`}
+                size="small"
+                sx={{ bgcolor: '#eee5f5', color: '#80509a', fontWeight: 800, '& .MuiChip-icon': { color: '#80509a' } }}
+              />
+              <Chip
+                icon={<StarsRoundedIcon />}
+                label={`${session.todayPoints} pt`}
+                aria-label={`今日の獲得ポイント ${session.todayPoints}ポイント`}
+                size="small"
+                sx={{ bgcolor: '#fff0c9', color: '#8d6821', fontWeight: 800, '& .MuiChip-icon': { color: '#d99a13' } }}
+              />
+            </Stack>
+          )}
         </Stack>
 
         {route.page === 'admin' ? (
