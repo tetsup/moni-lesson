@@ -394,10 +394,9 @@ export default function App() {
               <Box
                 aria-label={`所持ポイント ${session.totalPoints}ポイント`}
                 sx={{
-                  minWidth: 68,
-                  px: 0.75,
+                  minWidth: 84,
+                  px: 1,
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#80509a',
@@ -405,11 +404,17 @@ export default function App() {
                   ml: 0.5,
                 }}
               >
-                <AccountBalanceWalletRoundedIcon sx={{ fontSize: 25 }} />
-                <Typography sx={{ fontSize: 11, lineHeight: 1.2, fontWeight: 700 }}>ポイント</Typography>
-                <Typography sx={{ fontSize: 13, lineHeight: 1.3, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>
-                  {session.totalPoints} pt
-                </Typography>
+                <Chip
+                  icon={<AccountBalanceWalletRoundedIcon />}
+                  label={`${session.totalPoints} pt`}
+                  size="small"
+                  sx={{
+                    bgcolor: '#eee5f5',
+                    color: '#80509a',
+                    fontWeight: 800,
+                    '& .MuiChip-icon': { color: '#80509a' },
+                  }}
+                />
               </Box>
             </Stack>
           </Container>
