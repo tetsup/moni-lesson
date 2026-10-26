@@ -329,6 +329,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
         sx={{ minHeight: 44, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
+      <LessonMetronome />
   </Stack>
   );
 }
