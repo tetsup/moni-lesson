@@ -175,7 +175,7 @@ describe('topics', () => {
     expect(deleted.topics.find((topic) => topic.id === 't2')).toBeUndefined();
     expect(listTopics(deleted).map((topic) => topic.id)).toEqual(['t1', 't3']);
     expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
-    expect(deleted.songs.find((song) => song.id === 's2')).toBeUndefined();
+    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
     expect(deleted.songs.find((song) => song.id === 's3')?.exercises).toEqual([{ topicId: 't1', active: true }]);
   });
 
@@ -192,7 +192,7 @@ describe('topics', () => {
     db = deleteSong(db, 's2');
     const deleted = deleteTopic(db, 't2');
     expect(deleted.songs.find((song) => song.id === 's1')?.exercises).toEqual([]);
-    expect(deleted.songs.find((song) => song.id === 's2')?.exercises).toEqual([]);
+    expect(deleted.songs.find((song) => song.id === 's2')).toBeUndefined();
     expect(deleted.songs.find((song) => song.id === 's3')?.exercises).toEqual([{ topicId: 't1', active: true }]);
   });
 
