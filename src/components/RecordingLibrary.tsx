@@ -190,9 +190,8 @@ export default function RecordingLibrary({ onBack }: Props) {
                       borderRadius: 2,
                       fontWeight: 800,
                     }}
-                  >
-                    {isPlaying ? '停止' : '再生'}
-                  </Button>
+                    aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
+                  />
                   <Slider
                     aria-label={`${recording.topicTitle} 再生位置`}
                     min={0}
