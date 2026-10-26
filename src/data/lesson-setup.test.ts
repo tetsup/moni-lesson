@@ -36,6 +36,7 @@ describe('lesson setup', () => {
         topicId: topic.id,
         topicTitle: '右手だけ',
         targetCount: 10,
+        repeatAllowed: false,
         minimumIntervalSeconds: 0,
         pointsPerCompletion: 1,
         goalBonusPoints: 5,
