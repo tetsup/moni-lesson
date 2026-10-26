@@ -248,7 +248,7 @@ export const setDailyBonusPoints = (database: LessonDatabase, points: number): L
 };
 
 /** All assignments are selected; no active flag or separate topic list exists. */
-export const getActiveExercises = (database: LessonDatabase, songId: string): ExerciseAssignment[] => {
+export const listSongExercises = (database: LessonDatabase, songId: string): ExerciseAssignment[] => {
   const song = database.songs.find((item) => item.id === songId && !item.deleted);
   return song ? song.exercises : [];
 };
