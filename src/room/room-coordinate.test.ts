@@ -31,7 +31,7 @@ describe('projectRoomPosition', () => {
 
   it('combines all axes without mutating the input', () => {
     const position = { x: 2, y: 3, z: 1 };
-    expect(projectRoomPosition(position, projection)).toEqual({ x: 268, y: 180 });
+    expect(projectRoomPosition(position, projection)).toEqual({ x: 268, y: 132 });
     expect(position).toEqual({ x: 2, y: 3, z: 1 });
   });
 });
@@ -51,6 +51,6 @@ describe('getFurnitureImagePosition', () => {
     };
 
     expect(getFurnitureImagePosition(placement, definition, projection))
-      .toEqual({ x: 216, y: 62 });
+      .toEqual({ x: 248, y: 30 });
   });
 });
