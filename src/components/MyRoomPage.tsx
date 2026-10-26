@@ -7,12 +7,12 @@ import type { RoomSkinDefinition } from '../room/room-types';
 const ROOM_IMAGE = 'https://res.cloudinary.com/ifw9eftr/image/upload/v1793001158/hxoy98kjsnq9kvbyp1mb.png';
 const SOURCE_WIDTH = 1792;
 const SOURCE_HEIGHT = 1344;
-const MAX_RENDER_WIDTH = 560;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3;
 const ZOOM_STEP = 1.2;
 
 type Point = { x: number; y: number };
+type Size = { width: number; height: number };
 type PointerPoint = Point & { pointerId: number };
 type Gesture = {
   pointers: PointerPoint[];
@@ -38,9 +38,7 @@ const midpointOf = (a: Point, b: Point): Point => ({
 });
 
 export default function MyRoomPage() {
-  const [renderWidth, setRenderWidth] = useState(() =>
-    Math.min(MAX_RENDER_WIDTH, Math.max(240, window.innerWidth - 48)),
-  );
+  const [viewportSize, setViewportSize] = useState<Size>({ width: 0, height: 0 });
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -48,16 +46,29 @@ export default function MyRoomPage() {
   const gestureRef = useRef<Gesture | null>(null);
 
   useEffect(() => {
-    const updateWidth = () => setRenderWidth(
-      Math.min(MAX_RENDER_WIDTH, Math.max(240, window.innerWidth - 48)),
-    );
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      setViewportSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+    observer.observe(viewport);
+    return () => observer.disconnect();
   }, []);
 
-  const baseScale = renderWidth / SOURCE_WIDTH;
+  const baseScale = viewportSize.width > 0 && viewportSize.height > 0
+    ? Math.min(viewportSize.width / SOURCE_WIDTH, viewportSize.height / SOURCE_HEIGHT)
+    : 1;
   const scale = baseScale * zoom;
+  const renderWidth = SOURCE_WIDTH * baseScale;
   const renderHeight = SOURCE_HEIGHT * baseScale;
+  const centeredOffset = {
+    x: (viewportSize.width - renderWidth) / 2,
+    y: (viewportSize.height - renderHeight) / 2,
+  };
 
   const getLocalPoint = (clientX: number, clientY: number): Point => {
     const rect = viewportRef.current?.getBoundingClientRect();
@@ -66,19 +77,19 @@ export default function MyRoomPage() {
 
   const zoomAt = (nextZoom: number, focus: Point) => {
     const clampedZoom = clampZoom(nextZoom);
+    const ratio = clampedZoom / zoom;
     setPan((currentPan) => ({
-      x: focus.x - (focus.x - currentPan.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * zoom) * (clampedZoom / zoom)
-        - SAMPLE_ROOM_SKIN.anchor.x * baseScale * clampedZoom,
-      y: focus.y - (focus.y - currentPan.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * zoom) * (clampedZoom / zoom)
-        - SAMPLE_ROOM_SKIN.anchor.y * baseScale * clampedZoom,
+      x: focus.x - (focus.x - centeredOffset.x - currentPan.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * zoom) * ratio
+        - centeredOffset.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * clampedZoom,
+      y: focus.y - (focus.y - centeredOffset.y - currentPan.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * zoom) * ratio
+        - centeredOffset.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * clampedZoom,
     }));
     setZoom(clampedZoom);
   };
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const focus = getLocalPoint(event.clientX, event.clientY);
-    zoomAt(zoom * (event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP), focus);
+    zoomAt(zoom * (event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP), getLocalPoint(event.clientX, event.clientY));
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -111,10 +122,10 @@ export default function MyRoomPage() {
       const ratio = nextZoom / gesture.zoom;
       setZoom(nextZoom);
       setPan({
-        x: midpoint.x - (gesture.midpoint.x - gesture.pan.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * gesture.zoom) * ratio
-          - SAMPLE_ROOM_SKIN.anchor.x * baseScale * nextZoom,
-        y: midpoint.y - (gesture.midpoint.y - gesture.pan.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * gesture.zoom) * ratio
-          - SAMPLE_ROOM_SKIN.anchor.y * baseScale * nextZoom,
+        x: midpoint.x - (gesture.midpoint.x - centeredOffset.x - gesture.pan.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * gesture.zoom) * ratio
+          - centeredOffset.x - SAMPLE_ROOM_SKIN.anchor.x * baseScale * nextZoom,
+        y: midpoint.y - (gesture.midpoint.y - centeredOffset.y - gesture.pan.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * gesture.zoom) * ratio
+          - centeredOffset.y - SAMPLE_ROOM_SKIN.anchor.y * baseScale * nextZoom,
       });
     } else if (pointers.length === 1 && gesture.pointers.length === 1) {
       setPan({
@@ -163,12 +174,12 @@ export default function MyRoomPage() {
               {SAMPLE_ROOM_SKIN.name}
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Button size="small" aria-label="縮小" onClick={() => zoomAt(zoom / ZOOM_STEP, { x: renderWidth / 2, y: renderHeight / 2 })}>−</Button>
+              <Button size="small" aria-label="縮小" onClick={() => zoomAt(zoom / ZOOM_STEP, { x: viewportSize.width / 2, y: viewportSize.height / 2 })}>−</Button>
               <Typography variant="caption" sx={{ minWidth: 42, textAlign: 'center' }}>
                 {Math.round(zoom * 100)}%
               </Typography>
-              <Button size="small" aria-label="拡大" onClick={() => zoomAt(zoom * ZOOM_STEP, { x: renderWidth / 2, y: renderHeight / 2 })}>＋</Button>
-              <Button size="small" onClick={resetView}>リセット</Button>
+              <Button size="small" aria-label="拡大" onClick={() => zoomAt(zoom * ZOOM_STEP, { x: viewportSize.width / 2, y: viewportSize.height / 2 })}>＋</Button>
+              <Button size="small" onClick={resetView}>全体表示</Button>
             </Stack>
           </Stack>
           <Box
@@ -182,11 +193,10 @@ export default function MyRoomPage() {
             onPointerCancel={handlePointerUp}
             sx={{
               width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
+              height: 'min(65vh, 560px)',
+              minHeight: 320,
               overflow: 'hidden',
               position: 'relative',
-              height: renderHeight,
               touchAction: 'none',
               cursor: pointersRef.current.length ? 'grabbing' : 'grab',
               borderRadius: 1,
@@ -201,8 +211,8 @@ export default function MyRoomPage() {
                 definitions={[]}
                 projection={{
                   origin: {
-                    x: SAMPLE_ROOM_SKIN.anchor.x * scale + pan.x,
-                    y: SAMPLE_ROOM_SKIN.anchor.y * scale + pan.y,
+                    x: centeredOffset.x + SAMPLE_ROOM_SKIN.anchor.x * scale + pan.x,
+                    y: centeredOffset.y + SAMPLE_ROOM_SKIN.anchor.y * scale + pan.y,
                   },
                   unitWidth: 64 * scale,
                   unitDepth: 32 * scale,
