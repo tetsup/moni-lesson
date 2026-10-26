@@ -4,7 +4,7 @@ import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/m
 import { RoomRenderer } from '../room/room-renderer';
 import type { RoomSkinDefinition } from '../room/room-types';
 
-const ROOM_IMAGE = 'https://res.cloudinary.com/ifw9eftr/image/upload/v1793001158/hxoy98kjsnq9kvbyp1mb.png';
+const ROOM_IMAGE = 'https://res.cloudinary.com/ifw9eftr/image/upload/v1793003543/room-simple-natural.png';
 const SOURCE_WIDTH = 1792;
 const SOURCE_HEIGHT = 1344;
 const MIN_ZOOM = 0.5;
@@ -26,7 +26,7 @@ const SAMPLE_ROOM_SKIN: RoomSkinDefinition = {
   id: 'natural-simple-room',
   name: 'ナチュラルなシンプルルーム',
   backgroundImage: ROOM_IMAGE,
-  anchor: { x: SOURCE_WIDTH / 2, y: SOURCE_HEIGHT / 4 },
+  anchor: { x: 512, y: 274 },
   layoutId: 'sample-isometric-room',
 };
 
