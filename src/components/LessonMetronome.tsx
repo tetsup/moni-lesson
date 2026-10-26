@@ -56,6 +56,8 @@ export default function LessonMetronome() {
   const contextRef = useRef<AudioContext | null>(null);
   const timersRef = useRef<number[]>([]);
   const generationRef = useRef(0);
+  const settingsRef = useRef({ bpm, tone, beatCount });
+  settingsRef.current = { bpm, tone, beatCount };
   const beatCount = Number(meter.split('/')[0]);
   const beatUnit = meter.endsWith('/8') ? '♪（8分音符）' : '♩（4分音符）';
 
@@ -86,20 +88,21 @@ export default function LessonMetronome() {
     timersRef.current = [];
     setPlaying(true);
 
-    const interval = 60 / bpm;
     const firstAt = context.currentTime + 0.08;
     let beat = 0;
     const scheduleNext = () => {
       if (generationRef.current !== generation) return;
-      const at = firstAt + beat * interval;
-      playTone(context, tone, beat % beatCount === 0, at);
+      const { bpm: currentBpm, tone: currentTone, beatCount: currentBeatCount } = settingsRef.current;
+      const interval = 60 / currentBpm;
+      const at = context.currentTime + 0.08;
+      playTone(context, currentTone, beat % currentBeatCount === 0, at);
       const delay = Math.max(0, (at - context.currentTime) * 1000);
-      const currentBeat = beat % beatCount;
+      const currentBeat = beat % currentBeatCount;
       timersRef.current.push(window.setTimeout(() => {
         if (generationRef.current === generation) setActiveBeat(currentBeat);
       }, delay));
       beat += 1;
-      const nextDelay = Math.max(0, (firstAt + beat * interval - context.currentTime) * 1000 - 80);
+      const nextDelay = Math.max(0, interval * 1000 - 80);
       timersRef.current.push(window.setTimeout(scheduleNext, nextDelay));
     };
     scheduleNext();
