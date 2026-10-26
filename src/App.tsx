@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
+import TeacherMode from './components/TeacherMode';
 import AudioMaintenance from './components/AudioMaintenance';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
@@ -313,109 +314,7 @@ export default function App() {
             </Button>
           </Stack>
         ) : route.page === 'teacher' ? (
-          <Stack spacing={2}>
-            <Box>
-              <Typography variant="h5" fontWeight={800}>先生の設定画面</Typography>
-              <Typography color="text.secondary">曲とお題を登録して、レッスンで使うお題を選んでね。</Typography>
-            </Box>
-            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲マスターに登録</Typography>
-                <Stack direction="row" spacing={1}>
-                  <TextField fullWidth size="small" label="曲名" value={songTitle} onChange={(event) => setSongTitle(event.target.value)} />
-                  <Button variant="contained" onClick={addSongFromTeacher} disabled={!songTitle.trim()} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
-                </Stack>
-              </CardContent>
-            </Card>
-            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>お題マスターに登録</Typography>
-                <Stack direction="row" spacing={1}>
-                  <TextField fullWidth size="small" label="お題（例：右手だけ）" value={topicTitle} onChange={(event) => setTopicTitle(event.target.value)} />
-                  <Button variant="contained" onClick={addTopicFromTeacher} disabled={!topicTitle.trim()} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
-                </Stack>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>登録したお題は、曲ごとの設定から選んでね。</Typography>
-              </CardContent>
-            </Card>
-            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>今日の曲リストに追加</Typography>
-                <Stack direction="row" spacing={1}>
-                  <TextField select fullWidth size="small" label="曲マスターから選択" value={selectedMasterSongId} onChange={(event) => setSelectedMasterSongId(event.target.value)}>
-                    {masterSongs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
-                  </TextField>
-                  <Button variant="contained" onClick={addSelectedMasterSong} disabled={!selectedMasterSongId || songs.some((song) => song.id === selectedMasterSongId)} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
-                </Stack>
-              </CardContent>
-            </Card>
-            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲ごとのお題を設定</Typography>
-                {songs.length === 0 ? <Typography color="text.secondary">先に曲を登録してね。</Typography> : (
-                  <>
-                    <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
-                      <TextField select fullWidth size="small" label="曲を選択" value={activeSongId} onChange={(event) => setSelectedSongId(event.target.value)}>
-                        {songs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
-                      </TextField>
-                      <Button color="error" variant="outlined" onClick={() => deleteSongFromTeacher(activeSongId)} disabled={!activeSongId} sx={{ flexShrink: 0 }}>曲を削除</Button>
-                    </Stack>
-                    {topics.length === 0 ? <Typography color="text.secondary">先にお題を登録してね。</Typography> : (
-                      <Stack spacing={1}>
-                        {topics.map((topic) => {
-                          const song = songs.find((item) => item.id === activeSongId);
-                          const assignment = song?.exercises.find((item) => item.topicId === topic.id);
-                          const active = Boolean(assignment);
-                          return (
-                            <Stack key={topic.id} spacing={1} sx={{ p: 1.2, borderRadius: 2.5, bgcolor: '#faf7fc' }}>
-                              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                                <Typography fontWeight={700}>{topic.title}</Typography>
-                                <Stack direction="row" spacing={0.5}>
-                                  <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
-                                    {active ? '選択済み' : 'お題を追加'}
-                                  </Button>
-                                  {!topic.deleted && <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>}
-                                </Stack>
-                              </Stack>
-                              <Stack spacing={1}>
-                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1, alignItems: 'center' }}>
-                                  <TextField fullWidth size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
-                                  <FormControlLabel
-                                    control={<Checkbox size="small" checked={assignment?.repeatAllowed ?? false} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.checked)} />}
-                                    label="リピート"
-                                    sx={{
-                                      flex: 1,
-                                      minWidth: 0,
-                                      m: 0,
-                                      height: 40,
-                                      px: 1,
-                                      border: '1px solid',
-                                      borderColor: 'rgba(0, 0, 0, 0.23)',
-                                      borderRadius: 1,
-                                      '& .MuiFormControlLabel-label': { whiteSpace: 'nowrap' },
-                                    }}
-                                  />
-                                  <TextField fullWidth size="small" type="number" label="最低間隔（秒）" value={assignment?.minimumIntervalSeconds ?? 0} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExerciseMinimumInterval(topic.id, event.target.value)} />
-                                </Box>
-                                <Stack direction="row" spacing={1}>
-                                  <TextField fullWidth size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
-                                  <TextField fullWidth size="small" type="number" label="達成ボーナス" value={pointInputValue(`${topic.id}:goalBonusPoints`, assignment?.goalBonusPoints, DEFAULT_GOAL_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />
-                                </Stack>
-                              </Stack>
-                            </Stack>
-                          );
-                        })}
-                        <TextField fullWidth size="small" type="number" label="この曲のお題を全部達成したボーナス" value={pointInputValue('songBonus', songs.find((item) => item.id === activeSongId)?.allGoalsBonusPoints, DEFAULT_ALL_GOALS_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateSongBonusPoints(event.target.value)} onBlur={(event) => commitSongBonusPoints(event.target.value)} />
-                        <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={pointInputValue('dailyBonus', database.dailyBonusPoints, DEFAULT_DAILY_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateDailyBonusPoints(event.target.value)} onBlur={(event) => commitDailyBonusPoints(event.target.value)} />
-                      </Stack>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Button fullWidth variant="contained" size="large" onClick={openLesson} disabled={!canStartLesson(database)} sx={{ minHeight: 58, borderRadius: 2, fontWeight: 900, bgcolor: '#b486c9' }}>
-              レッスン画面へ
-            </Button>
-          </Stack>
+          <TeacherMode database={database} setDatabase={setDatabase} masterDatabase={masterDatabase} setMasterDatabase={setMasterDatabase} onOpenLesson={openLesson} />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} />
         )}
