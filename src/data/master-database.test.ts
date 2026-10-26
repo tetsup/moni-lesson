@@ -50,6 +50,29 @@ describe('master songs and topics', () => {
     expect(addMasterTopic(topics, '\n ')).toBe(topics);
   });
 
+  it('filters master songs and topics by case-insensitive partial title match', () => {
+    let database = addMasterSong(emptyMasterDatabase(), 'きらきら星');
+    database = addMasterSong(database, '月の光');
+    database = addMasterTopic(database, '右手だけ');
+    database = addMasterTopic(database, '左手だけ');
+    database = addMasterTopic(database, 'リズム練習');
+
+    expect(listMasterSongs(database, 'きら')).toMatchObject([{ title: 'きらきら星' }]);
+    expect(listMasterSongs(database, '  ')).toHaveLength(2);
+    expect(listMasterSongs(database, 'missing')).toEqual([]);
+    expect(listMasterTopics(database, '手だけ')).toMatchObject([
+      { title: '右手だけ' },
+      { title: '左手だけ' },
+    ]);
+    expect(listMasterTopics(database, 'リズム')).toMatchObject([{ title: 'リズム練習' }]);
+    expect(listMasterTopics(database, 'missing')).toEqual([]);
+
+    const deletedSong = softDeleteMasterSong(database, database.songs[0].id);
+    const deletedTopic = softDeleteMasterTopic(database, database.topics[0].id);
+    expect(listMasterSongs(deletedSong, 'きら')).toEqual([]);
+    expect(listMasterTopics(deletedTopic, '右手')).toEqual([]);
+  });
+
   it('soft-deletes master entries without removing them or creating song-topic links', () => {
     let database = addMasterSong(emptyMasterDatabase(), '曲A');
     database = addMasterTopic(database, 'お題A');
