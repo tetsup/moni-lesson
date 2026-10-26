@@ -269,6 +269,14 @@ export default function App() {
     return true;
   };
 
+  const useTicket = (item: ShopItem) => {
+    setPurchasedItems((previous) => {
+      const index = previous.findIndex((ownedItem) => ownedItem.id === item.id);
+      if (index < 0) return previous;
+      return [...previous.slice(0, index), ...previous.slice(index + 1)];
+    });
+  };
+
   const openItems = () => {
     setRoute({ page: 'items' });
     window.location.hash = '/items';
@@ -365,7 +373,7 @@ export default function App() {
         ) : route.page === 'shop' ? (
           <ShopPage totalPoints={session.totalPoints} onPurchase={purchaseShopItem} />
         ) : route.page === 'items' ? (
-          <ItemsPage purchasedItems={purchasedItems} />
+          <ItemsPage purchasedItems={purchasedItems} onUseTicket={useTicket} />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
