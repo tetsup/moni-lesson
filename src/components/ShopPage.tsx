@@ -27,6 +27,7 @@ export type ShopItem = {
   price: number;
   description: string;
   category: ShopItemCategory;
+  useMethod: 'slide-to-reveal';
   icon: 'hug' | 'steak';
 };
 
@@ -48,6 +49,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 1000,
     description: 'モニちゃんにぎゅーっと、だっこしてもらおう！',
     category: 'ticket',
+    useMethod: 'slide-to-reveal',
     icon: 'hug',
   },
   {
@@ -56,6 +58,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     price: 100000,
     description: '夢のごほうび！ 特別なお肉の引換券だよ。',
     category: 'ticket',
+    useMethod: 'slide-to-reveal',
     icon: 'steak',
   },
 ];
