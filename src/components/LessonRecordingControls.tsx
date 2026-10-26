@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { Button, Stack, Typography } from '@mui/material';
-import FiberManualRecordRoundedIcon from '@mui/icons-material/FiberManualRecordRounded';
-import StopRoundedIcon from '@mui/icons-material/StopRounded';
+import { useEffect, useRef, useState } from "react";
+import { Button, Card, CardContent, Stack, Typography } from "@mui/material";
+import FiberManualRecordRoundedIcon from "@mui/icons-material/FiberManualRecordRounded";
+import StopRoundedIcon from "@mui/icons-material/StopRounded";
 import {
   getRecordingsDirectory,
   nextRecordingAttemptNumber,
   saveLessonRecording,
   type LessonRecording,
-} from '../data/lesson-recordings';
+} from "../data/lesson-recordings";
 
 const MAX_RECORDING_MS = 5 * 60 * 1000;
 
@@ -22,7 +22,10 @@ type FileHandleWithWritable = FileSystemFileHandle & {
 };
 
 type DirectoryWithMove = FileSystemDirectoryHandle & {
-  getFileHandle: (name: string, options?: { create?: boolean }) => Promise<FileHandleWithWritable>;
+  getFileHandle: (
+    name: string,
+    options?: { create?: boolean },
+  ) => Promise<FileHandleWithWritable>;
   removeEntry: (name: string) => Promise<void>;
 };
 
@@ -54,16 +57,20 @@ type ActiveRecording = {
 };
 
 const getSupportedMimeType = (): string => {
-  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
-  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? '';
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
 };
 
 export default function LessonRecordingControls({
-  songId, songTitle, topicId, topicTitle, stopSignal,
+  songId,
+  songTitle,
+  topicId,
+  topicTitle,
+  stopSignal,
 }: Props) {
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const activeRef = useRef<ActiveRecording | null>(null);
   const finalizingRef = useRef(false);
   const previousStopSignal = useRef(stopSignal);
@@ -75,9 +82,11 @@ export default function LessonRecordingControls({
     window.clearTimeout(recording.timer);
     setBusy(true);
     try {
-      if (recording.recorder.state !== 'inactive') {
+      if (recording.recorder.state !== "inactive") {
         await new Promise<void>((resolve) => {
-          recording.recorder.addEventListener('stop', () => resolve(), { once: true });
+          recording.recorder.addEventListener("stop", () => resolve(), {
+            once: true,
+          });
           recording.recorder.stop();
         });
       }
@@ -85,20 +94,27 @@ export default function LessonRecordingControls({
       await recording.writable.close();
 
       // Promote the temporary OPFS file only after MediaRecorder has fully stopped.
-      const tempHandle = await recording.directory.getFileHandle(recording.tempName);
+      const tempHandle = await recording.directory.getFileHandle(
+        recording.tempName,
+      );
       const tempFile = await tempHandle.getFile();
-      const finalHandle = await recording.directory.getFileHandle(recording.finalName, { create: true });
+      const finalHandle = await recording.directory.getFileHandle(
+        recording.finalName,
+        { create: true },
+      );
       const finalWritable = await finalHandle.createWritable();
-      await tempFile.stream().pipeTo(new WritableStream({
-        write: (chunk) => finalWritable.write(chunk),
-        close: () => finalWritable.close(),
-        abort: () => finalWritable.abort?.(),
-      }));
+      await tempFile.stream().pipeTo(
+        new WritableStream({
+          write: (chunk) => finalWritable.write(chunk),
+          close: () => finalWritable.close(),
+          abort: () => finalWritable.abort?.(),
+        }),
+      );
       await recording.directory.removeEntry(recording.tempName);
 
       const metadata: LessonRecording = {
         id: recording.id,
-        filePath: `${'recordings'}/${recording.finalName}`,
+        filePath: `${"recordings"}/${recording.finalName}`,
         recordedAt: recording.recordedAt,
         songId: recording.songId,
         songTitle: recording.songTitle,
@@ -110,9 +126,11 @@ export default function LessonRecordingControls({
         fileSize: tempFile.size,
       };
       await saveLessonRecording(metadata);
-      setMessage('録音を保存したよ！');
+      setMessage("録音を保存したよ！");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '録音を保存できませんでした');
+      setMessage(
+        error instanceof Error ? error.message : "録音を保存できませんでした",
+      );
     } finally {
       activeRef.current = null;
       finalizingRef.current = false;
@@ -123,9 +141,12 @@ export default function LessonRecordingControls({
 
   const startRecording = async () => {
     if (activeRef.current || finalizingRef.current) return;
-    setMessage('');
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setMessage('このブラウザでは録音できません');
+    setMessage("");
+    if (
+      !navigator.mediaDevices?.getUserMedia ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      setMessage("このブラウザでは録音できません");
       return;
     }
     setBusy(true);
@@ -133,37 +154,63 @@ export default function LessonRecordingControls({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeType = getSupportedMimeType();
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      const directory = await getRecordingsDirectory() as DirectoryWithMove;
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      const directory = (await getRecordingsDirectory()) as DirectoryWithMove;
       const id = crypto.randomUUID();
       const tempName = `${id}.tmp`;
-      const extension = recorder.mimeType.includes('mp4') ? 'm4a' : 'webm';
+      const extension = recorder.mimeType.includes("mp4") ? "m4a" : "webm";
       const finalName = `${id}.${extension}`;
-      const tempHandle = await directory.getFileHandle(tempName, { create: true });
+      const tempHandle = await directory.getFileHandle(tempName, {
+        create: true,
+      });
       writable = await tempHandle.createWritable();
       const attemptNumber = await nextRecordingAttemptNumber(songId, topicId);
       const recordedAt = new Date().toISOString();
       const startedAt = Date.now();
       const activeRecording: ActiveRecording = {
-        id, recordedAt, attemptNumber, mimeType: recorder.mimeType || 'audio/webm',
-        tempName, finalName, directory, writable, recorder,
-        writeQueue: Promise.resolve(), startedAt, timer: 0,
-        songId, songTitle, topicId, topicTitle,
+        id,
+        recordedAt,
+        attemptNumber,
+        mimeType: recorder.mimeType || "audio/webm",
+        tempName,
+        finalName,
+        directory,
+        writable,
+        recorder,
+        writeQueue: Promise.resolve(),
+        startedAt,
+        timer: 0,
+        songId,
+        songTitle,
+        topicId,
+        topicTitle,
       };
-      recorder.addEventListener('dataavailable', (event: BlobEvent) => {
+      recorder.addEventListener("dataavailable", (event: BlobEvent) => {
         if (event.data.size > 0) {
-          activeRecording.writeQueue = activeRecording.writeQueue.then(() => writable!.write(event.data));
+          activeRecording.writeQueue = activeRecording.writeQueue.then(() =>
+            writable!.write(event.data),
+          );
         }
       });
-      recorder.addEventListener('stop', () => stream.getTracks().forEach((track) => track.stop()), { once: true });
+      recorder.addEventListener(
+        "stop",
+        () => stream.getTracks().forEach((track) => track.stop()),
+        { once: true },
+      );
       recorder.start(1000);
-      activeRecording.timer = window.setTimeout(() => { void stopRecording(); }, MAX_RECORDING_MS);
+      activeRecording.timer = window.setTimeout(() => {
+        void stopRecording();
+      }, MAX_RECORDING_MS);
       activeRef.current = activeRecording;
       setActive(true);
-      setMessage('録音中（最大5分）');
+      setMessage("録音中（最大5分）");
     } catch (error) {
       await writable?.abort?.().catch(() => undefined);
-      setMessage(error instanceof Error ? error.message : '録音を開始できませんでした');
+      setMessage(
+        error instanceof Error ? error.message : "録音を開始できませんでした",
+      );
     } finally {
       setBusy(false);
     }
@@ -176,25 +223,53 @@ export default function LessonRecordingControls({
     }
   }, [stopSignal]);
 
-  useEffect(() => () => {
-    // Leaving the lesson screen must finalize the recording, not discard its temporary file.
-    void stopRecording();
-  }, []);
+  useEffect(
+    () => () => {
+      // Leaving the lesson screen must finalize the recording, not discard its temporary file.
+      void stopRecording();
+    },
+    [],
+  );
 
   return (
-    <Stack spacing={0.5} alignItems="stretch" sx={{ minWidth: 0, flex: 1 }}>
-      <Button
-        fullWidth
-        variant={active ? 'contained' : 'outlined'}
-        color={active ? 'error' : 'secondary'}
-        disabled={busy}
-        startIcon={active ? <StopRoundedIcon /> : <FiberManualRecordRoundedIcon />}
-        onClick={() => { if (active) void stopRecording(); else void startRecording(); }}
-        sx={{ minHeight: 42, borderRadius: 2, fontWeight: 900, whiteSpace: 'nowrap' }}
-      >
-        {busy ? '保存中…' : active ? '録音停止' : '録音'}
-      </Button>
-      {message && <Typography variant="caption" color={message.includes('できません') ? 'error' : 'text.secondary'}>{message}</Typography>}
-    </Stack>
+    <Card
+      sx={{ borderRadius: 3, border: "1px solid #eadcf1", bgcolor: "#fff" }}
+    >
+      <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
+        <Stack spacing={0.5} alignItems="stretch" sx={{ minWidth: 0, flex: 1 }}>
+          <Button
+            fullWidth
+            variant={active ? "contained" : "outlined"}
+            color={active ? "error" : "secondary"}
+            disabled={busy}
+            startIcon={
+              active ? <StopRoundedIcon /> : <FiberManualRecordRoundedIcon />
+            }
+            onClick={() => {
+              if (active) void stopRecording();
+              else void startRecording();
+            }}
+            sx={{
+              minHeight: 42,
+              borderRadius: 2,
+              fontWeight: 900,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {busy ? "保存中…" : active ? "録音停止" : "録音"}
+          </Button>
+          {message && (
+            <Typography
+              variant="caption"
+              color={
+                message.includes("できません") ? "error" : "text.secondary"
+              }
+            >
+              {message}
+            </Typography>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

@@ -752,10 +752,10 @@ export default function LessonMode({
       >
         {primaryAction.label}
       </Button>
-      <Box sx={{ flex: 2, minWidth: 0 }}>
+      <Box sx={{ minWidth: 0 }}>
         <LessonMetronome />
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Box sx={{ minWidth: 0 }}>
         <LessonRecordingControls
           songId={currentSong.songId}
           songTitle={currentSong.songTitle}
