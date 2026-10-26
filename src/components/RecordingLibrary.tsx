@@ -180,16 +180,21 @@ export default function RecordingLibrary({ onBack }: Props) {
                   <Button
                     variant="contained"
                     size="small"
-                    startIcon={isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
                     onClick={() => void togglePlayback(recording)}
                     sx={{
-                      minWidth: 0,
-                      px: 1.25,
+                      minWidth: 40,
+                      width: 40,
+                      height: 40,
+                      p: 0,
                       flexShrink: 0,
                       bgcolor: '#b486c9',
                       borderRadius: 2,
-                      fontWeight: 800,
+                      '& .MuiButton-startIcon': { m: 0 },
                     }}
+                  >
+                    {isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+                  </Button>
+                  <Slider
                     aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
                   />
                   <Slider
