@@ -29,6 +29,7 @@ export default function RecordingLibrary({ onBack }: Props) {
   const [error, setError] = useState('');
   const audioRef = useRef<HTMLAudioElement>(null);
   const loadingIdRef = useRef<string | null>(null);
+  const activeRecordingRef = useRef<LessonRecording | null>(null);
 
   const reload = async () => {
     try {
@@ -40,6 +41,29 @@ export default function RecordingLibrary({ onBack }: Props) {
   };
 
   useEffect(() => { void reload(); }, []);
+
+  // Wait until React has applied the new src before loading and starting playback.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !audioUrl) return;
+    let cancelled = false;
+    const startPlayback = () => {
+      if (cancelled || !audioUrl) return;
+      void audio.play().catch(() => {
+        if (cancelled) return;
+        setError('録音を再生できませんでした');
+        stopPlayback();
+      });
+    };
+    audio.addEventListener('canplay', startPlayback, { once: true });
+    audio.load();
+    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) startPlayback();
+    return () => {
+      cancelled = true;
+      audio.removeEventListener('canplay', startPlayback);
+    };
+  }, [audioUrl]);
+
   useEffect(() => () => {
     if (audioUrl) URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
@@ -64,6 +88,7 @@ export default function RecordingLibrary({ onBack }: Props) {
     setCurrentTime(0);
     setDuration(0);
     loadingIdRef.current = null;
+    activeRecordingRef.current = null;
   };
 
   const togglePlayback = async (recording: LessonRecording) => {
@@ -74,20 +99,15 @@ export default function RecordingLibrary({ onBack }: Props) {
     stopPlayback();
     setError('');
     loadingIdRef.current = recording.id;
+    activeRecordingRef.current = recording;
     try {
       const file = await getLessonRecordingFile(recording.filePath);
       if (loadingIdRef.current !== recording.id) return;
       const url = URL.createObjectURL(file);
+      setCurrentTime(0);
+      setDuration(0);
       setAudioUrl(url);
       setPlayingId(recording.id);
-      window.setTimeout(() => {
-        const audio = audioRef.current;
-        if (!audio || loadingIdRef.current !== recording.id) return;
-        void audio.play().catch(() => {
-          setError('録音を再生できませんでした');
-          stopPlayback();
-        });
-      }, 0);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '録音ファイルを開けませんでした');
       setPlayingId(null);
@@ -180,7 +200,7 @@ export default function RecordingLibrary({ onBack }: Props) {
                     step={0.1}
                     value={isPlaying ? Math.min(currentTime, duration || currentTime) : 0}
                     onChange={seek}
-                    disabled={!isPlaying || duration <= 0}
+                    disabled={!isPlaying || !(Number.isFinite(duration) && duration > 0)}
                     size="small"
                     sx={{ flex: 1, py: 1 }}
                   />
@@ -189,8 +209,18 @@ export default function RecordingLibrary({ onBack }: Props) {
                   </IconButton>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between" sx={{ pl: 1 }}>
-                  <Typography variant="caption" color="text.secondary">{formatDuration((isPlaying ? currentTime : 0) * 1000)}</Typography>
-                  <Typography variant="caption" color="text.secondary">{formatDuration((isPlaying && duration > 0 ? duration : recording.durationMs / 1000) * 1000)}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDuration((isPlaying && Number.isFinite(currentTime) ? currentTime : 0) * 1000)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDuration((
+                      isPlaying && Number.isFinite(duration) && duration > 0
+                        ? duration
+                        : Number.isFinite(recording.durationMs) && recording.durationMs > 0
+                          ? recording.durationMs / 1000
+                          : 0
+                    ) * 1000)}
+                  </Typography>
                 </Stack>
               </Stack>
             </CardContent>
@@ -201,9 +231,22 @@ export default function RecordingLibrary({ onBack }: Props) {
         ref={audioRef}
         src={audioUrl ?? undefined}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
+        onLoadedMetadata={(event) => {
+          const mediaDuration = event.currentTarget.duration;
+          if (Number.isFinite(mediaDuration) && mediaDuration > 0) {
+            setDuration(mediaDuration);
+          } else {
+            // Some WebM recordings report Infinity until the container duration is known.
+            const fallback = activeRecordingRef.current?.durationMs;
+            setDuration(Number.isFinite(fallback) && fallback && fallback > 0 ? fallback / 1000 : 0);
+          }
+        }}
+        onDurationChange={(event) => {
+          const mediaDuration = event.currentTarget.duration;
+          if (Number.isFinite(mediaDuration) && mediaDuration > 0) setDuration(mediaDuration);
+        }}
         onEnded={stopPlayback}
-        onError={() => { if (audioUrl) setError('この録音を再生できませんでした'); }}
+        onError={() => { if (audioUrl) setError('録音ファイルを読み込めませんでした。形式またはデータが壊れている可能性があります'); }}
         hidden
       />
     </Stack>
