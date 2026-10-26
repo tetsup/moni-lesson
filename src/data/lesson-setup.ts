@@ -7,6 +7,7 @@ import {
 import type { LessonSongSetup } from './lesson-session';
 
 export const DEFAULT_TARGET_COUNT = 10;
+export const DEFAULT_MINIMUM_INTERVAL_SECONDS = 0;
 export const DEFAULT_POINTS_PER_COMPLETION = 1;
 export const DEFAULT_GOAL_BONUS_POINTS = 5;
 export const DEFAULT_ALL_GOALS_BONUS_POINTS = 5;
@@ -27,6 +28,7 @@ export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] => 
         topicId: topic.id,
         topicTitle: topic.title,
         targetCount: assignment.targetCount ?? DEFAULT_TARGET_COUNT,
+        minimumIntervalSeconds: assignment.minimumIntervalSeconds ?? DEFAULT_MINIMUM_INTERVAL_SECONDS,
         pointsPerCompletion: assignment.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION,
         goalBonusPoints: assignment.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS,
       }];
