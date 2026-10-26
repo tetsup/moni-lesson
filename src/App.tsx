@@ -310,7 +310,7 @@ export default function App() {
             </Box>
             <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲を登録</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>曲マスターに登録</Typography>
                 <Stack direction="row" spacing={1}>
                   <TextField fullWidth size="small" label="曲名" value={songTitle} onChange={(event) => setSongTitle(event.target.value)} />
                   <Button variant="contained" onClick={addSongFromTeacher} disabled={!songTitle.trim()} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
@@ -319,12 +319,12 @@ export default function App() {
             </Card>
             <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
               <CardContent>
-                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>お題を登録</Typography>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>お題マスターに登録</Typography>
                 <Stack direction="row" spacing={1}>
                   <TextField fullWidth size="small" label="お題（例：右手だけ）" value={topicTitle} onChange={(event) => setTopicTitle(event.target.value)} />
                   <Button variant="contained" onClick={addTopicFromTeacher} disabled={!topicTitle.trim()} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
                 </Stack>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>追加したお題は、選択中の曲に自動で有効登録されるよ。</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>登録したお題は、曲ごとの設定から選んでね。</Typography>
               </CardContent>
             </Card>
             <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
