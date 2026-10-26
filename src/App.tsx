@@ -26,7 +26,7 @@ import {
 import {
   addMasterSong, addMasterTopic, listMasterSongs, listMasterTopics,
   loadMasterDatabase, saveMasterDatabase, seedMasterDatabase,
-  softDeleteMasterSong, softDeleteMasterTopic, type MasterDatabase,
+  softDeleteMasterTopic, type MasterDatabase,
 } from './data/master-database';
 import {
   createLessonSession,
@@ -114,7 +114,6 @@ export default function App() {
     const song = songs.find((item) => item.id === songId);
     if (!song || !window.confirm('「' + song.title + '」を削除しますか？')) return;
     setDatabase((previous) => deleteSong(previous, songId));
-    setMasterDatabase((previous) => softDeleteMasterSong(previous, songId));
     setSelectedSongId((current) => current === songId ? '' : current);
   };
 
