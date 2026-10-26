@@ -56,9 +56,9 @@ export default function LessonMetronome() {
   const contextRef = useRef<AudioContext | null>(null);
   const timersRef = useRef<number[]>([]);
   const generationRef = useRef(0);
+  const beatCount = Number(meter.split('/')[0]);
   const settingsRef = useRef({ bpm, tone, beatCount });
   settingsRef.current = { bpm, tone, beatCount };
-  const beatCount = Number(meter.split('/')[0]);
   const beatUnit = meter.endsWith('/8') ? '♪（8分音符）' : '♩（4分音符）';
 
   const stop = () => {
