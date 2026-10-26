@@ -9,7 +9,9 @@ import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
-  return Boolean(exercise && exercise.completionCount >= exercise.targetCount);
+  return Boolean(exercise && (exercise.repeatAllowed
+    ? exercise.completionCount > 0 && exercise.completionCount % exercise.targetCount === 0
+    : exercise.completionCount >= exercise.targetCount));
 };
 
 type Props = {
@@ -297,21 +299,29 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
             variant="determinate"
             value={Math.min(
               currentExercise.completionCount,
-              currentExercise.targetCount * 1.2,
-            ) / (currentExercise.targetCount * 1.2) * 100}
+              currentExercise.repeatAllowed
+                ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+                : currentExercise.targetCount,
+            ) / (currentExercise.repeatAllowed
+              ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+              : currentExercise.targetCount) * 100}
             sx={{
               height: 12,
               borderRadius: 999,
               bgcolor: isGoalAchieved ? '#ffe7a8' : '#eadcf1',
               '& .MuiLinearProgress-bar': {
                 borderRadius: 999,
-                bgcolor: isGoalAchieved ? '#e6a817' : '#b486c9',
+                bgcolor: isGoalAchieved
+                  ? (currentExercise.repeatAllowed ? '#e6a817' : '#d94b4b')
+                  : '#b486c9',
               },
             }}
           />
         </Box>
         <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: '#80509a' }}>
-          {currentExercise.completionCount} / {currentExercise.targetCount}回
+          {currentExercise.completionCount} / {currentExercise.repeatAllowed
+            ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+            : currentExercise.targetCount}回
         </Typography>
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
