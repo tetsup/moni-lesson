@@ -5,11 +5,13 @@ import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 type Props = {
   message?: string;
   expression?: MoniExpression;
+  variant?: 'default' | 'floating';
 };
 
 export default function MoniSupport({
   message = 'だいじょうぶ、ゆっくりでいいよ！',
   expression = 'normal',
+  variant = 'default',
 }: Props) {
   return (
     <Stack
@@ -17,10 +19,10 @@ export default function MoniSupport({
       alignItems="center"
       spacing={1.5}
       sx={{
-        p: 1.5,
-        borderRadius: LESSON_CARD_BORDER_RADIUS,
-        border: '1px solid #f0d7e8',
-        background: 'linear-gradient(135deg, #fff8fc 0%, #fff0f7 100%)',
+        p: variant === 'floating' ? 0 : 1.5,
+        borderRadius: variant === 'floating' ? 0 : LESSON_CARD_BORDER_RADIUS,
+        border: variant === 'floating' ? 0 : '1px solid #f0d7e8',
+        background: variant === 'floating' ? 'transparent' : 'linear-gradient(135deg, #fff8fc 0%, #fff0f7 100%)',
       }}
     >
       <Avatar
@@ -58,7 +60,8 @@ export default function MoniSupport({
             p: 1.5,
             borderRadius: LESSON_CARD_BORDER_RADIUS,
             border: '1px solid #f0d7e8',
-            bgcolor: '#fff',
+            bgcolor: 'rgba(255,255,255,0.94)',
+            boxShadow: '0 4px 18px rgba(91,55,105,0.12)',
           }}
         >
           <Typography variant="caption" sx={{ display: 'block', mb: 0.4, color: '#b486c9', fontWeight: 900 }}>

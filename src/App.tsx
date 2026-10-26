@@ -3,6 +3,7 @@ import LessonMode from './components/LessonMode';
 import TeacherMode from './components/TeacherMode';
 import AudioMaintenance from './components/AudioMaintenance';
 import RecordingLibrary from './components/RecordingLibrary';
+import ShopPage, { type ShopItem } from './components/ShopPage';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
@@ -77,6 +78,14 @@ export default function App() {
   const [database, setDatabase] = useState<LessonDatabase>(loadDatabase);
   const [masterDatabase, setMasterDatabase] = useState<MasterDatabase>(loadMaster);
   const [session, setSession] = useState<LessonSession>(loadInitialSession);
+  const [purchasedItems, setPurchasedItems] = useState<ShopItem[]>(() => {
+    try {
+      const saved: unknown = JSON.parse(window.localStorage.getItem('moni-lesson-purchased-items') ?? '[]');
+      return Array.isArray(saved) ? saved as ShopItem[] : [];
+    } catch {
+      return [];
+    }
+  });
   const [route, setRoute] = useState(() => resolveHashRoute(window.location.hash));
 
   useEffect(() => {
@@ -105,6 +114,7 @@ export default function App() {
 
 
   useEffect(() => saveLessonSession(session, window.localStorage), [session]);
+  useEffect(() => window.localStorage.setItem('moni-lesson-purchased-items', JSON.stringify(purchasedItems)), [purchasedItems]);
   useEffect(() => saveLessonDatabase(database, window.localStorage), [database]);
   useEffect(() => saveMasterDatabase(masterDatabase, window.localStorage), [masterDatabase]);
 
@@ -244,6 +254,20 @@ export default function App() {
     window.location.hash = '/complete';
   };
 
+  const openShop = () => {
+    setRoute({ page: 'shop' });
+    window.location.hash = '/shop';
+  };
+
+  const purchaseShopItem = (item: ShopItem): boolean => {
+    if (session.totalPoints < item.price) return false;
+    setSession((previous) => previous.totalPoints >= item.price
+      ? { ...previous, totalPoints: previous.totalPoints - item.price }
+      : previous);
+    setPurchasedItems((previous) => [...previous, item]);
+    return true;
+  };
+
   const openRecordings = () => {
     setRoute({ page: 'recordings' });
     window.location.hash = '/recordings';
@@ -267,7 +291,7 @@ export default function App() {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd' }}>
+    <Box sx={{ height: route.page === 'shop' ? '100dvh' : 'auto', minHeight: '100vh', overflow: route.page === 'shop' ? 'hidden' : 'visible', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd', backgroundImage: route.page === 'shop' ? 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792993306/moni-shop.png)' : 'none', backgroundSize: 'cover', backgroundPosition: 'center center', backgroundRepeat: 'no-repeat' }}>
       <Container maxWidth="sm" sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
           <Box>
@@ -332,6 +356,8 @@ export default function App() {
           </Stack>
         ) : route.page === 'teacher' ? (
           <TeacherMode database={database} setDatabase={setDatabase} masterDatabase={masterDatabase} setMasterDatabase={setMasterDatabase} onOpenLesson={openLesson} />
+        ) : route.page === 'shop' ? (
+          <ShopPage totalPoints={session.totalPoints} onPurchase={purchaseShopItem} />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
@@ -358,7 +384,7 @@ export default function App() {
               {[
                 { label: 'レッスン', icon: <MusicNoteRoundedIcon />, active: route.page === 'practice', onClick: returnToLesson },
                 { label: '録音', icon: <MicRoundedIcon />, active: route.page === 'recordings', onClick: openRecordings },
-                { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: false },
+                { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: route.page === 'shop', onClick: openShop },
                 { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: false },
               ].map((item) => (
                 <Box
