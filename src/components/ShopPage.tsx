@@ -102,14 +102,10 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
 
   return (
     <Stack spacing={2}>
-      <Card sx={{ borderRadius: 3, bgcolor: 'rgba(255,255,255,0.94)', border: '1px solid #f0e6f2', boxShadow: '0 4px 16px rgba(91,55,105,0.12)' }}>
-        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-          <MoniSupport
-            expression={messageExpression}
-            message={message}
-          />
-        </CardContent>
-      </Card>
+      <MoniSupport
+        expression={messageExpression}
+        message={message}
+      />
 
       {notice && <Alert severity="error" onClose={() => setNotice('')}>{notice}</Alert>}
 
