@@ -207,20 +207,6 @@ export default function RecordingLibrary({ onBack }: Props) {
                     <DownloadRoundedIcon />
                   </IconButton>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between" sx={{ pl: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    {formatDuration((isPlaying && Number.isFinite(currentTime) ? currentTime : 0) * 1000)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {formatDuration((
-                      isPlaying && Number.isFinite(duration) && duration > 0
-                        ? duration
-                        : Number.isFinite(recording.durationMs) && recording.durationMs > 0
-                          ? recording.durationMs / 1000
-                          : 0
-                    ) * 1000)}
-                  </Typography>
-                </Stack>
               </Stack>
             </CardContent>
           </Card>
