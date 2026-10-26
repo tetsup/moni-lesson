@@ -356,6 +356,8 @@ export default function App() {
           </Stack>
         ) : route.page === 'teacher' ? (
           <TeacherMode database={database} setDatabase={setDatabase} masterDatabase={masterDatabase} setMasterDatabase={setMasterDatabase} onOpenLesson={openLesson} />
+        ) : route.page === 'shop' ? (
+          <ShopPage totalPoints={session.totalPoints} onPurchase={purchaseShopItem} />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
