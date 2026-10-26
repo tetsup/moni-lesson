@@ -397,7 +397,7 @@ export default function App() {
               ].map((item) => (
                 <Box
                   key={item.label}
-                  component={item.onClick ? 'button' : 'div'}
+                  component="button"
                   onClick={item.onClick}
                   aria-current={item.active ? 'page' : undefined}
                   sx={{
@@ -413,7 +413,7 @@ export default function App() {
                     justifyContent: 'center',
                     gap: 0.25,
                     py: 1,
-                    cursor: item.onClick ? 'pointer' : 'default',
+                    cursor: 'pointer',
                     font: 'inherit',
                     '& .MuiSvgIcon-root': { fontSize: 29 },
                     '&:focus-visible': { outline: '2px solid #b486c9', outlineOffset: -2, borderRadius: 2 },
