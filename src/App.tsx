@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
 import AudioMaintenance from './components/AudioMaintenance';
 import { resolveHashRoute } from './data/lesson-routing';
-import { Box, Button, Card, CardContent, Chip, Container, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
@@ -17,6 +17,7 @@ import {
   setSongExercise,
   setExercisePoints,
   setExerciseTargetCount,
+  setExerciseRepeatAllowed,
   setExerciseMinimumInterval,
   setSongBonusPoints,
   setDailyBonusPoints,
@@ -141,6 +142,11 @@ export default function App() {
     const targetCount = Number(value);
     if (!Number.isSafeInteger(targetCount) || targetCount < 1) return;
     setDatabase((previous) => setExerciseTargetCount(previous, activeSongId, topicId, targetCount));
+  };
+
+  const updateExerciseRepeatAllowed = (topicId: string, repeatAllowed: boolean) => {
+    if (!activeSongId) return;
+    setDatabase((previous) => setExerciseRepeatAllowed(previous, activeSongId, topicId, repeatAllowed));
   };
 
   const updateExerciseMinimumInterval = (topicId: string, value: string) => {
@@ -323,10 +329,25 @@ export default function App() {
                                 </Stack>
                               </Stack>
                               <Stack spacing={1}>
-                                <Stack direction="row" spacing={1}>
+                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 1, alignItems: 'center' }}>
                                   <TextField fullWidth size="small" type="number" label="目標回数" value={pointInputValue(`${topic.id}:targetCount`, assignment?.targetCount, 10)} inputProps={{ min: 1, step: 1 }} onChange={(event) => updateExerciseTargetCount(topic.id, event.target.value)} />
+                                  <FormControlLabel
+                                    control={<Checkbox size="small" checked={assignment?.repeatAllowed ?? false} onChange={(event) => updateExerciseRepeatAllowed(topic.id, event.target.checked)} />}
+                                    label="リピート"
+                                    sx={{
+                                      flex: 1,
+                                      minWidth: 0,
+                                      m: 0,
+                                      height: 40,
+                                      px: 1,
+                                      border: '1px solid',
+                                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                                      borderRadius: 1,
+                                      '& .MuiFormControlLabel-label': { whiteSpace: 'nowrap' },
+                                    }}
+                                  />
                                   <TextField fullWidth size="small" type="number" label="最低間隔（秒）" value={assignment?.minimumIntervalSeconds ?? 0} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExerciseMinimumInterval(topic.id, event.target.value)} />
-                                </Stack>
+                                </Box>
                                 <Stack direction="row" spacing={1}>
                                   <TextField fullWidth size="small" type="number" label="1回のポイント" value={pointInputValue(`${topic.id}:pointsPerCompletion`, assignment?.pointsPerCompletion, DEFAULT_POINTS_PER_COMPLETION)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'pointsPerCompletion', event.target.value)} />
                                   <TextField fullWidth size="small" type="number" label="達成ボーナス" value={pointInputValue(`${topic.id}:goalBonusPoints`, assignment?.goalBonusPoints, DEFAULT_GOAL_BONUS_POINTS)} inputProps={{ min: 0, step: 1 }} onChange={(event) => updateExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} onBlur={(event) => commitExercisePoints(topic.id, 'goalBonusPoints', event.target.value)} />

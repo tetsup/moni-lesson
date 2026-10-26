@@ -6,6 +6,7 @@ export type LessonExercise = {
   topicId: string;
   topicTitle: string;
   targetCount: number;
+  repeatAllowed: boolean;
   minimumIntervalSeconds: number;
   pointsPerCompletion: number;
   goalBonusPoints: number;
@@ -40,6 +41,7 @@ export type LessonSongSetup = {
     topicId: string;
     topicTitle: string;
     targetCount: number;
+    repeatAllowed: boolean;
     minimumIntervalSeconds: number;
     pointsPerCompletion: number;
     goalBonusPoints: number;
@@ -192,10 +194,12 @@ export const recordExerciseCompletion = (
   const nextSong = { ...song, exercises: nextExercises };
   let earnedPoints = exercise.pointsPerCompletion;
 
-  if (
-    !exercise.goalBonusAwarded &&
-    nextExercise.completionCount >= exercise.targetCount
-  ) {
+  const reachedGoal = nextExercise.completionCount >= exercise.targetCount &&
+    (exercise.repeatAllowed
+      ? nextExercise.completionCount % exercise.targetCount === 0
+      : !exercise.goalBonusAwarded);
+
+  if (reachedGoal) {
     nextExercise.goalBonusAwarded = true;
     earnedPoints += exercise.goalBonusPoints;
   }

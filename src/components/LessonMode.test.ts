@@ -9,8 +9,8 @@ const setup = () => createLessonSession('2026-10-24', [
     order: 1,
     allGoalsBonusPoints: 0,
     exercises: [
-      { topicId: 'topic-a', topicTitle: 'お題A', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
-      { topicId: 'topic-b', topicTitle: 'お題B', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-a', topicTitle: 'お題A', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-b', topicTitle: 'お題B', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
     ],
   },
   {
@@ -19,8 +19,8 @@ const setup = () => createLessonSession('2026-10-24', [
     order: 2,
     allGoalsBonusPoints: 0,
     exercises: [
-      { topicId: 'topic-a', topicTitle: '同じIDのお題', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
-    { topicId: 'topic-c', topicTitle: 'お題C', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-a', topicTitle: '同じIDのお題', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+    { topicId: 'topic-c', topicTitle: 'お題C', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
     ],
   },
 ], 0);
@@ -32,6 +32,21 @@ describe('LessonMode goal display state', () => {
 
     const achieved = recordExerciseCompletion(initial, 'song-a', 'topic-a');
     expect(isExerciseGoalAchieved(achieved, 'song-a', 'topic-a')).toBe(true);
+  });
+
+  it('shows a repeatable goal as achieved only at each target multiple', () => {
+    const initial = setup();
+    initial.songs[0].exercises[1].repeatAllowed = true;
+
+    const first = recordExerciseCompletion(initial, 'song-a', 'topic-b');
+    const achieved = recordExerciseCompletion(first, 'song-a', 'topic-b');
+    const betweenGoals = recordExerciseCompletion(achieved, 'song-a', 'topic-b');
+    const achievedAgain = recordExerciseCompletion(betweenGoals, 'song-a', 'topic-b');
+
+    expect(isExerciseGoalAchieved(first, 'song-a', 'topic-b')).toBe(false);
+    expect(isExerciseGoalAchieved(achieved, 'song-a', 'topic-b')).toBe(true);
+    expect(isExerciseGoalAchieved(betweenGoals, 'song-a', 'topic-b')).toBe(false);
+    expect(isExerciseGoalAchieved(achievedAgain, 'song-a', 'topic-b')).toBe(true);
   });
 
   it('updates correctly when switching topics in the same song, for achieved and unachieved topics', () => {

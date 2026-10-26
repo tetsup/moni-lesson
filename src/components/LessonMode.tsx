@@ -9,7 +9,9 @@ import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
-  return Boolean(exercise && exercise.completionCount >= exercise.targetCount);
+  return Boolean(exercise && (exercise.repeatAllowed
+    ? exercise.completionCount > 0 && exercise.completionCount % exercise.targetCount === 0
+    : exercise.completionCount >= exercise.targetCount));
 };
 
 type Props = {
@@ -47,6 +49,8 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
   const currentSong = songs.find((song) => song.songId === selectedSongId);
   const currentExercise = currentSong?.exercises.find((exercise) => exercise.topicId === currentTopicId);
   const isGoalAchieved = isExerciseGoalAchieved(session, selectedSongId, currentTopicId);
+  const hasRepeatProgress = currentExercise?.repeatAllowed &&
+    currentExercise.completionCount >= currentExercise.targetCount;
   const songIndex = songs.findIndex((song) => song.songId === currentSong?.songId);
   const topicIndex = currentSong?.exercises.findIndex((exercise) => exercise.topicId === currentTopicId) ?? -1;
   const nextExercise = currentSong?.exercises[topicIndex + 1];
@@ -297,21 +301,27 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
             variant="determinate"
             value={Math.min(
               currentExercise.completionCount,
-              currentExercise.targetCount * 1.2,
-            ) / (currentExercise.targetCount * 1.2) * 100}
+              currentExercise.repeatAllowed
+                ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+                : currentExercise.targetCount,
+            ) / (currentExercise.repeatAllowed
+              ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+              : currentExercise.targetCount) * 100}
             sx={{
               height: 12,
               borderRadius: 999,
-              bgcolor: isGoalAchieved ? '#ffe7a8' : '#eadcf1',
+              bgcolor: hasRepeatProgress ? '#fff0bd' : isGoalAchieved ? '#ffe7a8' : '#eadcf1',
               '& .MuiLinearProgress-bar': {
                 borderRadius: 999,
-                bgcolor: isGoalAchieved ? '#e6a817' : '#b486c9',
+                bgcolor: hasRepeatProgress ? '#e6a817' : isGoalAchieved ? '#d94b4b' : '#b486c9',
               },
             }}
           />
         </Box>
-        <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: '#80509a' }}>
-          {currentExercise.completionCount} / {currentExercise.targetCount}回
+        <Typography variant="body2" fontWeight={800} sx={{ flexShrink: 0, color: hasRepeatProgress ? '#8a6412' : isGoalAchieved ? '#d94b4b' : '#80509a' }}>
+          {currentExercise.completionCount} / {currentExercise.repeatAllowed
+            ? (Math.floor(currentExercise.completionCount / currentExercise.targetCount) + 1) * currentExercise.targetCount
+            : currentExercise.targetCount}回
         </Typography>
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}

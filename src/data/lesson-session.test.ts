@@ -21,8 +21,8 @@ const setup = () => createLessonSession('2026-10-23', [
     songTitle: 'Song A',
     order: 0,
     exercises: [
-      { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
-      { topicId: 'topic-2', topicTitle: 'Topic 2', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 2, goalBonusPoints: 3 },
+      { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+      { topicId: 'topic-2', topicTitle: 'Topic 2', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 2, goalBonusPoints: 3 },
     ],
     allGoalsBonusPoints: 7,
   },
@@ -31,7 +31,7 @@ const setup = () => createLessonSession('2026-10-23', [
     songTitle: 'Song B',
     order: 1,
     exercises: [
-      { topicId: 'topic-3', topicTitle: 'Topic 3', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 4, goalBonusPoints: 6 },
+      { topicId: 'topic-3', topicTitle: 'Topic 3', targetCount: 1, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 4, goalBonusPoints: 6 },
     ],
     allGoalsBonusPoints: 8,
   },
@@ -85,8 +85,8 @@ describe('lesson session operations', () => {
         songTitle: 'Song A',
         order: 0,
         exercises: [
-          { topicId: 'topic-1', topicTitle: 'Topic 1 updated', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
-          { topicId: 'topic-4', topicTitle: 'New Topic', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-1', topicTitle: 'Topic 1 updated', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-4', topicTitle: 'New Topic', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
         ],
         allGoalsBonusPoints: 7,
       },
@@ -116,7 +116,7 @@ describe('lesson session operations', () => {
         songTitle: 'Song A',
         order: 0,
         exercises: [
-          { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
+          { topicId: 'topic-1', topicTitle: 'Topic 1', targetCount: 2, repeatAllowed: false, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 5 },
         ],
         allGoalsBonusPoints: 7,
       },
@@ -132,6 +132,42 @@ describe('lesson session operations', () => {
     expect(session.totalPoints).toBe(101);
     expect(session.todayPoints).toBe(1);
     expect(session.songs[0].exercises[0].completionCount).toBe(1);
+  });
+
+  it('grants repeatable exercise bonuses at every target multiple', () => {
+    const initial = setup();
+    initial.songs[0].exercises[0].repeatAllowed = true;
+    initial.songs[0].exercises[1].targetCount = 10;
+
+    const first = recordExerciseCompletion(initial, 'song-a', 'topic-1');
+    const firstGoal = recordExerciseCompletion(first, 'song-a', 'topic-1');
+    const third = recordExerciseCompletion(firstGoal, 'song-a', 'topic-1');
+    const secondGoal = recordExerciseCompletion(third, 'song-a', 'topic-1');
+
+    expect(firstGoal.totalPoints - first.totalPoints).toBe(6);
+    expect(secondGoal.totalPoints - third.totalPoints).toBe(6);
+    expect(secondGoal.songs[0].exercises[0].completionCount).toBe(4);
+    expect(secondGoal.songs[0].allGoalsBonusAwarded).toBe(false);
+  });
+
+  it('awards the song bonus only the first time all goals are achieved, not on a later repeat milestone', () => {
+    let session = setup();
+    session.songs[0].exercises[0].repeatAllowed = true;
+    session.songs[0].exercises[1].targetCount = 1;
+
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    session = recordExerciseCompletion(session, 'song-a', 'topic-2');
+    expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
+    const afterFirstSongBonus = session.totalPoints;
+
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+    const afterThree = session.totalPoints;
+    session = recordExerciseCompletion(session, 'song-a', 'topic-1');
+
+    expect(afterThree - afterFirstSongBonus).toBe(1);
+    expect(session.totalPoints - afterThree).toBe(6);
+    expect(session.songs[0].allGoalsBonusAwarded).toBe(true);
   });
 
   it('grants an exercise goal bonus once at its target count', () => {

@@ -6,6 +6,7 @@ import {
   setSongExercise,
   setExercisePoints,
   setExerciseTargetCount,
+  setExerciseRepeatAllowed,
   setSongBonusPoints,
 } from './lesson-database';
 import { canStartLesson, makeLessonSetup } from './lesson-setup';
@@ -36,6 +37,7 @@ describe('lesson setup', () => {
         topicId: topic.id,
         topicTitle: '右手だけ',
         targetCount: 10,
+        repeatAllowed: false,
         minimumIntervalSeconds: 0,
         pointsPerCompletion: 1,
         goalBonusPoints: 5,
@@ -54,6 +56,19 @@ describe('lesson setup', () => {
     database = setExerciseTargetCount(database, song.id, topic.id, 7);
 
     expect(makeLessonSetup(database)[0].exercises[0].targetCount).toBe(7);
+  });
+
+  it('passes the repeatable-goal setting into lesson setup and defaults old assignments to false', () => {
+    let database = emptyLessonDatabase();
+    database = addSong(database, 'きらきら星');
+    const song = database.songs[0];
+    database = addTopic(database, '右手だけ');
+    const topic = database.topics[0];
+    database = setSongExercise(database, song.id, topic.id, true);
+
+    expect(makeLessonSetup(database)[0].exercises[0].repeatAllowed).toBe(false);
+    database = setExerciseRepeatAllowed(database, song.id, topic.id, true);
+    expect(makeLessonSetup(database)[0].exercises[0].repeatAllowed).toBe(true);
   });
 
   it('keeps the default repetition target for older assignments and rejects invalid targets', () => {

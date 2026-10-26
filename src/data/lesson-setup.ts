@@ -28,6 +28,7 @@ export const makeLessonSetup = (database: LessonDatabase): LessonSongSetup[] => 
         topicId: topic.id,
         topicTitle: topic.title,
         targetCount: assignment.targetCount ?? DEFAULT_TARGET_COUNT,
+        repeatAllowed: assignment.repeatAllowed ?? false,
         minimumIntervalSeconds: assignment.minimumIntervalSeconds ?? DEFAULT_MINIMUM_INTERVAL_SECONDS,
         pointsPerCompletion: assignment.pointsPerCompletion ?? DEFAULT_POINTS_PER_COMPLETION,
         goalBonusPoints: assignment.goalBonusPoints ?? DEFAULT_GOAL_BONUS_POINTS,
