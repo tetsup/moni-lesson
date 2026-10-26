@@ -156,35 +156,41 @@ export default function RecordingLibrary({ onBack }: Props) {
                     {formatDate(recording.recordedAt)} ・ {recording.attemptNumber}回目 ・ {formatDuration(recording.durationMs)}
                   </Typography>
                 </Box>
-                {isPlaying && (
-                  <Stack spacing={0}>
-                    <Slider
-                      aria-label={`${recording.topicTitle} 再生位置`}
-                      min={0}
-                      max={Math.max(duration, 0.1)}
-                      step={0.1}
-                      value={Math.min(currentTime, duration || currentTime)}
-                      onChange={seek}
-                      size="small"
-                    />
-                    <Stack direction="row" justifyContent="space-between">
-                      <Typography variant="caption" color="text.secondary">{formatDuration(currentTime * 1000)}</Typography>
-                      <Typography variant="caption" color="text.secondary">{formatDuration((duration || recording.durationMs / 1000) * 1000)}</Typography>
-                    </Stack>
-                  </Stack>
-                )}
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} alignItems="center">
                   <Button
                     variant="contained"
+                    size="small"
                     startIcon={isPlaying ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
                     onClick={() => void togglePlayback(recording)}
-                    sx={{ flex: 1, bgcolor: '#b486c9', borderRadius: 2, fontWeight: 800 }}
+                    sx={{
+                      minWidth: 0,
+                      px: 1.25,
+                      flexShrink: 0,
+                      bgcolor: '#b486c9',
+                      borderRadius: 2,
+                      fontWeight: 800,
+                    }}
                   >
                     {isPlaying ? '停止' : '再生'}
                   </Button>
-                  <IconButton aria-label={`${recording.topicTitle} をダウンロード`} onClick={() => void download(recording)} sx={{ border: '1px solid #d9c1e5', borderRadius: 2 }}>
+                  <Slider
+                    aria-label={`${recording.topicTitle} 再生位置`}
+                    min={0}
+                    max={Math.max(duration, recording.durationMs / 1000, 0.1)}
+                    step={0.1}
+                    value={isPlaying ? Math.min(currentTime, duration || currentTime) : 0}
+                    onChange={seek}
+                    disabled={!isPlaying || duration <= 0}
+                    size="small"
+                    sx={{ flex: 1, py: 1 }}
+                  />
+                  <IconButton aria-label={`${recording.topicTitle} をダウンロード`} onClick={() => void download(recording)} sx={{ border: '1px solid #d9c1e5', borderRadius: 2, flexShrink: 0 }}>
                     <DownloadRoundedIcon />
                   </IconButton>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" sx={{ pl: 1 }}>
+                  <Typography variant="caption" color="text.secondary">{formatDuration((isPlaying ? currentTime : 0) * 1000)}</Typography>
+                  <Typography variant="caption" color="text.secondary">{formatDuration((isPlaying && duration > 0 ? duration : recording.durationMs / 1000) * 1000)}</Typography>
                 </Stack>
               </Stack>
             </CardContent>
