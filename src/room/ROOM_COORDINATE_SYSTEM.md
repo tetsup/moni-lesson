@@ -27,3 +27,15 @@
 - For paired facing variants, mirror/re-render the same object consistently; do not change its dimensions or design between variants.
 - The room skin is a separate background image. Furniture assets must not include the room background.
 - Initial renderer uses fixed category layers: wall-mounted, then floor-covering, then solid furniture. Solid items are drawn back-to-front by increasing Y. Do not rely on overlap/collision logic.
+
+
+## Screen projection helper
+
+The projection helper uses configurable pixel scales rather than embedding a fixed pixels-per-unit ratio in room state:
+
+- `unitWidth`: horizontal pixel separation between the projected +X and +Y directions for one logical unit.
+- `unitDepth`: downward pixel component of either floor-axis direction per logical unit.
+- `unitHeight`: upward screen pixels per logical Z unit.
+- `origin`: screen position corresponding to logical `(0, 0, 0)`.
+
+With these values, `+X` projects right/down, `+Y` projects left/down, and `+Z` projects straight up. Furniture image top-left is computed by subtracting its pixel-space image anchor from the projected placement point.
