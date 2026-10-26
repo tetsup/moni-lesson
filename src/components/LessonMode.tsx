@@ -6,6 +6,7 @@ import { type MoniExpression } from '../data/moni-character';
 import MoniSupport from './MoniSupport';
 import { ExerciseBadges, SongBadges } from './LessonBadges';
 import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
+import LessonMetronome from './LessonMetronome';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
@@ -328,6 +329,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
       </Stack>
       <Button fullWidth size="large" variant="outlined" disabled={!canAdvance} onClick={advance}
         sx={{ minHeight: 44, borderRadius: 2, fontWeight: 800, borderColor: '#b486c9', color: '#80509a' }}>{primaryAction.label}</Button>
+      <LessonMetronome />
   </Stack>
   );
 }
