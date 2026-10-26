@@ -37,6 +37,8 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
     return result;
   }, [purchasedItems]);
 
+  const ownedItems = SHOP_ITEMS.filter((item) => (counts.get(item.id) ?? 0) > 0);
+
   const closeTicket = () => {
     setTicketInUse(null);
     setSliderValue(0);
@@ -65,7 +67,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
         </Typography>
       </Box>
 
-      {SHOP_ITEMS.length === 0 ? (
+      {ownedItems.length === 0 ? (
         <Card sx={{ borderRadius: CARD_RADIUS }}>
           <CardContent sx={{ py: 4, textAlign: 'center' }}>
             <Inventory2RoundedIcon sx={{ fontSize: 40, color: '#b486c9', mb: 1 }} />
@@ -85,7 +87,7 @@ export default function ItemsPage({ purchasedItems, onUseTicket }: Props) {
             gap: 1,
           }}
         >
-          {SHOP_ITEMS.map((item) => {
+          {ownedItems.map((item) => {
             const count = counts.get(item.id) ?? 0;
             const selected = selectedItem?.id === item.id;
             return (
