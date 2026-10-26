@@ -19,13 +19,6 @@ export type Song = {
   allGoalsBonusPoints?: number;
 };
 
-export type Topic = {
-  id: string;
-  title: string;
-  order: number;
-  deleted: boolean;
-};
-
 export type LessonDatabase = {
   version: 1;
   songs: Song[];
@@ -55,7 +48,7 @@ export const loadLessonDatabase = (storage: StorageLike): LessonDatabase => {
       (parsed.currentSongId !== null && typeof parsed.currentSongId !== 'string')) return emptyLessonDatabase();
     // Migrate the old independent topic list and active flags into title-snapshotted assignments.
     if (parsed.version === 1 && Array.isArray(parsed.topics)) {
-      const topics = new Map<string, Topic>(parsed.topics.map((topic: Topic) => [topic.id, topic]));
+      const topics = new Map<string, { id: string; title: string }>(parsed.topics.map((topic: any) => [topic.id, topic]));
       const songs = parsed.songs.map((song: any) => ({
         ...song,
         exercises: (Array.isArray(song.exercises) ? song.exercises : []).flatMap((exercise: any) => {
@@ -277,14 +270,3 @@ export const getActiveExercises = (database: LessonDatabase, songId: string): Ex
   return song ? song.exercises : [];
 };
 
-export const listTopics = (database: LessonDatabase): Topic[] => {
-  const topics = new Map<string, Topic>();
-  for (const song of database.songs) {
-    for (const exercise of song.exercises) {
-      if (!topics.has(exercise.topicId)) topics.set(exercise.topicId, {
-        id: exercise.topicId, title: exercise.topicTitle, order: topics.size, deleted: false,
-      });
-    }
-  }
-  return [...topics.values()];
-};
