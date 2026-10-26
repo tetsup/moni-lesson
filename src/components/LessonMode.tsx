@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { recordExerciseCompletion, type LessonSession } from '../data/lesson-session';
 import { getLessonPrimaryAction, resolveLessonAction } from '../data/lesson-routing';
 import { type MoniExpression } from '../data/moni-character';
 import MoniSupport from './MoniSupport';
+import { ExerciseBadges, SongBadges } from './LessonBadges';
 import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
@@ -109,7 +109,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
               {songs.map((song) => (
                 <Button key={song.songId} fullWidth variant={song.songId === selectedSongId ? 'contained' : 'outlined'}
                   onClick={() => setSelectedSongId(song.songId)} sx={{ justifyContent: 'flex-start', borderRadius: 3 }}>
-                  {song.songTitle}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, width: '100%', minWidth: 0 }}>
+                    <Box component="span" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>{song.songTitle}</Box>
+                    <SongBadges song={song} />
+                  </Box>
                 </Button>
               ))}
             </Stack>
@@ -126,7 +129,10 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
                   <Button key={exercise.topicId} fullWidth variant="outlined"
                     onClick={() => openTopic(selectedSong.songId, exercise.topicId)}
                     sx={{ justifyContent: 'flex-start', borderRadius: 3, borderColor: '#d9c1e5', color: '#80509a' }}>
-                    {exercise.topicTitle}
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, width: '100%', minWidth: 0 }}>
+                      <Box component="span" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>{exercise.topicTitle}</Box>
+                      <ExerciseBadges exercise={exercise} />
+                    </Box>
                   </Button>
                 ))}
               </Stack>
@@ -153,13 +159,7 @@ export default function LessonMode({ session, onSessionChange, onNavigate }: Pro
           <Typography variant="body2" color="text.secondary" fontWeight={700}>{currentSong.songTitle}</Typography>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mt: 0.5 }}>
             <Typography variant="h5" fontWeight={900} sx={{ minWidth: 0, color: '#80509a', overflowWrap: 'anywhere' }}>{currentExercise.topicTitle}</Typography>
-            <Chip
-              icon={<StarsRoundedIcon sx={{ fontSize: 18 }} />}
-              label={currentExercise.goalBonusPoints}
-              size="small"
-              aria-label={`達成ボーナス ${currentExercise.goalBonusPoints}ポイント`}
-              sx={{ flexShrink: 0, fontWeight: 900, bgcolor: '#fff0bd', color: '#8a6412', border: '1px solid #f1d68b', '& .MuiChip-icon': { color: '#d99a13' } }}
-            />
+            <ExerciseBadges exercise={currentExercise} />
           </Stack>
         </CardContent>
       </Card>
