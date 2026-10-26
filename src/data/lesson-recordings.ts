@@ -74,3 +74,13 @@ export const getRecordingsDirectory = async (): Promise<FileSystemDirectoryHandl
   const root = await navigator.storage.getDirectory();
   return root.getDirectoryHandle(RECORDINGS_DIRECTORY, { create: true });
 };
+
+export const getLessonRecordingFile = async (filePath: string): Promise<File> => {
+  const directory = await getRecordingsDirectory();
+  const fileName = filePath.split('/').pop();
+  if (!fileName || fileName.includes('..')) {
+    throw new Error('録音ファイルのパスが不正です');
+  }
+  const handle = await directory.getFileHandle(fileName);
+  return handle.getFile();
+};
