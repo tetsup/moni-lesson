@@ -183,7 +183,7 @@ export default function RecordingLibrary({ onBack }: Props) {
                     onClick={() => void togglePlayback(recording)}
                     aria-label={isPlaying ? `${recording.topicTitle} の再生を停止` : `${recording.topicTitle} を再生`}
                     sx={{
-                      minWidth: 40,
+                      minWidth: 0,
                       width: 40,
                       height: 40,
                       p: 0,
