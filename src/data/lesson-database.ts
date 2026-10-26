@@ -2,7 +2,7 @@ export const LESSON_DATABASE_KEY = 'moni-lesson-database';
 
 export type ExerciseAssignment = {
   topicId: string;
-  active: boolean;
+  topicTitle: string;
   targetCount?: number;
   repeatAllowed?: boolean;
   pointsPerCompletion?: number;
@@ -19,17 +19,9 @@ export type Song = {
   allGoalsBonusPoints?: number;
 };
 
-export type Topic = {
-  id: string;
-  title: string;
-  order: number;
-  deleted: boolean;
-};
-
 export type LessonDatabase = {
-  version: 1;
+  version: 2;
   songs: Song[];
-  topics: Topic[];
   currentSongId: string | null;
   dailyBonusPoints?: number;
 };
@@ -37,9 +29,8 @@ export type LessonDatabase = {
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 
 export const emptyLessonDatabase = (): LessonDatabase => ({
-  version: 1,
+  version: 2,
   songs: [],
-  topics: [],
   currentSongId: null,
 });
 
@@ -52,22 +43,32 @@ export const loadLessonDatabase = (storage: StorageLike): LessonDatabase => {
   try {
     const raw = storage.getItem(LESSON_DATABASE_KEY);
     if (!raw) return emptyLessonDatabase();
-    const parsed = JSON.parse(raw) as LessonDatabase;
-    if (
-      parsed?.version !== 1 ||
-      !Array.isArray(parsed.songs) ||
-      !Array.isArray(parsed.topics) ||
-      (parsed.currentSongId !== null && typeof parsed.currentSongId !== 'string') ||
-      !parsed.songs.every((song) => song && typeof song.id === 'string' &&
-        typeof song.title === 'string' && typeof song.order === 'number' &&
-        typeof song.deleted === 'boolean' && Array.isArray(song.exercises) &&
-        song.exercises.every((exercise: ExerciseAssignment) =>
-          exercise && typeof exercise.topicId === 'string' && typeof exercise.active === 'boolean')) ||
-      !parsed.topics.every((topic) => topic && typeof topic.id === 'string' &&
-        typeof topic.title === 'string' && typeof topic.order === 'number' &&
-        typeof topic.deleted === 'boolean')
-    ) return emptyLessonDatabase();
-    return parsed;
+    const parsed = JSON.parse(raw) as any;
+    if (!Array.isArray(parsed?.songs) ||
+      (parsed.currentSongId !== null && typeof parsed.currentSongId !== 'string')) return emptyLessonDatabase();
+    // Migrate the old independent topic list and active flags into title-snapshotted assignments.
+    if (parsed.version === 1 && Array.isArray(parsed.topics)) {
+      const topics = new Map<string, { id: string; title: string }>(parsed.topics.map((topic: any) => [topic.id, topic]));
+      const songs = parsed.songs.map((song: any) => ({
+        ...song,
+        exercises: (Array.isArray(song.exercises) ? song.exercises : []).flatMap((exercise: any) => {
+          if (!exercise?.active || typeof exercise.topicId !== 'string') return [];
+          const topic = topics.get(exercise.topicId);
+          if (!topic) return [];
+          const { active: _active, ...settings } = exercise;
+          return [{ ...settings, topicTitle: topic.title }];
+        }),
+      }));
+      return { version: 2, songs, currentSongId: parsed.currentSongId, dailyBonusPoints: parsed.dailyBonusPoints };
+    }
+    if (parsed.version !== 2 || !parsed.songs.every((song: any) =>
+      song && typeof song.id === 'string' && typeof song.title === 'string' &&
+      typeof song.order === 'number' && typeof song.deleted === 'boolean' &&
+      Array.isArray(song.exercises) && song.exercises.every((exercise: any) =>
+        exercise && typeof exercise.topicId === 'string' && typeof exercise.topicTitle === 'string'))) {
+      return emptyLessonDatabase();
+    }
+    return parsed as LessonDatabase;
   } catch {
     return emptyLessonDatabase();
   }
@@ -80,32 +81,32 @@ export const saveLessonDatabase = (database: LessonDatabase, storage: StorageLik
 export const listSongs = (database: LessonDatabase): Song[] =>
   database.songs.filter((song) => !song.deleted).sort((a, b) => a.order - b.order);
 
-export const listTopics = (database: LessonDatabase): Topic[] =>
-  database.topics.filter((topic) => !topic.deleted).sort((a, b) => a.order - b.order);
 
-export const addSong = (database: LessonDatabase, title: string): LessonDatabase => {
-  const normalizedTitle = title.trim();
-  if (!normalizedTitle) return database;
+
+export const deleteSong = (database: LessonDatabase, songId: string): LessonDatabase => {
+  if (!database.songs.some((song) => song.id === songId)) return database;
+  return {
+    ...database,
+    songs: database.songs.filter((song) => song.id !== songId),
+    currentSongId: database.currentSongId === songId ? null : database.currentSongId,
+  };
+};
+
+/** Adds a master song as a new entry in today's lesson list. Lesson settings start empty. */
+export const addSongFromMaster = (
+  database: LessonDatabase,
+  masterSong: { id: string; title: string; deleted: boolean },
+): LessonDatabase => {
+  if (masterSong.deleted || database.songs.some((song) => song.id === masterSong.id)) return database;
   return {
     ...database,
     songs: [...database.songs, {
-      id: createId(),
-      title: normalizedTitle,
+      id: masterSong.id,
+      title: masterSong.title,
       order: Math.max(-1, ...database.songs.map((song) => song.order)) + 1,
       deleted: false,
       exercises: [],
     }],
-  };
-};
-
-export const softDeleteSong = (database: LessonDatabase, songId: string): LessonDatabase => {
-  if (!database.songs.some((song) => song.id === songId)) return database;
-  return {
-    ...database,
-    songs: database.songs.map((song) => song.id === songId
-      ? { ...song, deleted: true, exercises: [] }
-      : song),
-    currentSongId: database.currentSongId === songId ? null : database.currentSongId,
   };
 };
 
@@ -133,68 +134,31 @@ export const setCurrentSong = (database: LessonDatabase, songId: string | null):
   return { ...database, currentSongId: songId };
 };
 
-export const addTopic = (database: LessonDatabase, title: string): LessonDatabase => {
-  const normalizedTitle = title.trim();
-  if (!normalizedTitle) return database;
-  return {
-    ...database,
-    topics: [...database.topics, {
-      id: createId(),
-      title: normalizedTitle,
-      order: Math.max(-1, ...database.topics.map((topic) => topic.order)) + 1,
-      deleted: false,
-    }],
-  };
-};
-
-export const softDeleteTopic = (database: LessonDatabase, topicId: string): LessonDatabase => {
-  if (!database.topics.some((topic) => topic.id === topicId)) return database;
-  return {
-    ...database,
-    topics: database.topics.map((topic) => topic.id === topicId ? { ...topic, deleted: true } : topic),
-    songs: database.songs.map((song) => ({
-      ...song,
-      exercises: song.exercises.filter((exercise) => exercise.topicId !== topicId),
-    })),
-  };
-};
-
-export const moveTopic = (database: LessonDatabase, topicId: string, toIndex: number): LessonDatabase => {
-  const ordered = listTopics(database);
-  const fromIndex = ordered.findIndex((topic) => topic.id === topicId);
-  if (fromIndex < 0 || ordered.length < 2 || !Number.isFinite(toIndex)) return database;
-  const targetIndex = Math.max(0, Math.min(ordered.length - 1, Math.trunc(toIndex)));
-  if (fromIndex === targetIndex) return database;
-  const [moved] = ordered.splice(fromIndex, 1);
-  ordered.splice(targetIndex, 0, moved);
-  const orderById = new Map(ordered.map((topic, index) => [topic.id, index]));
-  return {
-    ...database,
-    topics: database.topics.map((topic) => orderById.has(topic.id)
-      ? { ...topic, order: orderById.get(topic.id)! }
-      : topic),
-  };
-};
-
-/** Creates or updates the song's reference to a topic; only topic ID and active state are stored. */
-export const setSongExercise = (
+/** Add a topic selected from the independent master directly to one song. */
+export const addTopicFromMaster = (
   database: LessonDatabase,
   songId: string,
-  topicId: string,
-  active: boolean,
+  masterTopic: { id: string; title: string; deleted: boolean },
 ): LessonDatabase => {
   const song = database.songs.find((item) => item.id === songId && !item.deleted);
-  const topicExists = database.topics.some((item) => item.id === topicId && !item.deleted);
-  if (!song || !topicExists) return database;
-
-  const hasExercise = song.exercises.some((exercise) => exercise.topicId === topicId);
+  if (!song || masterTopic.deleted || song.exercises.some((exercise) => exercise.topicId === masterTopic.id)) return database;
   return {
     ...database,
     songs: database.songs.map((item) => item.id !== songId ? item : {
       ...item,
-      exercises: hasExercise
-        ? item.exercises.map((exercise) => exercise.topicId === topicId ? { ...exercise, active } : exercise)
-        : [...item.exercises, { topicId, active }],
+      exercises: [...item.exercises, { topicId: masterTopic.id, topicTitle: masterTopic.title }],
+    }),
+  };
+};
+
+/** Remove an assignment from one song; the master topic is unaffected. */
+export const removeTopicFromSong = (database: LessonDatabase, songId: string, topicId: string): LessonDatabase => {
+  const song = database.songs.find((item) => item.id === songId);
+  if (!song || !song.exercises.some((exercise) => exercise.topicId === topicId)) return database;
+  return {
+    ...database,
+    songs: database.songs.map((item) => item.id !== songId ? item : {
+      ...item, exercises: item.exercises.filter((exercise) => exercise.topicId !== topicId),
     }),
   };
 };
@@ -283,9 +247,9 @@ export const setDailyBonusPoints = (database: LessonDatabase, points: number): L
   return { ...database, dailyBonusPoints: points };
 };
 
-export const getActiveExercises = (database: LessonDatabase, songId: string): ExerciseAssignment[] => {
+/** All assignments are selected; no active flag or separate topic list exists. */
+export const listSongExercises = (database: LessonDatabase, songId: string): ExerciseAssignment[] => {
   const song = database.songs.find((item) => item.id === songId && !item.deleted);
-  if (!song) return [];
-  return song.exercises.filter((exercise) =>
-    exercise.active && database.topics.some((topic) => topic.id === exercise.topicId && !topic.deleted));
+  return song ? song.exercises : [];
 };
+
