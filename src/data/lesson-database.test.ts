@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   LESSON_DATABASE_KEY,
   addSong,
+  addSongFromMaster,
   addTopic,
+  addTopicFromMaster,
   emptyLessonDatabase,
   getActiveExercises,
   listSongs,
@@ -78,6 +80,18 @@ describe('songs', () => {
     expect(addSong(db, '  ')).toBe(db);
   });
 
+  it('adds a selected master song to today with fresh lesson settings and rejects duplicates/deleted masters', () => {
+    const initial = makeDatabase();
+    const masterSong = { id: 'master-song', title: 'Master song', deleted: false };
+    const added = addSongFromMaster(initial, masterSong);
+    expect(added.songs[3]).toMatchObject({
+      id: 'master-song', title: 'Master song', order: 3, deleted: false, exercises: [],
+    });
+    expect(addSongFromMaster(added, masterSong)).toBe(added);
+    expect(addSongFromMaster(initial, { ...masterSong, deleted: true })).toBe(initial);
+    expect(initial.songs).toHaveLength(3);
+  });
+
   it('completely removes a song and clears it if it was current', () => {
     let db = makeDatabase();
     db = setSongExercise(db, 's2', 't1', true);
@@ -137,6 +151,18 @@ describe('topics', () => {
   it('does not add a blank topic', () => {
     const db = makeDatabase();
     expect(addTopic(db, ' \n ')).toBe(db);
+  });
+
+  it('adds a selected master topic to today and rejects duplicates/deleted masters', () => {
+    const initial = makeDatabase();
+    const masterTopic = { id: 'master-topic', title: 'Master topic', deleted: false };
+    const added = addTopicFromMaster(initial, masterTopic);
+    expect(added.topics[3]).toMatchObject({
+      id: 'master-topic', title: 'Master topic', order: 3, deleted: false,
+    });
+    expect(addTopicFromMaster(added, masterTopic)).toBe(added);
+    expect(addTopicFromMaster(initial, { ...masterTopic, deleted: true })).toBe(initial);
+    expect(initial.topics).toHaveLength(3);
   });
 
   it('completely removes a topic and its references from every song', () => {
