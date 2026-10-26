@@ -9,8 +9,8 @@ const setup = () => createLessonSession('2026-10-24', [
     order: 1,
     allGoalsBonusPoints: 0,
     exercises: [
-      { topicId: 'topic-a', topicTitle: 'お題A', targetCount: 1, pointsPerCompletion: 1, goalBonusPoints: 0 },
-      { topicId: 'topic-b', topicTitle: 'お題B', targetCount: 2, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-a', topicTitle: 'お題A', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-b', topicTitle: 'お題B', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
     ],
   },
   {
@@ -19,8 +19,8 @@ const setup = () => createLessonSession('2026-10-24', [
     order: 2,
     allGoalsBonusPoints: 0,
     exercises: [
-      { topicId: 'topic-a', topicTitle: '同じIDのお題', targetCount: 2, pointsPerCompletion: 1, goalBonusPoints: 0 },
-    { topicId: 'topic-c', topicTitle: 'お題C', targetCount: 1, pointsPerCompletion: 1, goalBonusPoints: 0 },
+      { topicId: 'topic-a', topicTitle: '同じIDのお題', targetCount: 2, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
+    { topicId: 'topic-c', topicTitle: 'お題C', targetCount: 1, minimumIntervalSeconds: 0, pointsPerCompletion: 1, goalBonusPoints: 0 },
     ],
   },
 ], 0);
