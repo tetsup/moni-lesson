@@ -6,6 +6,7 @@ import { type MoniExpression } from '../data/moni-character';
 import MoniSupport from './MoniSupport';
 import { ExerciseBadges, SongBadges } from './LessonBadges';
 import { LESSON_CARD_BORDER_RADIUS } from '../data/lesson-style';
+import LessonMetronome from './LessonMetronome';
 
 export const isExerciseGoalAchieved = (session: LessonSession, songId: string | undefined, topicId: string | null): boolean => {
   const exercise = session.songs.find((song) => song.songId === songId)?.exercises.find((item) => item.topicId === topicId);
