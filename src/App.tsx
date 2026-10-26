@@ -76,8 +76,16 @@ export default function App() {
 
   const songs = useMemo(() => listSongs(database), [database]);
   const masterSongs = useMemo(() => listMasterSongs(masterDatabase), [masterDatabase]);
-  const topics = useMemo(() => listMasterTopics(masterDatabase), [masterDatabase]);
   const activeSongId = songs.some((song) => song.id === selectedSongId) ? selectedSongId : (songs[0]?.id ?? '');
+  const topics = useMemo(() => {
+    const available = listMasterTopics(masterDatabase);
+    const knownIds = new Set(available.map((topic) => topic.id));
+    const assigned = songs.find((song) => song.id === activeSongId)?.exercises ?? [];
+    const snapshots = assigned.filter((item) => !knownIds.has(item.topicId)).map((item, index) => ({
+      id: item.topicId, title: item.topicTitle, order: available.length + index, deleted: true,
+    }));
+    return [...available, ...snapshots];
+  }, [masterDatabase, database, activeSongId, songs]);
 
 
   useEffect(() => saveLessonSession(session, window.localStorage), [session]);
@@ -355,7 +363,7 @@ export default function App() {
                                   <Button size="small" variant={active ? 'contained' : 'outlined'} onClick={() => toggleTopicForSong(topic.id, !active)} sx={{ borderRadius: 2.5, flexShrink: 0 }}>
                                     {active ? '選択済み' : 'お題を追加'}
                                   </Button>
-                                  <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>
+                                  {!topic.deleted && <Button size="small" color="error" variant="text" onClick={() => deleteTopicFromTeacher(topic.id)} sx={{ flexShrink: 0 }}>削除</Button>}
                                 </Stack>
                               </Stack>
                               <Stack spacing={1}>
