@@ -291,7 +291,7 @@ export default function App() {
 
 
   return (
-    <Box sx={{ height: route.page === 'shop' ? '100dvh' : 'auto', minHeight: '100vh', overflow: route.page === 'shop' ? 'hidden' : 'visible', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd', backgroundImage: route.page === 'shop' ? 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792993306/moni-shop.png)' : 'none', backgroundSize: 'cover', backgroundPosition: 'center center', backgroundRepeat: 'no-repeat' }}>
+    <Box sx={{ height: route.page === 'shop' ? '100dvh' : 'auto', minHeight: '100vh', overflow: route.page === 'shop' ? 'hidden' : 'visible', pb: 'calc(76px + env(safe-area-inset-bottom))', bgcolor: '#fffafd', backgroundImage: route.page === 'shop' ? 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792993306/moni-shop.png)' : route.page === 'recordings' ? 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792994730/moni-recording.png)' : route.page === 'practice' ? 'url(https://res.cloudinary.com/ifw9eftr/image/upload/v1792994649/moni-lesson.png)' : 'none', backgroundSize: 'cover', backgroundPosition: 'center center', backgroundRepeat: 'no-repeat' }}>
       <Container maxWidth="sm" sx={{ pt: 2, px: { xs: 2, sm: 3 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
           <Box>
