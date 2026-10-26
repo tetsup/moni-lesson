@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   LESSON_DATABASE_KEY, addSongFromMaster, addTopicFromMaster, emptyLessonDatabase,
-  getActiveExercises, listSongs, loadLessonDatabase, removeTopicFromSong,
+  listSongExercises, listSongs, loadLessonDatabase, removeTopicFromSong,
   saveLessonDatabase, setCurrentSong, setExerciseRepeatAllowed, setExerciseTargetCount,
   deleteSong, type LessonDatabase,
 } from './lesson-database';
@@ -107,8 +107,8 @@ describe('topic assignments on a song', () => {
 
   it('treats assignment presence as selected; there is no active flag', () => {
     const assigned = addTopicFromMaster(makeDatabase(), 's1', topic);
-    expect(getActiveExercises(assigned, 's1')).toEqual([{ topicId: 't1', topicTitle: 'Right hand only' }]);
-    expect(getActiveExercises(assigned, 'missing')).toEqual([]);
+    expect(listSongExercises(assigned, 's1')).toEqual([{ topicId: 't1', topicTitle: 'Right hand only' }]);
+    expect(listSongExercises(assigned, 'missing')).toEqual([]);
     expect(assigned.songs[0].exercises[0]).not.toHaveProperty('active');
   });
 
@@ -124,7 +124,7 @@ describe('topic assignments on a song', () => {
   it('preserves assignments and their title snapshots if the master topic is deleted', () => {
     const db = addTopicFromMaster(makeDatabase(), 's1', topic);
     expect(db.songs[0].exercises[0].topicTitle).toBe('Right hand only');
-    expect(getActiveExercises(db, 's1')).toEqual([{ topicId: 't1', topicTitle: 'Right hand only' }]);
+    expect(listSongExercises(db, 's1')).toEqual([{ topicId: 't1', topicTitle: 'Right hand only' }]);
   });
 
   it('updates target and repeat settings on the assigned topic', () => {
