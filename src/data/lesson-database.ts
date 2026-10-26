@@ -125,6 +125,9 @@ export const addSongFromMaster = (
   };
 };
 
+/** @deprecated Use deleteSong; retained temporarily for existing callers. */
+export const softDeleteSong = deleteSong;
+
 export const moveSong = (database: LessonDatabase, songId: string, toIndex: number): LessonDatabase => {
   const ordered = listSongs(database);
   const fromIndex = ordered.findIndex((song) => song.id === songId);
@@ -191,6 +194,9 @@ export const addTopicFromMaster = (
     }],
   };
 };
+
+/** @deprecated Use deleteTopic; retained temporarily for existing callers. */
+export const softDeleteTopic = deleteTopic;
 
 export const moveTopic = (database: LessonDatabase, topicId: string, toIndex: number): LessonDatabase => {
   const ordered = listTopics(database);
