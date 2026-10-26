@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addSong,
-  addTopic,
+  addSongFromMaster,
+  addTopicFromMaster,
   emptyLessonDatabase,
   setSongExercise,
   setExercisePoints,
