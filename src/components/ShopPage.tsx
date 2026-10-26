@@ -18,7 +18,6 @@ import WallpaperRoundedIcon from '@mui/icons-material/WallpaperRounded';
 import CheckroomRoundedIcon from '@mui/icons-material/CheckroomRounded';
 import ConfirmationNumberRoundedIcon from '@mui/icons-material/ConfirmationNumberRounded';
 import MoniSupport from './MoniSupport';
-import shopBackground from '../assets/moni-shop-background.svg';
 
 export type ShopItemCategory = 'furniture' | 'room-skin' | 'clothing' | 'ticket';
 
@@ -123,7 +122,7 @@ export default function ShopPage({ totalPoints, onPurchase }: Props) {
             position: 'absolute',
             zIndex: -2,
             inset: -12,
-            backgroundImage: `url(${shopBackground})`,
+            background: `radial-gradient(ellipse at 18% 20%, rgba(255, 222, 239, .95) 0 9%, transparent 30%), radial-gradient(ellipse at 82% 25%, rgba(219, 198, 250, .9) 0 12%, transparent 34%), radial-gradient(ellipse at 70% 85%, rgba(255, 229, 196, .9) 0 12%, transparent 35%), linear-gradient(135deg, #fbe6f3, #e7dafa 48%, #fff0d9)`,
             backgroundPosition: 'center',
             backgroundSize: 'cover',
             filter: 'blur(7px)',
