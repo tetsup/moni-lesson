@@ -72,9 +72,11 @@ export default function App() {
   const [songTitle, setSongTitle] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [selectedSongId, setSelectedSongId] = useState(() => loadDatabase().currentSongId ?? '');
+  const [selectedMasterSongId, setSelectedMasterSongId] = useState('');
   const [pointDrafts, setPointDrafts] = useState<Record<string, string>>({});
 
   const songs = useMemo(() => listSongs(database), [database]);
+  const masterSongs = useMemo(() => listMasterSongs(masterDatabase), [masterDatabase]);
   const topics = useMemo(() => listMasterTopics(masterDatabase), [masterDatabase]);
   const activeSongId = songs.some((song) => song.id === selectedSongId) ? selectedSongId : (songs[0]?.id ?? '');
 
@@ -85,14 +87,15 @@ export default function App() {
 
   const addSongFromTeacher = () => {
     if (!songTitle.trim()) return;
-    const nextMaster = addMasterSong(masterDatabase, songTitle);
-    const masterSong = listMasterSongs(nextMaster).at(-1);
-    setMasterDatabase(nextMaster);
-    const next = masterSong ? addSongFromMaster(database, masterSong) : database;
-    const added = listSongs(next).at(-1);
-    setDatabase(next);
+    setMasterDatabase((previous) => addMasterSong(previous, songTitle));
     setSongTitle('');
-    if (added) setSelectedSongId(added.id);
+  };
+
+  const addSelectedMasterSong = () => {
+    const masterSong = masterSongs.find((song) => song.id === selectedMasterSongId);
+    if (!masterSong) return;
+    setDatabase((previous) => addSongFromMaster(previous, masterSong));
+    setSelectedSongId(masterSong.id);
   };
 
   const addTopicFromTeacher = () => {
@@ -315,6 +318,17 @@ export default function App() {
                   <Button variant="contained" onClick={addTopicFromTeacher} disabled={!topicTitle.trim()} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
                 </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>追加したお題は、選択中の曲に自動で有効登録されるよ。</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>今日の曲リストに追加</Typography>
+                <Stack direction="row" spacing={1}>
+                  <TextField select fullWidth size="small" label="曲マスターから選択" value={selectedMasterSongId} onChange={(event) => setSelectedMasterSongId(event.target.value)}>
+                    {masterSongs.map((song) => <MenuItem key={song.id} value={song.id}>{song.title}</MenuItem>)}
+                  </TextField>
+                  <Button variant="contained" onClick={addSelectedMasterSong} disabled={!selectedMasterSongId || songs.some((song) => song.id === selectedMasterSongId)} sx={{ minWidth: 84, borderRadius: 2.5 }}>追加</Button>
+                </Stack>
               </CardContent>
             </Card>
             <Card sx={{ borderRadius: 2, border: '1px solid #f0e6f2' }}>
