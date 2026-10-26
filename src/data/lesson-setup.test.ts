@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addSongFromMaster,
   addTopicFromMaster,
+  removeTopicFromSong,
   emptyLessonDatabase,
   setExercisePoints,
   setExerciseTargetCount,
@@ -110,4 +111,5 @@ describe('lesson setup', () => {
     expect(setup).toHaveLength(2);
     expect(setup[0].exercises.map((exercise) => exercise.topicId)).toEqual(['topic-1']);
     expect(setup[1].exercises.map((exercise) => exercise.topicId)).toEqual(['topic-2']);
-  });});
+  });
+});
