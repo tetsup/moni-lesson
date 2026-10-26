@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Card, CardContent, Stack, Typography } from "@mui/material";
 import FiberManualRecordRoundedIcon from "@mui/icons-material/FiberManualRecordRounded";
 import StopRoundedIcon from "@mui/icons-material/StopRounded";
+import LibraryMusicRoundedIcon from "@mui/icons-material/LibraryMusicRounded";
 import {
   getRecordingsDirectory,
   nextRecordingAttemptNumber,
@@ -35,6 +36,7 @@ type Props = {
   topicId: string;
   topicTitle: string;
   stopSignal: number;
+  onOpenLibrary: () => void;
 };
 
 type ActiveRecording = {
@@ -67,6 +69,7 @@ export default function LessonRecordingControls({
   topicId,
   topicTitle,
   stopSignal,
+  onOpenLibrary,
 }: Props) {
   const [active, setActive] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -257,6 +260,15 @@ export default function LessonRecordingControls({
             }}
           >
             {busy ? "保存中…" : active ? "録音停止" : "録音"}
+          </Button>
+          <Button
+            fullWidth
+            variant="text"
+            startIcon={<LibraryMusicRoundedIcon />}
+            onClick={onOpenLibrary}
+            sx={{ minHeight: 36, borderRadius: 2, fontWeight: 800, whiteSpace: "nowrap" }}
+          >
+            録音を聴く
           </Button>
           {message && (
             <Typography
