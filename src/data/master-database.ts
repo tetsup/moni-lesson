@@ -124,19 +124,19 @@ export const seedMasterDatabase = (
 ): MasterDatabase => {
   const knownSongIds = new Set(database.songs.map((song) => song.id));
   const knownTopicIds = new Set(database.topics.map((topic) => topic.id));
-  const newSongs = songs.filter((song) => !song.deleted && !knownSongIds.has(song.id))
+  const newSongs = songs.filter((song) => !knownSongIds.has(song.id))
     .map((song, index) => ({
       id: song.id,
       title: song.title,
       order: database.songs.length + index,
-      deleted: false,
+      deleted: song.deleted,
     }));
-  const newTopics = topics.filter((topic) => !topic.deleted && !knownTopicIds.has(topic.id))
+  const newTopics = topics.filter((topic) => !knownTopicIds.has(topic.id))
     .map((topic, index) => ({
       id: topic.id,
       title: topic.title,
       order: database.topics.length + index,
-      deleted: false,
+      deleted: topic.deleted,
     }));
   if (newSongs.length === 0 && newTopics.length === 0) return database;
   return {
