@@ -126,6 +126,7 @@ export default function LessonMode({
   const openTopic = (songId: string, topicId: string) => {
     setSelectedSongId(songId);
     setCurrentTopicId(topicId);
+    setMessageSituation("done");
     setMode("lesson");
   };
 
