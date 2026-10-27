@@ -1,7 +1,8 @@
 export const MESSAGE_DATABASE_KEY = 'moni-lesson-message-database';
 
 export const MESSAGE_SITUATIONS = [
-  { id: 'start', label: '始まり', defaultText: 'きょうは何のお題にチャレンジする？' },
+  { id: 'selection', label: 'お題選択画面', defaultText: 'きょうは何のお題にチャレンジする？' },
+  { id: 'start', label: 'レッスン開始', defaultText: 'さあ、はじめよう！' },
   { id: 'done', label: 'できた', defaultText: 'いい感じ！ その調子でいこう♪' },
   { id: 'topic-goal', label: 'お題達成', defaultText: 'やったね！ 目標達成だよ！' },
   { id: 'song-complete', label: '曲コンプ', defaultText: 'すごい！ この曲のお題を全部クリアしたね！' },
