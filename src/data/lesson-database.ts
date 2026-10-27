@@ -127,6 +127,28 @@ export const moveSong = (database: LessonDatabase, songId: string, toIndex: numb
   };
 };
 
+/** Reorders one song's assigned topics, keeping each topic's settings attached. */
+export const moveExercise = (
+  database: LessonDatabase,
+  songId: string,
+  topicId: string,
+  toIndex: number,
+): LessonDatabase => {
+  const song = database.songs.find((item) => item.id === songId && !item.deleted);
+  if (!song || song.exercises.length < 2 || !Number.isFinite(toIndex)) return database;
+  const fromIndex = song.exercises.findIndex((exercise) => exercise.topicId === topicId);
+  if (fromIndex < 0) return database;
+  const targetIndex = Math.max(0, Math.min(song.exercises.length - 1, Math.trunc(toIndex)));
+  if (fromIndex === targetIndex) return database;
+  const exercises = [...song.exercises];
+  const [moved] = exercises.splice(fromIndex, 1);
+  exercises.splice(targetIndex, 0, moved);
+  return {
+    ...database,
+    songs: database.songs.map((item) => item.id === songId ? { ...item, exercises } : item),
+  };
+};
+
 export const setCurrentSong = (database: LessonDatabase, songId: string | null): LessonDatabase => {
   if (songId !== null && !database.songs.some((song) => song.id === songId && !song.deleted)) {
     return database;
