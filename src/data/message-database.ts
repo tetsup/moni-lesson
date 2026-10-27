@@ -54,22 +54,48 @@ export const seedDefaultMessages = (database: MessageDatabase): MessageDatabase 
       assignment.scope === 'situation' && assignment.situation === 'selection',
     );
     if (hasSelectionAssignment) return database;
-    const situation = MESSAGE_SITUATIONS.find((item) => item.id === 'selection');
-    if (!situation) return database;
-    const messageId = createId();
-    return {
-      ...database,
-      messages: [...database.messages, {
-        id: messageId,
-        text: situation.defaultText,
-        order: Math.max(-1, ...database.messages.map((message) => message.order)) + 1,
+    const selectionSituation = MESSAGE_SITUATIONS.find((item) => item.id === 'selection');
+    const startSituation = MESSAGE_SITUATIONS.find((item) => item.id === 'start');
+    if (!selectionSituation || !startSituation) return database;
+    const legacyStart = database.assignments.find((assignment) => {
+      if (assignment.situation !== 'start' || assignment.scope !== 'situation' || !assignment.isDefault) return false;
+      const message = database.messages.find((item) => item.id === assignment.messageId);
+      return message?.text === 'きょうは何のお題にチャレンジする？';
+    });
+    let messages = database.messages;
+    let assignments = database.assignments;
+    if (legacyStart) {
+      assignments = assignments.map((assignment) => assignment.id === legacyStart.id
+        ? { ...assignment, situation: 'selection' as const }
+        : assignment);
+    } else {
+      const selectionMessageId = createId();
+      messages = [...messages, {
+        id: selectionMessageId,
+        text: selectionSituation.defaultText,
+        order: Math.max(-1, ...messages.map((message) => message.order)) + 1,
         deleted: false,
-      }],
-      assignments: [...database.assignments, {
-        id: createId(), messageId, situation: 'selection', scope: 'situation', targetId: null,
+      }];
+      assignments = [...assignments, {
+        id: createId(), messageId: selectionMessageId, situation: 'selection', scope: 'situation', targetId: null,
         order: 0, isDefault: true,
-      }],
-    };
+      }];
+    }
+    const hasStartAssignment = assignments.some((assignment) => assignment.situation === 'start' && assignment.scope === 'situation');
+    if (!hasStartAssignment) {
+      const startMessageId = createId();
+      messages = [...messages, {
+        id: startMessageId,
+        text: startSituation.defaultText,
+        order: Math.max(-1, ...messages.map((message) => message.order)) + 1,
+        deleted: false,
+      }];
+      assignments = [...assignments, {
+        id: createId(), messageId: startMessageId, situation: 'start', scope: 'situation', targetId: null,
+        order: 0, isDefault: true,
+      }];
+    }
+    return { ...database, messages, assignments };
   }
   let next = { ...database, initialized: true };
   for (const situation of MESSAGE_SITUATIONS) {
