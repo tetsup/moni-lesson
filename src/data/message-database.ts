@@ -232,7 +232,7 @@ export const selectLessonMessage = (
   topicId?: string,
   random: () => number = Math.random,
 ): string | undefined => {
-  const scopeCandidates = (scope: MessageScope, targetId: string | null) =>
+  const scopeCandidates = (scope: MessageScope, targetId: string | null | undefined) =>
     listMessageAssignments(database, situation, scope, targetId);
   const candidates = situation === 'start' || situation === 'done'
     ? (topicId ? scopeCandidates('topic', topicId) : []).length
