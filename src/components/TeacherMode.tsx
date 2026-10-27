@@ -69,7 +69,7 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
    <Button fullWidth variant={page==='masters'?'contained':'outlined'} onClick={()=>setPage('masters')}>マスター管理</Button>
    <Button fullWidth variant={page==='messages'?'contained':'outlined'} onClick={()=>setPage('messages')}>メッセージ設定</Button>
   </Stack>
-  {page==='messages' ? <MessageManagement masterDatabase={masterDatabase} /> : page==='masters'?<>
+  {page==='messages' ? <MessageManagement masterDatabase={masterDatabase} lessonDatabase={database} /> : page==='masters'?<>
    <Stack direction="row" spacing={1}><Button fullWidth variant={masterTab==='songs'?'contained':'outlined'} onClick={()=>setMasterTab('songs')}>曲マスター</Button><Button fullWidth variant={masterTab==='topics'?'contained':'outlined'} onClick={()=>setMasterTab('topics')}>お題マスター</Button></Stack>
    <Stack direction="row" spacing={1}><TextField fullWidth size="small" label={masterTab==='songs'?'曲名':'お題名'} value={newTitle} onChange={e=>setNewTitle(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')createMaster();}}/><Button variant="contained" disabled={!newTitle.trim()} onClick={createMaster}>登録</Button></Stack>
    {(masterTab==='songs'?masterSongs:masterTopics).map(item=><Box key={item.id} sx={{display:'flex',alignItems:'center',border:'1px solid #eee4f2',borderRadius:2,p:1.5}}><Typography sx={{flex:1}}>{item.title}</Typography><IconButton onClick={()=>setRemoveMaster({kind:masterTab==='songs'?'song':'topic',item})}><DeleteOutlineIcon/></IconButton></Box>)}
