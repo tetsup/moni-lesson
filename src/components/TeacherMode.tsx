@@ -1,4 +1,7 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction, type ReactNode } from 'react';
+import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -10,6 +13,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import { addSongFromMaster, addTopicFromMaster, deleteSong, listSongs, moveExercise, moveSong, removeTopicFromSong, setExerciseMinimumInterval, setExercisePoints, setExerciseRepeatAllowed, setExerciseTargetCount, setSongBonusPoints, setDailyBonusPoints, type LessonDatabase, type ExerciseAssignment } from '../data/lesson-database';
 import { addMasterSong, addMasterTopic, listMasterSongs, listMasterTopics, softDeleteMasterSong, softDeleteMasterTopic, type MasterDatabase, type MasterSong, type MasterTopic } from '../data/master-database';
 import { DEFAULT_ALL_GOALS_BONUS_POINTS, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, canStartLesson } from '../data/lesson-setup';
+
+type SortableRowProps = {
+ id: string;
+ children: (handle: { attributes: Record<string, unknown>; listeners: Record<string, unknown> | undefined }) => ReactNode;
+};
+function SortableRow({ id, children }: SortableRowProps) {
+ const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+ return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.55 : 1, position: 'relative', zIndex: isDragging ? 1 : 'auto' }}>
+  {children({ attributes, listeners })}
+ </div>;
+}
+
 type Props = { database: LessonDatabase; setDatabase: Dispatch<SetStateAction<LessonDatabase>>; masterDatabase: MasterDatabase; setMasterDatabase: Dispatch<SetStateAction<MasterDatabase>>; onOpenLesson: () => void };
 export default function TeacherMode({database,setDatabase,masterDatabase,setMasterDatabase,onOpenLesson}: Props) {
  const [page,setPage]=useState<'today'|'masters'>('today'), [masterTab,setMasterTab]=useState<'songs'|'topics'>('songs');
@@ -19,6 +34,28 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
  const [edit,setEdit]=useState<{songId:string;exercise:ExerciseAssignment}|null>(null), [remove,setRemove]=useState<{songId:string;exercise:ExerciseAssignment}|null>(null), [removeSong,setRemoveSong]=useState<string|null>(null), [removeMaster,setRemoveMaster]=useState<{kind:'song'|'topic';item:MasterSong|MasterTopic}|null>(null);
  const [draft,setDraft]=useState({target:'10',repeat:false,interval:'0',points:String(DEFAULT_POINTS_PER_COMPLETION),bonus:String(DEFAULT_GOAL_BONUS_POINTS)});
  const songs=useMemo(()=>listSongs(database),[database]), masterSongs=listMasterSongs(masterDatabase), masterTopics=listMasterTopics(masterDatabase);
+ const sensors = useSensors(
+  useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+ );
+ const reorderSong = ({ active, over }: DragEndEvent) => {
+  if (!over || active.id === over.id) return;
+  const from = songs.findIndex(item => item.id === String(active.id));
+  const to = songs.findIndex(item => item.id === String(over.id));
+  if (from < 0 || to < 0) return;
+  const reordered = arrayMove(songs, from, to);
+  setDatabase(previous => moveSong(previous, String(active.id), reordered.findIndex(item => item.id === String(active.id))));
+ };
+ const reorderTopic = (songId: string, event: DragEndEvent) => {
+  if (!event.over || event.active.id === event.over.id) return;
+  const currentSong = songs.find(item => item.id === songId);
+  if (!currentSong) return;
+  const from = currentSong.exercises.findIndex(item => item.topicId === String(event.active.id));
+  const to = currentSong.exercises.findIndex(item => item.topicId === String(event.over!.id));
+  if (from < 0 || to < 0) return;
+  const reordered = arrayMove(currentSong.exercises, from, to);
+  setDatabase(previous => moveExercise(previous, songId, String(event.active.id), reordered.findIndex(item => item.topicId === String(event.active.id))));
+ };
  const song=(id:string)=>songs.find(s=>s.id===id);
  const saveDraft=()=>{if(!edit)return; const vals=[draft.target,draft.interval,draft.points,draft.bonus].map(Number); if(vals.some(n=>!Number.isSafeInteger(n))||vals[0]<1||vals.slice(1).some(n=>n<0))return;
  setDatabase(prev=>{let next=setExerciseTargetCount(prev,edit.songId,edit.exercise.topicId,vals[0]);next=setExerciseRepeatAllowed(next,edit.songId,edit.exercise.topicId,draft.repeat);next=setExerciseMinimumInterval(next,edit.songId,edit.exercise.topicId,vals[1]);next=setExercisePoints(next,edit.songId,edit.exercise.topicId,'pointsPerCompletion',vals[2]);return setExercisePoints(next,edit.songId,edit.exercise.topicId,'goalBonusPoints',vals[3]);});setEdit(null);};
@@ -34,13 +71,21 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
    {(masterTab==='songs'?masterSongs:masterTopics).map(item=><Box key={item.id} sx={{display:'flex',alignItems:'center',border:'1px solid #eee4f2',borderRadius:2,p:1.5}}><Typography sx={{flex:1}}>{item.title}</Typography><IconButton onClick={()=>setRemoveMaster({kind:masterTab==='songs'?'song':'topic',item})}><DeleteOutlineIcon/></IconButton></Box>)}
   </>:<>
    <Typography variant="h6" fontWeight={800}>今日の曲リスト</Typography>
-   {songs.map((s,index)=><Accordion key={s.id} expanded={expanded===s.id} onChange={(_,v)=>setExpanded(v?s.id:false)} disableGutters elevation={0} sx={{border:'1px solid #eadff0',borderRadius:'12px !important','&:before':{display:'none'}}}>
-    <Box sx={{display:'flex',alignItems:'center',pl:1}}><IconButton aria-label="並べ替え" draggable onDragStart={e=>e.dataTransfer.setData('song',s.id)} onDragOver={e=>e.preventDefault()} onDrop={(event) => { event.preventDefault(); const draggedSongId = event.dataTransfer.getData('song'); if (draggedSongId) { setDatabase((previous) => moveSong(previous, draggedSongId, index)); } }}><DragIndicatorIcon/></IconButton><AccordionSummary expandIcon={<ExpandMoreIcon/>} sx={{flex:1}}><Box><Typography fontWeight={800}>{s.title}</Typography><Typography variant="caption" color="text.secondary">お題 {s.exercises.length}件</Typography></Box></AccordionSummary></Box>
+   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderSong}>
+   <SortableContext items={songs.map(item=>item.id)} strategy={verticalListSortingStrategy}>
+   {songs.map(s=><SortableRow key={s.id} id={s.id}>{({attributes,listeners})=><Accordion expanded={expanded===s.id} onChange={(_,v)=>setExpanded(v?s.id:false)} disableGutters elevation={0} sx={{border:'1px solid #eadff0',borderRadius:'12px !important','&:before':{display:'none'}}}>
+    <Box sx={{display:'flex',alignItems:'center',pl:1}}><IconButton aria-label="並べ替え" {...attributes} {...listeners} onClick={e=>e.stopPropagation()} sx={{touchAction:'none',cursor:'grab'}}><DragIndicatorIcon/></IconButton><AccordionSummary expandIcon={<ExpandMoreIcon/>} sx={{flex:1}}><Box><Typography fontWeight={800}>{s.title}</Typography><Typography variant="caption" color="text.secondary">お題 {s.exercises.length}件</Typography></Box></AccordionSummary></Box>
     <AccordionDetails><Stack spacing={1.5}><Typography fontWeight={800}>この曲のお題</Typography>
-     {s.exercises.map((ex,index)=><Box key={ex.topicId} sx={{border:'1px solid #eadff0',borderRadius:2,p:1.5}}><Stack direction="row" alignItems="center"><IconButton aria-label="お題を並べ替え" draggable onDragStart={e=>{e.dataTransfer.setData('topic',ex.topicId);e.dataTransfer.setData('song',s.id);e.dataTransfer.effectAllowed='move';}} onDragOver={e=>{e.preventDefault();e.dataTransfer.dropEffect='move';}} onDrop={e=>{e.preventDefault();const draggedTopicId=e.dataTransfer.getData('topic');const draggedSongId=e.dataTransfer.getData('song');if(draggedTopicId&&draggedSongId===s.id)setDatabase(previous=>moveExercise(previous,s.id,draggedTopicId,index));}}><DragIndicatorIcon/></IconButton><Box sx={{flex:1}}><Typography fontWeight={700}>{ex.topicTitle}</Typography><Typography variant="body2" color="text.secondary">目標回数 {ex.targetCount??10}回 ・ 繰り返し {(ex.repeatAllowed??false)?'ON':'OFF'} ・ ポイント {ex.pointsPerCompletion??DEFAULT_POINTS_PER_COMPLETION}pt</Typography></Box><IconButton onClick={e=>{setMenuEl(e.currentTarget);setMenuItem({songId:s.id,exercise:ex});}}><MoreVertIcon/></IconButton></Stack></Box>)}
+     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event=>reorderTopic(s.id,event)}>
+     <SortableContext items={s.exercises.map(item=>item.topicId)} strategy={verticalListSortingStrategy}>
+     {s.exercises.map(ex=><SortableRow key={ex.topicId} id={ex.topicId}>{({attributes,listeners})=><Box sx={{border:'1px solid #eadff0',borderRadius:2,p:1.5}}><Stack direction="row" alignItems="center"><IconButton aria-label="お題を並べ替え" {...attributes} {...listeners} onClick={e=>e.stopPropagation()} sx={{touchAction:'none',cursor:'grab'}}><DragIndicatorIcon/></IconButton><Box sx={{flex:1}}><Typography fontWeight={700}>{ex.topicTitle}</Typography><Typography variant="body2" color="text.secondary">目標回数 {ex.targetCount??10}回 ・ 繰り返し {(ex.repeatAllowed??false)?'ON':'OFF'} ・ ポイント {ex.pointsPerCompletion??DEFAULT_POINTS_PER_COMPLETION}pt</Typography></Box><IconButton onClick={e=>{setMenuEl(e.currentTarget);setMenuItem({songId:s.id,exercise:ex});}}><MoreVertIcon/></IconButton></Stack></Box>}</SortableRow>)}
+     </SortableContext>
+     </DndContext>
      <Button variant="outlined" startIcon={<AddIcon/>} onClick={()=>setTopicSong(s.id)}>お題を追加する</Button><Button color="error" onClick={()=>setRemoveSong(s.id)}>この曲を今日のリストから削除</Button>
      <TextField size="small" type="number" label="この曲のお題を全部達成したボーナス" value={s.allGoalsBonusPoints??DEFAULT_ALL_GOALS_BONUS_POINTS} onChange={e=>{const n=Number(e.target.value);if(e.target.value!==''&&Number.isSafeInteger(n)&&n>=0)setDatabase(p=>setSongBonusPoints(p,s.id,n));}}/>
     </Stack></AccordionDetails></Accordion>)}
+   </SortableContext>
+   </DndContext>
    <Button fullWidth variant="outlined" size="large" startIcon={<AddIcon/>} onClick={()=>setSongOpen(true)}>曲を追加する</Button>
    <TextField fullWidth size="small" type="number" label="今日のお題を全部達成したボーナス" value={database.dailyBonusPoints??DEFAULT_DAILY_BONUS_POINTS} onChange={e=>{const n=Number(e.target.value);if(e.target.value!==''&&Number.isSafeInteger(n)&&n>=0)setDatabase(p=>setDailyBonusPoints(p,n));}}/>
    <Button fullWidth variant="contained" size="large" onClick={onOpenLesson} disabled={!canStartLesson(database)} sx={{minHeight:56,borderRadius:2,fontWeight:900,bgcolor:'#b486c9'}}>レッスン画面へ</Button>
