@@ -25,7 +25,7 @@ export type MessageAssignment = {
   scope: MessageScope;
   targetId: string | null;
   order: number;
-  /** The initial assignment is protected from deletion. */
+  /** Whether this assignment was created during initial seeding. */
   isDefault: boolean;
 };
 
@@ -51,7 +51,7 @@ export const seedDefaultMessages = (database: MessageDatabase): MessageDatabase 
   let next = { ...database, initialized: true };
   for (const situation of MESSAGE_SITUATIONS) {
     const existing = next.assignments.some((assignment) =>
-      !assignment.deleted && assignment.scope === 'situation' && assignment.situation === situation.id,
+      assignment.scope === 'situation' && assignment.situation === situation.id,
     );
     if (existing) continue;
     const messageId = createId();
@@ -155,7 +155,7 @@ export const assignMessage = (
   );
   if (duplicate) return database;
   const siblings = database.assignments.filter((assignment) =>
-    !assignment.deleted && assignment.situation === situation && assignment.scope === scope && assignment.targetId === targetId,
+    assignment.situation === situation && assignment.scope === scope && assignment.targetId === targetId,
   );
   return {
     ...database,
@@ -207,7 +207,7 @@ export const listMessageAssignments = (
   database: MessageDatabase,
   situation?: MessageSituation,
   scope?: MessageScope,
-  targetId?: string,
+  targetId?: string | null,
 ): Array<MessageAssignment & { text: string }> => database.assignments
   .filter((assignment) =>
     (situation === undefined || assignment.situation === situation) &&
