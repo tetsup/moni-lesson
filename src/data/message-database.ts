@@ -45,7 +45,7 @@ const createId = (): string => {
 
 export const emptyMessageDatabase = (): MessageDatabase => ({ version: 1, messages: [], assignments: [], initialized: false });
 
-/** Creates the five protected situation defaults; safe to call repeatedly for migration/seeding. */
+/** Creates one default assignment per situation on first initialization. */
 export const seedDefaultMessages = (database: MessageDatabase): MessageDatabase => {
   if (database.initialized) return database;
   let next = { ...database, initialized: true };
@@ -180,14 +180,13 @@ export const updateMessageAssignment = (
   };
 };
 
-/** Refuses to remove the final assignment for a situation and protects seeded defaults. */
+/** Refuses to remove the final assignment for a situation; song/topic assignments may be empty. */
 export const removeMessageAssignment = (database: MessageDatabase, assignmentId: string): MessageDatabase => {
   const target = database.assignments.find((assignment) => assignment.id === assignmentId);
   if (!target) return database;
   if (target.scope === 'situation') {
     const count = database.assignments.filter((assignment) =>
-      assignment.scope === 'situation' && assignment.situation === target.situation &&
-      !database.assignments.some((removed) => removed.id === assignment.id && removed.id === assignmentId),
+      assignment.scope === 'situation' && assignment.situation === target.situation,
     ).length;
     if (count <= 1) return database;
   }

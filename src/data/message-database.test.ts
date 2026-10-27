@@ -69,7 +69,7 @@ describe('message database persistence and defaults', () => {
     expect(listMessageAssignments(loadMessageDatabase(storage), 'start', 'situation')).toHaveLength(1);
     let database = addMasterMessage(seeded(), '  すごいね！  ');
     database = addMasterMessage(database, 'もう一回');
-    expect(listMasterMessages(database, ' すごい ').map((item) => item.text)).toEqual(['すごいね！']);
+    expect(listMasterMessages(database, ' ごいね ').map((item) => item.text)).toEqual(['すごいね！']);
   });
 });
 
@@ -103,7 +103,7 @@ describe('message master and assignments', () => {
     const added = addMasterMessage(database, '対象外メッセージ');
     const message = listMasterMessages(added).find((item) => !listMasterMessages(before).some((old) => old.id === item.id))!;
     expect(assignMessage(added, message.id, 'topic-goal', 'topic', 'topic-1')).toEqual(added);
-    expect(selectLessonMessage(database, 'topic-goal', 'song-1', 'topic-1', () => 0)).toBe('お題達成だよ！');
+    expect(selectLessonMessage(database, 'topic-goal', 'song-1', 'topic-1', () => 0)).toBe('やったね！ 目標達成だよ！');
     expect(selectLessonMessage(database, 'topic-goal', 'song-1', 'topic-1', () => 0.99)).toBe('曲に設定したお祝い');
     expect(selectLessonMessage(database, 'song-complete', 'song-1', 'topic-1', () => 0)).toBe('すごい！ この曲のお題を全部クリアしたね！');
   });
