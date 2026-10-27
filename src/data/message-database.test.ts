@@ -42,7 +42,8 @@ describe('message database persistence and defaults', () => {
   it('seeds one default message per situation and round-trips it', () => {
     const storage = new MemoryStorage();
     const database = loadMessageDatabase(storage);
-    expect(listMessageAssignments(database, 'selection', 'situation')).toHaveLength(1);\n    expect(listMessageAssignments(database, 'start', 'situation')).toHaveLength(1);
+    expect(listMessageAssignments(database, 'selection', 'situation')).toHaveLength(1);
+    expect(listMessageAssignments(database, 'start', 'situation')).toHaveLength(1);
     expect(listMessageAssignments(database, 'done', 'situation')).toHaveLength(1);
     expect(listMessageAssignments(database, 'topic-goal', 'situation')).toHaveLength(1);
     expect(listMessageAssignments(database, 'song-complete', 'situation')).toHaveLength(1);
@@ -90,7 +91,8 @@ describe('message master and assignments', () => {
     database = addAndAssign(database, 'お題用', 'start', 'topic', 'topic-1').database;
     expect(selectLessonMessage(database, 'start', 'song-1', 'topic-1', () => 0)).toBe('お題用');
     expect(selectLessonMessage(database, 'start', 'song-1', 'other-topic', () => 0)).toBe('曲用');
-    expect(selectLessonMessage(database, 'start', 'other-song', 'other-topic', () => 0)).toBe('さあ、はじめよう！');\n    expect(selectLessonMessage(database, 'selection', undefined, undefined, () => 0)).toBe('きょうは何のお題にチャレンジする？');
+    expect(selectLessonMessage(database, 'start', 'other-song', 'other-topic', () => 0)).toBe('さあ、はじめよう！');
+    expect(selectLessonMessage(database, 'selection', undefined, undefined, () => 0)).toBe('きょうは何のお題にチャレンジする？');
     database = addAndAssign(database, 'できた専用', 'done', 'topic', 'topic-1').database;
     expect(selectLessonMessage(database, 'done', 'song-1', 'topic-1', () => 0)).toBe('できた専用');
   });
