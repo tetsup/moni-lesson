@@ -17,6 +17,7 @@ import {
   resolveLessonAction,
 } from "../data/lesson-routing";
 import { type MoniExpression } from "../data/moni-character";
+import { loadMessageDatabase, selectLessonMessage, type MessageSituation } from "../data/message-database";
 import MoniSupport from "./MoniSupport";
 import { ExerciseBadges, SongBadges } from "./LessonBadges";
 import { LESSON_CARD_BORDER_RADIUS } from "../data/lesson-style";
@@ -51,12 +52,12 @@ const getMoniExpression = (isGoalAchieved: boolean): MoniExpression =>
   isGoalAchieved ? "happy" : "normal";
 
 const getMoniMessage = (
-  isGoalAchieved: boolean,
-  completionCount: number,
+  situation: MessageSituation,
+  songId?: string,
+  topicId?: string,
 ): string => {
-  if (isGoalAchieved) return "やったね！ 目標達成だよ！";
-  if (completionCount > 0) return "いい感じ！ その調子でいこう♪";
-  return "だいじょうぶ、ゆっくりでいいよ！";
+  if (typeof window === "undefined") return "";
+  return selectLessonMessage(loadMessageDatabase(window.localStorage), situation, songId, topicId) ?? "";
 };
 
 export default function LessonMode({
@@ -66,6 +67,7 @@ export default function LessonMode({
   onOpenRecordings,
 }: Props) {
   const [mode, setMode] = useState<"selection" | "lesson">("selection");
+  const [messageSituation, setMessageSituation] = useState<MessageSituation>("start");
   const [selectedSongId, setSelectedSongId] = useState(
     session.songs[0]?.songId ?? "",
   );
@@ -130,13 +132,15 @@ export default function LessonMode({
   const completeCurrent = () => {
     if (!currentSong || !currentExercise) return;
     setRecordingStopSignal((previous) => previous + 1);
-    onSessionChange((previous) =>
-      recordExerciseCompletion(
-        previous,
-        currentSong.songId,
-        currentExercise.topicId,
-      ),
-    );
+    const nextSession = recordExerciseCompletion(session, currentSong.songId, currentExercise.topicId);
+    const nextExercise = nextSession.songs.find((song) => song.songId === currentSong.songId)?.exercises.find((exercise) => exercise.topicId === currentExercise.topicId);
+    const topicGoalReached = Boolean(nextExercise && (currentExercise.repeatAllowed
+      ? nextExercise.completionCount > 0 && nextExercise.completionCount % currentExercise.targetCount === 0
+      : nextExercise.completionCount >= currentExercise.targetCount));
+    const songGoalReached = !currentSong.allGoalsBonusAwarded && Boolean(nextSession.songs.find((song) => song.songId === currentSong.songId)?.allGoalsBonusAwarded);
+    const dailyGoalReached = !session.dailyBonusAwarded && nextSession.dailyBonusAwarded;
+    setMessageSituation(dailyGoalReached ? "daily-complete" : songGoalReached ? "song-complete" : topicGoalReached ? "topic-goal" : "done");
+    onSessionChange(() => nextSession);
     setTimerResetToken((previous) => previous + 1);
   };
 
@@ -161,7 +165,7 @@ export default function LessonMode({
       <Stack spacing={2}>
         <MoniSupport
           expression="normal"
-          message="きょうは何のお題にチャレンジする？"
+          message={getMoniMessage("start")}
         />
         <Box>
           <Typography variant="h5" fontWeight={800}>
@@ -286,10 +290,7 @@ export default function LessonMode({
       </Button>
       <MoniSupport
         expression={getMoniExpression(isGoalAchieved)}
-        message={getMoniMessage(
-          isGoalAchieved,
-          currentExercise.completionCount,
-        )}
+        message={getMoniMessage(messageSituation, currentSong.songId, currentExercise.topicId)}
       />
       <Card
         sx={{
