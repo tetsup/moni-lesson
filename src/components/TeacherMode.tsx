@@ -16,7 +16,7 @@ import { DEFAULT_ALL_GOALS_BONUS_POINTS, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_GOA
 
 type SortableRowProps = {
  id: string;
- children: (handle: { attributes: Record<string, unknown>; listeners: Record<string, unknown> | undefined }) => ReactNode;
+ children: (handle: { attributes: any; listeners: any }) => ReactNode;
 };
 function SortableRow({ id, children }: SortableRowProps) {
  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
