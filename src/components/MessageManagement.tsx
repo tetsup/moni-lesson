@@ -16,7 +16,7 @@ type Props = { masterDatabase: MasterDatabase; lessonDatabase: LessonDatabase };
 
 export default function MessageManagement({ masterDatabase, lessonDatabase }: Props) {
   const [database, setDatabase] = useState<MessageDatabase>(() => loadMessageDatabase(window.localStorage));
-  const [situation, setSituation] = useState<MessageSituation>('start');
+  const [situation, setSituation] = useState<MessageSituation>('selection');
   const [scope, setScope] = useState<MessageScope>('situation');
   const [songId, setSongId] = useState('');
   const [topicId, setTopicId] = useState('');
@@ -84,7 +84,7 @@ export default function MessageManagement({ masterDatabase, lessonDatabase }: Pr
     <Typography color="text.secondary">状況を選んで、もにちゃんのセリフを設定しよう。</Typography>
     <Stack spacing={1}>
       {MESSAGE_SITUATIONS.map(item => <Button key={item.id} fullWidth variant={situation === item.id ? 'contained' : 'outlined'} onClick={() => chooseSituation(item.id)} sx={{ justifyContent: 'space-between', py: 1.2, borderRadius: 2 }}>
-        <Box sx={{ textAlign: 'left' }}><Typography fontWeight={800}>{item.id === 'start' ? 'レッスン開始' : item.id === 'done' ? 'できた！' : item.id === 'topic-goal' ? 'お題の目標達成' : item.id === 'song-complete' ? '曲の目標達成' : '今日のレッスン達成'}</Typography><Typography variant="caption" sx={{ opacity: .8 }}>{item.defaultText}</Typography></Box>
+        <Box sx={{ textAlign: 'left' }}><Typography fontWeight={800}>{item.id === 'selection' ? 'お題選択画面' : item.id === 'start' ? 'レッスン開始' : item.id === 'done' ? 'できた！' : item.id === 'topic-goal' ? 'お題の目標達成' : item.id === 'song-complete' ? '曲の目標達成' : '今日のレッスン達成'}</Typography><Typography variant="caption" sx={{ opacity: .8 }}>{item.defaultText}</Typography></Box>
         <Typography variant="caption">{listMessageAssignments(database, item.id, 'situation').length}件</Typography>
       </Button>)}
     </Stack>
