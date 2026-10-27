@@ -33,6 +33,7 @@ export type MessageDatabase = {
   version: 1;
   messages: MasterMessage[];
   assignments: MessageAssignment[];
+  initialized: boolean;
 };
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
@@ -42,11 +43,12 @@ const createId = (): string => {
   return `message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 };
 
-export const emptyMessageDatabase = (): MessageDatabase => ({ version: 1, messages: [], assignments: [] });
+export const emptyMessageDatabase = (): MessageDatabase => ({ version: 1, messages: [], assignments: [], initialized: false });
 
 /** Creates the five protected situation defaults; safe to call repeatedly for migration/seeding. */
 export const seedDefaultMessages = (database: MessageDatabase): MessageDatabase => {
-  let next = database;
+  if (database.initialized) return database;
+  let next = { ...database, initialized: true };
   for (const situation of MESSAGE_SITUATIONS) {
     const existing = next.assignments.some((assignment) =>
       !assignment.deleted && assignment.scope === 'situation' && assignment.situation === situation.id,
@@ -79,6 +81,7 @@ const isDatabase = (value: unknown): value is MessageDatabase => {
     Array.isArray(database.messages) && database.messages.every((message) =>
       message && typeof message.id === 'string' && typeof message.text === 'string' &&
       typeof message.order === 'number' && typeof message.deleted === 'boolean') &&
+    typeof database.initialized === 'boolean' &&
     Array.isArray(database.assignments) && database.assignments.every((assignment) =>
       assignment && typeof assignment.id === 'string' && typeof assignment.messageId === 'string' &&
       isSituation(assignment.situation) &&
@@ -173,16 +176,14 @@ export const updateMessageAssignment = (
   return {
     ...database,
     assignments: database.assignments.map((assignment) =>
-      assignment.id === assignmentId && !assignment.isDefault
-        ? { ...assignment, messageId }
-        : assignment),
+      assignment.id === assignmentId ? { ...assignment, messageId, isDefault: false } : assignment),
   };
 };
 
 /** Refuses to remove the final assignment for a situation and protects seeded defaults. */
 export const removeMessageAssignment = (database: MessageDatabase, assignmentId: string): MessageDatabase => {
   const target = database.assignments.find((assignment) => assignment.id === assignmentId);
-  if (!target || target.isDefault) return database;
+  if (!target) return database;
   if (target.scope === 'situation') {
     const count = database.assignments.filter((assignment) =>
       assignment.scope === 'situation' && assignment.situation === target.situation &&
