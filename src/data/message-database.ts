@@ -48,7 +48,29 @@ export const emptyMessageDatabase = (): MessageDatabase => ({ version: 1, messag
 
 /** Creates one default assignment per situation on first initialization. */
 export const seedDefaultMessages = (database: MessageDatabase): MessageDatabase => {
-  if (database.initialized) return database;
+  // Add the newly separated selection-screen default to existing initialized databases.
+  if (database.initialized) {
+    const hasSelectionAssignment = database.assignments.some((assignment) =>
+      assignment.scope === 'situation' && assignment.situation === 'selection',
+    );
+    if (hasSelectionAssignment) return database;
+    const situation = MESSAGE_SITUATIONS.find((item) => item.id === 'selection');
+    if (!situation) return database;
+    const messageId = createId();
+    return {
+      ...database,
+      messages: [...database.messages, {
+        id: messageId,
+        text: situation.defaultText,
+        order: Math.max(-1, ...database.messages.map((message) => message.order)) + 1,
+        deleted: false,
+      }],
+      assignments: [...database.assignments, {
+        id: createId(), messageId, situation: 'selection', scope: 'situation', targetId: null,
+        order: 0, isDefault: true,
+      }],
+    };
+  }
   let next = { ...database, initialized: true };
   for (const situation of MESSAGE_SITUATIONS) {
     const existing = next.assignments.some((assignment) =>
