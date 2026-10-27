@@ -3,7 +3,7 @@ import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, D
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/Edit';
-import { listMasterSongs, listMasterTopics, type MasterDatabase } from '../data/master-database';
+import { listMasterSongs, type MasterDatabase } from '../data/master-database';
 import { listSongs, type LessonDatabase } from '../data/lesson-database';
 import {
   MESSAGE_SITUATIONS, addMasterMessage, assignMessage, listMasterMessages,
@@ -13,7 +13,6 @@ import {
 } from '../data/message-database';
 
 type Props = { masterDatabase: MasterDatabase; lessonDatabase: LessonDatabase };
-const labels: Record<MessageScope, string> = { situation: '共通', song: '曲ごと', topic: 'お題ごと' };
 
 export default function MessageManagement({ masterDatabase, lessonDatabase }: Props) {
   const [database, setDatabase] = useState<MessageDatabase>(() => loadMessageDatabase(window.localStorage));
@@ -27,7 +26,6 @@ export default function MessageManagement({ masterDatabase, lessonDatabase }: Pr
   const [editingId, setEditingId] = useState('');
   const [error, setError] = useState('');
   const songs = useMemo(() => listMasterSongs(masterDatabase), [masterDatabase]);
-  const topics = useMemo(() => listMasterTopics(masterDatabase), [masterDatabase]);
   const lessonSongs = useMemo(() => listSongs(lessonDatabase), [lessonDatabase]);
   const selectedSongTopics = lessonSongs.find(item => item.id === songId)?.exercises ?? [];
   const scoped = situation === 'start' || situation === 'done';
