@@ -1,5 +1,5 @@
 import { useMemo, useState, type Dispatch, type SetStateAction, type ReactNode } from 'react';
-import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -34,7 +34,7 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
  const [draft,setDraft]=useState({target:'10',repeat:false,interval:'0',points:String(DEFAULT_POINTS_PER_COMPLETION),bonus:String(DEFAULT_GOAL_BONUS_POINTS)});
  const songs=useMemo(()=>listSongs(database),[database]), masterSongs=listMasterSongs(masterDatabase), masterTopics=listMasterTopics(masterDatabase);
  const sensors = useSensors(
-  useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
   useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
  );
  const reorderSong = ({ active, over }: DragEndEvent) => {
