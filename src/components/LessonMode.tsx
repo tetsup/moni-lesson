@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -122,6 +122,20 @@ export default function LessonMode({
     Boolean(nextExercise || nextSongFirstExercise) ||
     primaryAction.action === "finish";
 
+  const lessonMessageSituation: MessageSituation = session.dailyBonusAwarded
+    ? "daily-complete"
+    : currentSong?.allGoalsBonusAwarded
+      ? "song-complete"
+      : isGoalAchieved
+        ? "topic-goal"
+        : (currentExercise?.completionCount ?? 0) > 0
+          ? "done"
+          : "start";
+  const selectionMessage = useMemo(() => getMoniMessage("selection"), []);
+  const lessonMessage = useMemo(
+    () => getMoniMessage(lessonMessageSituation, currentSong?.songId, currentExercise?.topicId),
+    [lessonMessageSituation, currentSong?.songId, currentExercise?.topicId, currentExercise?.completionCount, currentSong?.allGoalsBonusAwarded, session.dailyBonusAwarded],
+  );
   const openTopic = (songId: string, topicId: string) => {
     setSelectedSongId(songId);
     setCurrentTopicId(topicId);
@@ -163,7 +177,7 @@ export default function LessonMode({
       <Stack spacing={2}>
         <MoniSupport
           expression="normal"
-          message={getMoniMessage("selection")}
+          message={selectionMessage}
         />
         <Box>
           <Typography variant="h5" fontWeight={800}>
@@ -288,14 +302,7 @@ export default function LessonMode({
       </Button>
       <MoniSupport
         expression={getMoniExpression(isGoalAchieved)}
-        message={getMoniMessage(
-          session.dailyBonusAwarded ? "daily-complete"
-            : currentSong.allGoalsBonusAwarded ? "song-complete"
-              : isGoalAchieved ? "topic-goal"
-                : currentExercise.completionCount > 0 ? "done" : "start",
-          currentSong.songId,
-          currentExercise.topicId,
-        )}
+        message={lessonMessage}
       />
       <Card
         sx={{
