@@ -67,7 +67,6 @@ export default function LessonMode({
   onOpenRecordings,
 }: Props) {
   const [mode, setMode] = useState<"selection" | "lesson">("selection");
-  const [messageSituation, setMessageSituation] = useState<MessageSituation>("start");
   const [selectedSongId, setSelectedSongId] = useState(
     session.songs[0]?.songId ?? "",
   );
@@ -126,7 +125,6 @@ export default function LessonMode({
   const openTopic = (songId: string, topicId: string) => {
     setSelectedSongId(songId);
     setCurrentTopicId(topicId);
-    setMessageSituation("done");
     setMode("lesson");
   };
 
@@ -140,7 +138,6 @@ export default function LessonMode({
       : nextExercise.completionCount >= currentExercise.targetCount));
     const songGoalReached = !currentSong.allGoalsBonusAwarded && Boolean(nextSession.songs.find((song) => song.songId === currentSong.songId)?.allGoalsBonusAwarded);
     const dailyGoalReached = !session.dailyBonusAwarded && nextSession.dailyBonusAwarded;
-    setMessageSituation(dailyGoalReached ? "daily-complete" : songGoalReached ? "song-complete" : topicGoalReached ? "topic-goal" : "done");
     onSessionChange(() => nextSession);
     setTimerResetToken((previous) => previous + 1);
   };
@@ -291,7 +288,14 @@ export default function LessonMode({
       </Button>
       <MoniSupport
         expression={getMoniExpression(isGoalAchieved)}
-        message={getMoniMessage(messageSituation, currentSong.songId, currentExercise.topicId)}
+        message={getMoniMessage(
+          session.dailyBonusAwarded ? "daily-complete"
+            : currentSong.allGoalsBonusAwarded ? "song-complete"
+              : isGoalAchieved ? "topic-goal"
+                : currentExercise.completionCount > 0 ? "done" : "start",
+          currentSong.songId,
+          currentExercise.topicId,
+        )}
       />
       <Card
         sx={{
