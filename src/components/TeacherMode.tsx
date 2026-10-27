@@ -82,7 +82,7 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
      </DndContext>
      <Button variant="outlined" startIcon={<AddIcon/>} onClick={()=>setTopicSong(s.id)}>お題を追加する</Button><Button color="error" onClick={()=>setRemoveSong(s.id)}>この曲を今日のリストから削除</Button>
      <TextField size="small" type="number" label="この曲のお題を全部達成したボーナス" value={s.allGoalsBonusPoints??DEFAULT_ALL_GOALS_BONUS_POINTS} onChange={e=>{const n=Number(e.target.value);if(e.target.value!==''&&Number.isSafeInteger(n)&&n>=0)setDatabase(p=>setSongBonusPoints(p,s.id,n));}}/>
-    </Stack></AccordionDetails></Accordion>)}
+    </Stack></AccordionDetails></Accordion>}</SortableRow>)}
    </SortableContext>
    </DndContext>
    <Button fullWidth variant="outlined" size="large" startIcon={<AddIcon/>} onClick={()=>setSongOpen(true)}>曲を追加する</Button>
