@@ -35,7 +35,7 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
  const songs=useMemo(()=>listSongs(database),[database]), masterSongs=listMasterSongs(masterDatabase), masterTopics=listMasterTopics(masterDatabase);
  const sensors = useSensors(
   useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
-  useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  useSensor(TouchSensor, { activationConstraint: { tolerance: 8 } }),
  );
  const reorderSong = ({ active, over }: DragEndEvent) => {
   if (!over || active.id === over.id) return;
