@@ -163,7 +163,7 @@ export default function LessonMode({
       <Stack spacing={2}>
         <MoniSupport
           expression="normal"
-          message={getMoniMessage("start")}
+          message={getMoniMessage("selection")}
         />
         <Box>
           <Typography variant="h5" fontWeight={800}>
