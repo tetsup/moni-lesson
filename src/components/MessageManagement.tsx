@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import { listMasterSongs, listMasterTopics, type MasterDatabase } from '../data/master-database';
+import { listSongs, type LessonDatabase } from '../data/lesson-database';
 import {
   MESSAGE_SITUATIONS, addMasterMessage, assignMessage, listMasterMessages,
   listMessageAssignments, loadMessageDatabase, removeMessageAssignment,
@@ -11,10 +12,10 @@ import {
   type MessageDatabase, type MessageScope, type MessageSituation,
 } from '../data/message-database';
 
-type Props = { masterDatabase: MasterDatabase };
+type Props = { masterDatabase: MasterDatabase; lessonDatabase: LessonDatabase };
 const labels: Record<MessageScope, string> = { situation: '共通', song: '曲ごと', topic: 'お題ごと' };
 
-export default function MessageManagement({ masterDatabase }: Props) {
+export default function MessageManagement({ masterDatabase, lessonDatabase }: Props) {
   const [database, setDatabase] = useState<MessageDatabase>(() => loadMessageDatabase(window.localStorage));
   const [situation, setSituation] = useState<MessageSituation>('start');
   const [scope, setScope] = useState<MessageScope>('situation');
@@ -27,6 +28,8 @@ export default function MessageManagement({ masterDatabase }: Props) {
   const [error, setError] = useState('');
   const songs = useMemo(() => listMasterSongs(masterDatabase), [masterDatabase]);
   const topics = useMemo(() => listMasterTopics(masterDatabase), [masterDatabase]);
+  const lessonSongs = useMemo(() => listSongs(lessonDatabase), [lessonDatabase]);
+  const selectedSongTopics = lessonSongs.find(item => item.id === songId)?.exercises ?? [];
   const scoped = situation === 'start' || situation === 'done';
   const targetId = scope === 'song' ? songId : scope === 'topic' ? topicId : null;
   const validTarget = scope === 'situation' || Boolean(targetId);
@@ -43,7 +46,7 @@ export default function MessageManagement({ masterDatabase }: Props) {
     setTopicId('');
     setQuery('');
   };
-  const beginAdd = () => { setDraft(''); setError(''); setDialog('add'); };
+  const beginAdd = () => { if (!validTarget) { setError('先に曲とお題を選択してください。'); return; } setDraft(''); setError(''); setDialog('add'); };
   const saveNew = () => {
     if (!draft.trim()) { setError('文章を入力してください。'); return; }
     let next = addMasterMessage(database, draft);
@@ -103,9 +106,9 @@ export default function MessageManagement({ masterDatabase }: Props) {
             <MenuItem value="">選択してください</MenuItem>{songs.map(item => <MenuItem key={item.id} value={item.id}>{item.title}</MenuItem>)}
           </TextField>
           <TextField select fullWidth size="small" label="お題を選択" value={topicId} onChange={e => setTopicId(e.target.value)} disabled={!songId}>
-            <MenuItem value="">選択してください</MenuItem>{topics.map(item => <MenuItem key={item.id} value={item.id}>{item.title}</MenuItem>)}
+            <MenuItem value="">選択してください</MenuItem>{selectedSongTopics.map(item => <MenuItem key={item.topicId} value={item.topicId}>{item.topicTitle}</MenuItem>)}
           </TextField>
-          <Typography variant="caption" color="text.secondary">お題の選択肢はマスターから表示しています。</Typography>
+          <Typography variant="caption" color="text.secondary">選択した曲に登録されているお題を表示しています。</Typography>
         </Stack>}
         {!validTarget ? <Typography color="text.secondary">曲とお題を選ぶと設定を表示します。</Typography> : assignments.length === 0 ? <Typography color="text.secondary" sx={{ my: 2 }}>この場所に専用メッセージはありません。共通メッセージが使われます。</Typography> : <Stack spacing={1} sx={{ mt: 1 }}>
           {assignments.map(item => <Box key={item.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, border: '1px solid #eee4f2', borderRadius: 2, p: 1.5 }}>
