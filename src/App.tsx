@@ -5,6 +5,7 @@ import AudioMaintenance from './components/AudioMaintenance';
 import RecordingLibrary from './components/RecordingLibrary';
 import ShopPage, { type ShopItem } from './components/ShopPage';
 import ItemsPage from './components/ItemsPage';
+import MyRoomPage from './components/MyRoomPage';
 import { resolveHashRoute } from './data/lesson-routing';
 import { Box, Button, Card, CardContent, Checkbox, Chip, Container, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
@@ -13,6 +14,7 @@ import MusicNoteRoundedIcon from '@mui/icons-material/MusicNoteRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded';
 import CardGiftcardRoundedIcon from '@mui/icons-material/CardGiftcardRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import { canStartLesson, makeLessonSetup, DEFAULT_DAILY_BONUS_POINTS, DEFAULT_POINTS_PER_COMPLETION, DEFAULT_GOAL_BONUS_POINTS, DEFAULT_ALL_GOALS_BONUS_POINTS } from './data/lesson-setup';
 import {
   addSongFromMaster,
@@ -374,6 +376,8 @@ export default function App() {
           <ShopPage totalPoints={session.totalPoints} onPurchase={purchaseShopItem} />
         ) : route.page === 'items' ? (
           <ItemsPage purchasedItems={purchasedItems} onUseTicket={useTicket} />
+        ) : route.page === 'room' ? (
+          <MyRoomPage />
         ) : (
           <LessonMode session={session} onSessionChange={setSession} onNavigate={navigateToCompletion} onOpenRecordings={openRecordings} />
         )}
@@ -402,6 +406,7 @@ export default function App() {
                 { label: '録音', icon: <MicRoundedIcon />, active: route.page === 'recordings', onClick: openRecordings },
                 { label: 'ショップ', icon: <StorefrontRoundedIcon />, active: route.page === 'shop', onClick: openShop },
                 { label: 'アイテム', icon: <CardGiftcardRoundedIcon />, active: route.page === 'items', onClick: openItems },
+                { label: 'マイルーム', icon: <HomeRoundedIcon />, active: route.page === 'room', onClick: () => { setRoute({ page: 'room' }); window.location.hash = '/room'; } },
               ].map((item) => (
                 <Box
                   key={item.label}
