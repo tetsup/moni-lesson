@@ -10,11 +10,13 @@ export type Vector3 = {
 };
 
 /**
- * Image-space point that corresponds to the furniture placement anchor.
- * Coordinates are pixels measured from the image's top-left corner.
+ * Furniture image-space data. The anchor is the pixel that aligns with the
+ * placement's projected room position; width and height are source pixel size.
  */
 export type FurnitureImage = {
   src: string;
+  width: number;
+  height: number;
   anchor: {
     x: number;
     y: number;
