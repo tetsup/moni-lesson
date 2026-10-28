@@ -3,9 +3,9 @@ import { getFurnitureDrawOrder } from './room-draw-order';
 import type { FurnitureDefinition, FurniturePlacement } from './room-types';
 
 const definitions: FurnitureDefinition[] = [
-  { id: 'chair', name: 'Chair', type: 'solid', image: { src: 'chair.png', anchor: { x: 32, y: 64 } }, size: { x: 2, y: 1, z: 2 } },
-  { id: 'rug', name: 'Rug', type: 'floor-covering', image: { src: 'rug.png', anchor: { x: 48, y: 48 } }, size: { x: 3, y: 2, z: 0 } },
-  { id: 'picture', name: 'Picture', type: 'wall-mounted', image: { src: 'picture.png', anchor: { x: 32, y: 64 } }, size: { x: 2, y: 0, z: 2 } },
+  { id: 'chair', name: 'Chair', type: 'solid', image: { src: 'chair.png', anchor: { x: 32, y: 64 }, width: 64, height: 128 }, size: { x: 2, y: 1, z: 2 } },
+  { id: 'rug', name: 'Rug', type: 'floor-covering', image: { src: 'rug.png', anchor: { x: 48, y: 48 }, width: 96, height: 96 }, size: { x: 3, y: 2, z: 0 } },
+  { id: 'picture', name: 'Picture', type: 'wall-mounted', image: { src: 'picture.png', anchor: { x: 32, y: 64 }, width: 64, height: 128 }, size: { x: 2, y: 0, z: 2 } },
 ];
 
 const placement = (
