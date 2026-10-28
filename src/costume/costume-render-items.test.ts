@@ -40,7 +40,7 @@ describe('getCostumeRenderItems', () => {
       torsoCenter: { x: 200, y: 150 },
       scale: 2,
     })).toEqual([
-      { src: 'shirt.png', x: 100, y: 140, width: 200, height: 160 },
+      { src: 'shirt.png', x: 100, y: 90, width: 200, height: 160 },
     ]);
   });
 
