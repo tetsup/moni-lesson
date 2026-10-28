@@ -11,6 +11,8 @@ const skin: RoomSkinDefinition = {
   layoutId: 'layout-a',
 };
 
+const skinSize = { width: 1024, height: 768 };
+
 const definitions: FurnitureDefinition[] = [
   {
     id: 'chair',
@@ -18,6 +20,8 @@ const definitions: FurnitureDefinition[] = [
     type: 'solid',
     image: {
       src: 'https://res.cloudinary.com/demo/image/upload/chair.png',
+      width: 120,
+      height: 180,
       anchor: { x: 12, y: 30 },
     },
     size: { x: 1, y: 1, z: 1 },
@@ -28,6 +32,8 @@ const definitions: FurnitureDefinition[] = [
     type: 'floor-covering',
     image: {
       src: 'https://res.cloudinary.com/demo/image/upload/rug.png',
+      width: 240,
+      height: 100,
       anchor: { x: 20, y: 10 },
     },
     size: { x: 2, y: 2, z: 0 },
@@ -60,6 +66,7 @@ describe('RoomRenderer', () => {
     const html = renderToStaticMarkup(
       <RoomRenderer
         skin={skin}
+        skinSize={skinSize}
         furniture={[]}
         definitions={definitions}
         projection={projection}
@@ -68,8 +75,8 @@ describe('RoomRenderer', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="room-background"');
-    expect(html).toContain('left:60px;top:40px');
+    expect(html).toContain('data-testid="image-layer-renderer"');
+    expect(html).toContain('left:60px;top:40px;width:1024px;height:768px');
     expect(html).toContain('src="https://res.cloudinary.com/demo/image/upload/room.png"');
   });
 
@@ -77,6 +84,7 @@ describe('RoomRenderer', () => {
     const html = renderToStaticMarkup(
       <RoomRenderer
         skin={skin}
+        skinSize={skinSize}
         furniture={[
           placement('chair-front', 'chair', 2, 3),
           placement('rug', 'rug', 0, 0),
@@ -89,9 +97,9 @@ describe('RoomRenderer', () => {
       />,
     );
 
-    const rugIndex = html.indexOf('data-placement-id="rug"');
-    const chairBackIndex = html.indexOf('data-placement-id="chair-back"');
-    const chairFrontIndex = html.indexOf('data-placement-id="chair-front"');
+    const rugIndex = html.indexOf('data-furniture-id="rug"');
+    const chairBackIndex = html.indexOf('data-furniture-id="chair"');
+    const chairFrontIndex = html.lastIndexOf('data-furniture-id="chair"');
     expect(rugIndex).toBeGreaterThan(-1);
     expect(chairBackIndex).toBeGreaterThan(rugIndex);
     expect(chairFrontIndex).toBeGreaterThan(chairBackIndex);
@@ -101,6 +109,7 @@ describe('RoomRenderer', () => {
     const html = renderToStaticMarkup(
       <RoomRenderer
         skin={skin}
+        skinSize={skinSize}
         furniture={[placement('missing', 'not-in-catalog', 0, 0)]}
         definitions={definitions}
         projection={projection}
@@ -109,6 +118,7 @@ describe('RoomRenderer', () => {
       />,
     );
 
-    expect(html).not.toContain('data-placement-id="missing"');
+    expect(html).not.toContain('chair.png');
+    expect(html).not.toContain('not-in-catalog');
   });
 });
