@@ -97,9 +97,9 @@ describe('RoomRenderer', () => {
       />,
     );
 
-    const rugIndex = html.indexOf('data-furniture-id="rug"');
-    const chairBackIndex = html.indexOf('data-furniture-id="chair"');
-    const chairFrontIndex = html.lastIndexOf('data-furniture-id="chair"');
+    const rugIndex = html.indexOf('src="https://res.cloudinary.com/demo/image/upload/rug.png"');
+    const chairBackIndex = html.indexOf('src="https://res.cloudinary.com/demo/image/upload/chair.png"');
+    const chairFrontIndex = html.lastIndexOf('src="https://res.cloudinary.com/demo/image/upload/chair.png"');
     expect(rugIndex).toBeGreaterThan(-1);
     expect(chairBackIndex).toBeGreaterThan(rugIndex);
     expect(chairFrontIndex).toBeGreaterThan(chairBackIndex);
