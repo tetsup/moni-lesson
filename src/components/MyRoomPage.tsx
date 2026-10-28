@@ -226,6 +226,7 @@ export default function MyRoomPage() {
               {imageSize && (
                 <RoomRenderer
                 skin={SAMPLE_ROOM_SKIN}
+                skinSize={imageSize}
                 furniture={[]}
                 definitions={[]}
                 projection={{
