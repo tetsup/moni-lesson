@@ -211,8 +211,6 @@ export default function CharacterPositionEditor() {
         <ImageViewport
           contentWidth={CANVAS_WIDTH}
           contentHeight={CANVAS_HEIGHT}
-          height="auto"
-          minHeight={240}
           backgroundColor="#f4eef4"
           ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
           onPanRequest={(_nextPan, applyDefault) => { if (!selectedId) applyDefault(); }}
