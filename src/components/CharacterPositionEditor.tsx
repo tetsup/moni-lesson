@@ -18,6 +18,7 @@ import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateR
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import { ImageLayerRenderer, type ImageRenderItem } from './ImageLayerRenderer';
+import ImageViewport from './ImageViewport';
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 768;
@@ -58,20 +59,9 @@ export default function CharacterPositionEditor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [canvasScale, setCanvasScale] = useState(1);
   const [bodySize, setBodySize] = useState({ width: 0, height: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
-
-  useEffect(() => {
-    const element = canvasRef.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry) setCanvasScale(entry.contentRect.width / CANVAS_WIDTH);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+  const dragRef = useRef<{ layerId: string; pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   useEffect(() => {
     if (!bodyUrl || !isHttpUrl(bodyUrl)) { setBodySize({ width: 0, height: 0 }); return; }
@@ -130,15 +120,13 @@ export default function CharacterPositionEditor() {
     setCopied(false);
   };
 
-  const beginDrag = (event: PointerEvent<HTMLDivElement>, layer: CharacterLayer) => {
+  const beginDrag = (event: PointerEvent<HTMLDivElement>, layer: CharacterLayer, displayScale: number) => {
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedId(layer.id);
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const displayScale = rect.width / CANVAS_WIDTH;
     dragRef.current = {
+      layerId: layer.id,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
@@ -154,7 +142,7 @@ export default function CharacterPositionEditor() {
     const displayScale = Number(event.currentTarget.dataset.canvasScale) || 1;
     const dx = (event.clientX - drag.startX) / displayScale;
     const dy = (event.clientY - drag.startY) / displayScale;
-    setLayers((current) => current.map((layer) => layer.id === selectedId
+    setLayers((current) => current.map((layer) => layer.id === drag.layerId
       ? { ...layer, x: Math.round(drag.originX + dx), y: Math.round(drag.originY + dy) }
       : layer));
     setCopied(false);
@@ -220,79 +208,69 @@ export default function CharacterPositionEditor() {
 
       <Box>
         <Typography fontWeight={800} sx={{ mb: 1 }}>配置プレビュー（512 × 768）</Typography>
-        <Box
-          ref={canvasRef}
-          sx={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: 512,
-            mx: 'auto',
-            aspectRatio: '2 / 3',
-            overflow: 'hidden',
-            border: '1px solid #d9cbdc',
-            borderRadius: 2,
-            bgcolor: '#f4eef4',
-            backgroundImage: 'linear-gradient(45deg, #e8e0e9 25%, transparent 25%), linear-gradient(-45deg, #e8e0e9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e0e9 75%), linear-gradient(-45deg, transparent 75%, #e8e0e9 75%)',
-            backgroundSize: '20px 20px',
-            backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
-          }}
+        <ImageViewport
+          contentWidth={CANVAS_WIDTH}
+          contentHeight={CANVAS_HEIGHT}
+          height="auto"
+          minHeight={240}
+          backgroundColor="#f4eef4"
+          ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
+          onPanRequest={(_nextPan, applyDefault) => { if (!selectedId) applyDefault(); }}
         >
-          <Box sx={{
-            position: 'absolute',
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
-            left: 0,
-            top: 0,
-            transform: `scale(${canvasScale})`,
-            transformOrigin: 'top left',
-          }}>
-            {(() => {
-              const items: ImageRenderItem[] = [];
-              if (bodySize.width > 0 && bodySize.height > 0) items.push({
-                src: bodyUrl,
-                x: CANVAS_WIDTH / 2 - bodySize.width / 2,
-                y: CANVAS_HEIGHT / 2 - bodySize.height / 2,
-                width: bodySize.width,
-                height: bodySize.height,
+          {(viewport) => {
+            const items: ImageRenderItem[] = [];
+            if (bodySize.width > 0 && bodySize.height > 0) items.push({
+              src: bodyUrl, x: CANVAS_WIDTH / 2 - bodySize.width / 2,
+              y: CANVAS_HEIGHT / 2 - bodySize.height / 2,
+              width: bodySize.width, height: bodySize.height,
+            });
+            layers.forEach((layer) => {
+              if (layer.width <= 0 || layer.height <= 0) return;
+              const width = layer.width * layer.scale;
+              const height = layer.height * layer.scale;
+              items.push({
+                src: layer.url, x: CANVAS_WIDTH / 2 + layer.x - width / 2,
+                y: CANVAS_HEIGHT / 2 + layer.y - height / 2, width, height,
               });
-              layers.forEach((layer) => {
-                if (layer.width <= 0 || layer.height <= 0) return;
-                const width = layer.width * layer.scale;
-                const height = layer.height * layer.scale;
-                items.push({
-                  src: layer.url,
-                  x: CANVAS_WIDTH / 2 + layer.x - width / 2,
-                  y: CANVAS_HEIGHT / 2 + layer.y - height / 2,
-                  width,
-                  height,
-                });
-              });
-              return <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />;
-            })()}
-            <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
-            {layers.map((layer, index) => (
+            });
+            return (
               <Box
-                key={layer.id}
-                onPointerDown={(event) => beginDrag(event, layer)}
-                onPointerMove={moveDrag}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
+                ref={canvasRef}
                 sx={{
-                  position: 'absolute',
-                  left: `calc(50% + ${layer.x}px)`,
-                  top: `calc(50% + ${layer.y}px)`,
-                  width: Math.max(24, layer.width * layer.scale),
-                  height: Math.max(24, layer.height * layer.scale),
-                  transform: 'translate(-50%, -50%)',
-                  cursor: 'grab',
-                  touchAction: 'none',
-                  outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
-                  zIndex: index + 6,
+                  position: 'absolute', width: CANVAS_WIDTH, height: CANVAS_HEIGHT,
+                  left: viewport.centeredOffset.x + viewport.pan.x,
+                  top: viewport.centeredOffset.y + viewport.pan.y,
+                  transform: `scale(${viewport.scale})`, transformOrigin: 'top left',
+                  backgroundImage: 'linear-gradient(45deg, #e8e0e9 25%, transparent 25%), linear-gradient(-45deg, #e8e0e9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e0e9 75%), linear-gradient(-45deg, transparent 75%, #e8e0e9 75%)',
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
                 }}
-              />
-            ))}
-          </Box>
-        </Box>
+              >
+                <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
+                {layers.map((layer, index) => (
+                  <Box
+                    key={layer.id}
+                    onPointerDown={(event) => beginDrag(event, layer, viewport.scale)}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    sx={{
+                      position: 'absolute', left: `calc(50% + ${layer.x}px)`,
+                      top: `calc(50% + ${layer.y}px)`,
+                      width: Math.max(24, layer.width * layer.scale),
+                      height: Math.max(24, layer.height * layer.scale),
+                      transform: 'translate(-50%, -50%)', cursor: 'grab',
+                      touchAction: 'none',
+                      outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
+                      zIndex: index + 6,
+                    }}
+                  />
+                ))}
+              </Box>
+            );
+          }}
+        </ImageViewport>
         <Typography variant="caption" color="text.secondary">
           市松模様は透明部分の確認用です。画像はURLから直接読み込みます。
         </Typography>
