@@ -36,6 +36,9 @@ export type ImageViewportProps = {
   className?: string;
   ariaLabel?: string;
   backgroundColor?: string;
+  backgroundImage?: CSSProperties['backgroundImage'];
+  backgroundSize?: CSSProperties['backgroundSize'];
+  backgroundPosition?: CSSProperties['backgroundPosition'];
   showControls?: boolean;
   onBackgroundPointerDown?: () => void;
   children: (transform: ImageViewportTransform) => ReactNode;
@@ -63,6 +66,9 @@ export default function ImageViewport({
   className,
   ariaLabel = 'ホイールまたはピンチで拡大縮小、ドラッグで移動できます',
   backgroundColor = '#faf8fb',
+  backgroundImage,
+  backgroundSize,
+  backgroundPosition,
   showControls = true,
   onBackgroundPointerDown,
   children,
@@ -218,6 +224,9 @@ export default function ImageViewport({
         cursor: pointersRef.current.length ? 'grabbing' : 'grab',
         borderRadius: 4,
         backgroundColor,
+        backgroundImage,
+        backgroundSize,
+        backgroundPosition,
         userSelect: 'none',
       }}
     >
