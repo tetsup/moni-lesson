@@ -216,6 +216,7 @@ export default function CharacterPositionEditor() {
           contentHeight={CANVAS_HEIGHT}
           backgroundColor="#f4eef4"
           ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
+          onBackgroundPointerDown={() => setSelectedId(null)}
           onPanRequest={(_nextPan, applyDefault) => applyDefault()}
         >
           {(viewport) => {
