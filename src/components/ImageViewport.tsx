@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent, ReactNode, WheelEvent } from 'react';
+import type { CSSProperties, PointerEvent, ReactNode, TouchEvent, WheelEvent } from 'react';
 
 export type ViewportPoint = { x: number; y: number };
 export type ViewportSize = { width: number; height: number };
@@ -36,6 +36,7 @@ export type ImageViewportProps = {
   className?: string;
   ariaLabel?: string;
   backgroundColor?: string;
+  showControls?: boolean;
   children: (transform: ImageViewportTransform) => ReactNode;
   onPanRequest?: (nextPan: ViewportPoint, applyDefault: () => void) => void;
   onZoomRequest?: (nextZoom: number, focus: ViewportPoint, applyDefault: () => void) => void;
@@ -61,6 +62,7 @@ export default function ImageViewport({
   className,
   ariaLabel = 'ホイールまたはピンチで拡大縮小、ドラッグで移動できます',
   backgroundColor = '#faf8fb',
+  showControls = true,
   children,
   onPanRequest,
   onZoomRequest,
@@ -120,6 +122,8 @@ export default function ImageViewport({
     pointersRef.current = [];
     gestureRef.current = null;
   };
+
+  const handleTouch = (event: TouchEvent<HTMLDivElement>) => { event.preventDefault(); };
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -192,6 +196,8 @@ export default function ImageViewport({
       role="application"
       aria-label={ariaLabel}
       onWheel={handleWheel}
+      onTouchStart={handleTouch}
+      onTouchMove={handleTouch}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -203,12 +209,22 @@ export default function ImageViewport({
         overflow: 'hidden',
         position: 'relative',
         touchAction: 'none',
+        overscrollBehavior: 'contain',
+        WebkitUserSelect: 'none',
         cursor: pointersRef.current.length ? 'grabbing' : 'grab',
         borderRadius: 4,
         backgroundColor,
         userSelect: 'none',
       }}
     >
+      {showControls && (
+        <div style={{ position: 'absolute', zIndex: 1000, top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 10, background: 'rgba(255,255,255,.92)', boxShadow: '0 1px 5px rgba(0,0,0,.16)' }}>
+          <button type="button" aria-label="縮小" onClick={() => zoomAt(zoom / zoomStep)} style={{ minWidth: 30, minHeight: 30, border: 0, borderRadius: 6, background: '#f2eaf5', fontSize: 18 }}>−</button>
+          <span aria-live="polite" style={{ minWidth: 44, textAlign: 'center', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>{Math.round(zoom * 100)}%</span>
+          <button type="button" aria-label="拡大" onClick={() => zoomAt(zoom * zoomStep)} style={{ minWidth: 30, minHeight: 30, border: 0, borderRadius: 6, background: '#f2eaf5', fontSize: 18 }}>＋</button>
+          <button type="button" onClick={resetView} style={{ minHeight: 30, border: 0, borderRadius: 6, padding: '0 8px', background: '#f2eaf5', fontSize: 12 }}>全体表示</button>
+        </div>
+      )}
       {children({
         width: size.width,
         height: size.height,
