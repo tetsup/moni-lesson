@@ -246,7 +246,7 @@ export default function CharacterPositionEditor() {
               />
             )}
             <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 1, height: 1, bgcolor: '#d65d8b', zIndex: 5, pointerEvents: 'none' }} />
-            {layers.map((layer) => (
+            {layers.map((layer, index) => (
               <Box
                 key={layer.id}
                 onPointerDown={(event) => beginDrag(event, layer)}
@@ -262,7 +262,7 @@ export default function CharacterPositionEditor() {
                   cursor: 'grab',
                   touchAction: 'none',
                   outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
-                  zIndex: selectedId === layer.id ? 4 : 2,
+                  zIndex: index + 2,
                   '&:active': { cursor: 'grabbing' },
                 }}
               >
