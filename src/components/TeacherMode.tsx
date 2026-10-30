@@ -9,6 +9,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import MessageManagement from './MessageManagement';
+import CharacterPositionEditor from './CharacterPositionEditor';
 import SearchIcon from '@mui/icons-material/Search';
 import { addSongFromMaster, addTopicFromMaster, deleteSong, listSongs, moveExercise, moveSong, removeTopicFromSong, setExerciseMinimumInterval, setExercisePoints, setExerciseRepeatAllowed, setExerciseTargetCount, setSongBonusPoints, setDailyBonusPoints, type LessonDatabase, type ExerciseAssignment } from '../data/lesson-database';
 import { addMasterSong, addMasterTopic, listMasterSongs, listMasterTopics, softDeleteMasterSong, softDeleteMasterTopic, type MasterDatabase, type MasterSong, type MasterTopic } from '../data/master-database';
@@ -27,7 +28,7 @@ function SortableRow({ id, children }: SortableRowProps) {
 
 type Props = { database: LessonDatabase; setDatabase: Dispatch<SetStateAction<LessonDatabase>>; masterDatabase: MasterDatabase; setMasterDatabase: Dispatch<SetStateAction<MasterDatabase>>; onOpenLesson: () => void };
 export default function TeacherMode({database,setDatabase,masterDatabase,setMasterDatabase,onOpenLesson}: Props) {
- const [page,setPage]=useState<'today'|'masters'|'messages'>('today'), [masterTab,setMasterTab]=useState<'songs'|'topics'>('songs');
+ const [page,setPage]=useState<'today'|'masters'|'messages'|'character'>('today'), [masterTab,setMasterTab]=useState<'songs'|'topics'>('songs');
  const [newTitle,setNewTitle]=useState(''), [songOpen,setSongOpen]=useState(false), [topicSong,setTopicSong]=useState<string|null>(null);
  const [songQuery,setSongQuery]=useState(''), [topicQuery,setTopicQuery]=useState(''), [songSelection,setSongSelection]=useState<string[]>([]), [topicSelection,setTopicSelection]=useState<string[]>([]);
  const [expanded,setExpanded]=useState<string|false>(false), [menuEl,setMenuEl]=useState<HTMLElement|null>(null), [menuItem,setMenuItem]=useState<{songId:string;exercise:ExerciseAssignment}|null>(null);
@@ -68,8 +69,9 @@ export default function TeacherMode({database,setDatabase,masterDatabase,setMast
    <Button fullWidth variant={page==='today'?'contained':'outlined'} onClick={()=>setPage('today')}>本日のレッスン作成</Button>
    <Button fullWidth variant={page==='masters'?'contained':'outlined'} onClick={()=>setPage('masters')}>マスター管理</Button>
    <Button fullWidth variant={page==='messages'?'contained':'outlined'} onClick={()=>setPage('messages')}>メッセージ設定</Button>
+   <Button fullWidth variant={page==='character'?'contained':'outlined'} onClick={()=>setPage('character')}>画像位置合わせ</Button>
   </Stack>
-  {page==='messages' ? <MessageManagement masterDatabase={masterDatabase} lessonDatabase={database} /> : page==='masters'?<>
+  {page==='character' ? <CharacterPositionEditor /> : page==='messages' ? <MessageManagement masterDatabase={masterDatabase} lessonDatabase={database} /> : page==='masters'?<>
    <Stack direction="row" spacing={1}><Button fullWidth variant={masterTab==='songs'?'contained':'outlined'} onClick={()=>setMasterTab('songs')}>曲マスター</Button><Button fullWidth variant={masterTab==='topics'?'contained':'outlined'} onClick={()=>setMasterTab('topics')}>お題マスター</Button></Stack>
    <Stack direction="row" spacing={1}><TextField fullWidth size="small" label={masterTab==='songs'?'曲名':'お題名'} value={newTitle} onChange={e=>setNewTitle(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')createMaster();}}/><Button variant="contained" disabled={!newTitle.trim()} onClick={createMaster}>登録</Button></Stack>
    {(masterTab==='songs'?masterSongs:masterTopics).map(item=><Box key={item.id} sx={{display:'flex',alignItems:'center',border:'1px solid #eee4f2',borderRadius:2,p:1.5}}><Typography sx={{flex:1}}>{item.title}</Typography><IconButton onClick={()=>setRemoveMaster({kind:masterTab==='songs'?'song':'topic',item})}><DeleteOutlineIcon/></IconButton></Box>)}
