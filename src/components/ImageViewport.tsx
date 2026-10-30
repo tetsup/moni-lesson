@@ -132,6 +132,7 @@ export default function ImageViewport({
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) return;
+    if (event.target instanceof Element && event.target.closest('[data-viewport-pan-ignore="true"]')) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     const point = { pointerId: event.pointerId, ...getLocalPoint(event.clientX, event.clientY) };
@@ -218,7 +219,7 @@ export default function ImageViewport({
       }}
     >
       {showControls && (
-        <div style={{ position: 'absolute', zIndex: 1000, top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 10, background: 'rgba(255,255,255,.92)', boxShadow: '0 1px 5px rgba(0,0,0,.16)' }}>
+        <div data-viewport-pan-ignore="true" onPointerDown={(event) => event.stopPropagation()} onTouchStart={(event) => event.stopPropagation()} style={{ position: 'absolute', zIndex: 1000, top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 10, background: 'rgba(255,255,255,.92)', boxShadow: '0 1px 5px rgba(0,0,0,.16)' }}>
           <button type="button" aria-label="縮小" onClick={() => zoomAt(zoom / zoomStep)} style={{ minWidth: 30, minHeight: 30, border: 0, borderRadius: 6, background: '#f2eaf5', fontSize: 18 }}>−</button>
           <span aria-live="polite" style={{ minWidth: 44, textAlign: 'center', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>{Math.round(zoom * 100)}%</span>
           <button type="button" aria-label="拡大" onClick={() => zoomAt(zoom * zoomStep)} style={{ minWidth: 30, minHeight: 30, border: 0, borderRadius: 6, background: '#f2eaf5', fontSize: 18 }}>＋</button>
