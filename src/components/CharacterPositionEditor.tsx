@@ -245,7 +245,7 @@ export default function CharacterPositionEditor() {
                 }}
               />
             )}
-            <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 1, height: 1, bgcolor: '#d65d8b', zIndex: 5, pointerEvents: 'none' }} />
+            <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
             {layers.map((layer, index) => (
               <Box
                 key={layer.id}
