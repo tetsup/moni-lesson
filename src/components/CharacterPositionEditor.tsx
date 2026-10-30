@@ -308,6 +308,7 @@ export default function CharacterPositionEditor() {
               });
             });
             return (
+              <>
               <Box
                 ref={canvasRef}
                 sx={{
@@ -348,6 +349,58 @@ export default function CharacterPositionEditor() {
                   />
                 ))}
               </Box>
+              {selected && (
+                <Stack
+                  data-viewport-pan-ignore="true"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onTouchStart={(event) => event.stopPropagation()}
+                  spacing={0.5}
+                  alignItems="center"
+                  sx={{
+                    position: 'absolute',
+                    zIndex: 1100,
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    py: 1,
+                    px: 0.5,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(255,255,255,.94)',
+                    boxShadow: '0 1px 6px rgba(0,0,0,.2)',
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    aria-label="パーツを1%拡大"
+                    onClick={() => updateSelected({ scale: Math.min(3, Math.round((selected.scale + 0.01) * 100) / 100) })}
+                    disabled={selected.scale >= 3}
+                  >
+                    <Typography fontSize={12} fontWeight={800}>＋1%</Typography>
+                  </IconButton>
+                  <Slider
+                    orientation="vertical"
+                    aria-label="選択パーツの倍率"
+                    min={10}
+                    max={300}
+                    step={1}
+                    value={Math.round(selected.scale * 100)}
+                    onChange={(_, value) => updateSelected({ scale: (value as number) / 100 })}
+                    sx={{ height: 180, my: 0.5 }}
+                  />
+                  <IconButton
+                    size="small"
+                    aria-label="パーツを1%縮小"
+                    onClick={() => updateSelected({ scale: Math.max(0.1, Math.round((selected.scale - 0.01) * 100) / 100) })}
+                    disabled={selected.scale <= 0.1}
+                  >
+                    <Typography fontSize={12} fontWeight={800}>−1%</Typography>
+                  </IconButton>
+                  <Typography variant="caption" fontWeight={800} sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {Math.round(selected.scale * 100)}%
+                  </Typography>
+                </Stack>
+              )}
+              </>
             );
           }}
         </ImageViewport>
@@ -399,13 +452,6 @@ export default function CharacterPositionEditor() {
               <TextField size="small" type="number" fullWidth label="Xオフセット (px)" value={selected.x} onChange={(event) => updateSelected({ x: Number(event.target.value) || 0 })} />
               <TextField size="small" type="number" fullWidth label="Yオフセット (px)" value={selected.y} onChange={(event) => updateSelected({ y: Number(event.target.value) || 0 })} />
             </Stack>
-            <Box>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="body2">拡大縮小</Typography>
-                <Typography variant="body2" fontWeight={800}>{Math.round(selected.scale * 100)}%</Typography>
-              </Stack>
-              <Slider min={0.1} max={3} step={0.01} value={selected.scale} onChange={(_, value) => updateSelected({ scale: value as number })} />
-            </Box>
             <Typography variant="caption" color="text.secondary">ドラッグでも移動できます。拡大縮小してもオフセット値は変わりません。</Typography>
           </Stack>
         </Paper>
