@@ -207,7 +207,10 @@ export default function CharacterPositionEditor() {
       </Paper>
 
       <Box>
-        <Typography fontWeight={800} sx={{ mb: 1 }}>配置プレビュー（512 × 768）</Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Typography fontWeight={800}>配置プレビュー（512 × 768）</Typography>
+          <Button size="small" disabled={!selectedId} onClick={() => setSelectedId(null)}>選択解除</Button>
+        </Stack>
         <ImageViewport
           contentWidth={CANVAS_WIDTH}
           contentHeight={CANVAS_HEIGHT}
@@ -275,7 +278,7 @@ export default function CharacterPositionEditor() {
           }}
         </ImageViewport>
         <Typography variant="caption" color="text.secondary">
-          市松模様は透明部分の確認用です。画像はURLから直接読み込みます。
+          画像をタップすると選択して移動できます。空白部分をタップすると選択解除、空白部分のドラッグでキャンバス移動。ホイール／ピンチでズームできます。
         </Typography>
       </Box>
 
