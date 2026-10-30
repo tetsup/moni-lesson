@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import {
   Alert,
   Box,
@@ -74,7 +73,7 @@ function SortableLayerRow({ layer, selected, onSelect, onDelete }: SortableLayer
           <DeleteOutlineRoundedIcon />
         </IconButton>
       }
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.45 : 1 }}
+      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})` : undefined, transition, opacity: isDragging ? 0.45 : 1 }}
     >
       <ListItemButton selected={selected} onClick={onSelect} sx={{ borderRadius: 2, pr: 7 }}>
         <ListItemIcon sx={{ minWidth: 32 }}>
