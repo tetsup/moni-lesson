@@ -213,7 +213,7 @@ export default function CharacterPositionEditor() {
           contentHeight={CANVAS_HEIGHT}
           backgroundColor="#f4eef4"
           ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
-          onPanRequest={(_nextPan, applyDefault) => { if (!selectedId) applyDefault(); }}
+          onPanRequest={(_nextPan, applyDefault) => applyDefault()}
         >
           {(viewport) => {
             const items: ImageRenderItem[] = [];
@@ -244,7 +244,12 @@ export default function CharacterPositionEditor() {
                   backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
                 }}
               >
-                <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                <Box
+                  onPointerDown={() => setSelectedId(null)}
+                  sx={{ position: 'absolute', inset: 0, zIndex: 4 }}
+                >
+                  <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                </Box>
                 <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
                 {layers.map((layer, index) => (
                   <Box
