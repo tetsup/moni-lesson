@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import {
   Alert,
   Box,
@@ -55,8 +55,19 @@ export default function CharacterPositionEditor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [canvasScale, setCanvasScale] = useState(1);
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
+
+  useEffect(() => {
+    const element = canvasRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setCanvasScale(entry.contentRect.width / CANVAS_WIDTH);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const selected = layers.find((layer) => layer.id === selectedId) ?? null;
   const output = useMemo(() => {
@@ -210,10 +221,8 @@ export default function CharacterPositionEditor() {
             height: CANVAS_HEIGHT,
             left: 0,
             top: 0,
-            transform: 'scale(var(--canvas-scale, 1))',
+            transform: `scale(${canvasScale})`,
             transformOrigin: 'top left',
-            // The scale is supplied by the container width through CSS.
-            '@supports (width: 1cqw)': { containerType: 'inline-size' },
           }}>
             {bodyUrl && isHttpUrl(bodyUrl) && (
               <Box
