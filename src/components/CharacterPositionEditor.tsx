@@ -1,0 +1,478 @@
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import {
+  Alert,
+  Box,
+  Button,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
+  Paper,
+  Slider,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import DragIndicatorRoundedIcon from '@mui/icons-material/DragIndicatorRounded';
+import { ImageLayerRenderer, type ImageRenderItem } from './ImageLayerRenderer';
+import ImageViewport from './ImageViewport';
+
+const CANVAS_PADDING = 64;
+
+type CharacterLayer = {
+  id: string;
+  url: string;
+  file: string;
+  x: number;
+  y: number;
+  scale: number;
+  width: number;
+  height: number;
+};
+
+const getFileName = (url: string): string => {
+  try {
+    const pathname = new URL(url).pathname;
+    return decodeURIComponent(pathname.split('/').filter(Boolean).at(-1) ?? url);
+  } catch {
+    return url;
+  }
+};
+
+const isHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+type SortableLayerRowProps = {
+  layer: CharacterLayer;
+  selected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+};
+
+function SortableLayerRow({ layer, selected, onSelect, onDelete }: SortableLayerRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: layer.id });
+  return (
+    <ListItem
+      ref={setNodeRef}
+      disablePadding
+      secondaryAction={
+        <IconButton edge="end" aria-label={`${layer.file}を削除`} onClick={onDelete}>
+          <DeleteOutlineRoundedIcon />
+        </IconButton>
+      }
+      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})` : undefined, transition, opacity: isDragging ? 0.45 : 1 }}
+    >
+      <ListItemButton selected={selected} onClick={onSelect} sx={{ borderRadius: 2, pr: 7 }}>
+        <ListItemIcon sx={{ minWidth: 32 }}>
+          <IconButton size="small" aria-label={`${layer.file}の重ね順を変更`} {...attributes} {...listeners}
+            onClick={(event) => event.stopPropagation()} sx={{ cursor: 'grab', touchAction: 'none' }}>
+            <DragIndicatorRoundedIcon />
+          </IconButton>
+        </ListItemIcon>
+        <ListItemText primary={layer.file} secondary={`x: ${layer.x}px / y: ${layer.y}px / ${Math.round(layer.scale * 100)}%`} primaryTypographyProps={{ noWrap: true }} />
+      </ListItemButton>
+    </ListItem>
+  );
+}
+
+export default function CharacterPositionEditor() {
+  const [bodyUrl, setBodyUrl] = useState('');
+  const [urlDraft, setUrlDraft] = useState('');
+  const [layers, setLayers] = useState<CharacterLayer[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [bodySize, setBodySize] = useState({ width: 0, height: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ layerId: string; pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }));
+
+  useEffect(() => {
+    if (!bodyUrl || !isHttpUrl(bodyUrl)) { setBodySize({ width: 0, height: 0 }); return; }
+    const image = new Image();
+    image.onload = () => setBodySize({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => setError('胴体画像を読み込めませんでした。URLを確認してください。');
+    image.src = bodyUrl;
+  }, [bodyUrl]);
+
+  useEffect(() => {
+    layers.filter((layer) => layer.width === 0 || layer.height === 0).forEach((layer) => {
+      const image = new Image();
+      image.onload = () => setLayers((current) => current.map((item) => item.id === layer.id
+        ? { ...item, width: image.naturalWidth, height: image.naturalHeight } : item));
+      image.onerror = () => setError(`画像を読み込めませんでした: ${layer.file}`);
+      image.src = layer.url;
+    });
+  }, [layers]);
+
+  const bounds = useMemo(() => {
+    let left = bodySize.width > 0 ? -bodySize.width / 2 : 0;
+    let top = bodySize.height > 0 ? -bodySize.height / 2 : 0;
+    let right = bodySize.width > 0 ? bodySize.width / 2 : 0;
+    let bottom = bodySize.height > 0 ? bodySize.height / 2 : 0;
+    layers.forEach((layer) => {
+      if (layer.width <= 0 || layer.height <= 0) return;
+      const width = layer.width * layer.scale;
+      const height = layer.height * layer.scale;
+      left = Math.min(left, layer.x - width / 2);
+      top = Math.min(top, layer.y - height / 2);
+      right = Math.max(right, layer.x + width / 2);
+      bottom = Math.max(bottom, layer.y + height / 2);
+    });
+    left -= CANVAS_PADDING;
+    top -= CANVAS_PADDING;
+    right += CANVAS_PADDING;
+    bottom += CANVAS_PADDING;
+    return { left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
+  }, [bodySize, layers]);
+
+  const selected = layers.find((layer) => layer.id === selectedId) ?? null;
+  const output = useMemo(() => {
+    const entries = [
+      ...(bodyUrl.trim() ? [{ file: getFileName(bodyUrl), url: bodyUrl.trim(), x: 0, y: 0, scale: 1 }] : []),
+      ...layers.map(({ file, url, x, y, scale }) => ({ file, url, x, y, scale })),
+    ];
+    return `const characterParts = ${JSON.stringify(entries, null, 2)};\n`;
+  }, [bodyUrl, layers]);
+
+  const addLayer = () => {
+    const url = urlDraft.trim();
+    if (!isHttpUrl(url)) {
+      setError('画像のHTTP/HTTPS URLを入力してください。');
+      return;
+    }
+    const id = `layer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const file = getFileName(url);
+    setLayers((current) => [...current, { id, url, file, x: 0, y: 0, scale: 1, width: 0, height: 0 }]);
+    setSelectedId(id);
+    setUrlDraft('');
+    setError('');
+    setCopied(false);
+  };
+
+  const reorderLayers = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const frontToBack = [...layers].reverse();
+    const oldIndex = frontToBack.findIndex((layer) => layer.id === active.id);
+    const newIndex = frontToBack.findIndex((layer) => layer.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    setLayers(arrayMove(frontToBack, oldIndex, newIndex).reverse());
+    setCopied(false);
+  };
+
+  const updateSelected = (patch: Partial<Pick<CharacterLayer, 'x' | 'y' | 'scale'>>) => {
+    if (!selectedId) return;
+    setLayers((current) => current.map((layer) => layer.id === selectedId ? { ...layer, ...patch } : layer));
+    setCopied(false);
+  };
+
+  const removeSelected = () => {
+    if (!selectedId) return;
+    const index = layers.findIndex((layer) => layer.id === selectedId);
+    const next = layers.filter((layer) => layer.id !== selectedId);
+    setLayers(next);
+    setSelectedId(next[Math.min(index, next.length - 1)]?.id ?? null);
+    setCopied(false);
+  };
+
+  const beginDrag = (event: PointerEvent<HTMLDivElement>, layer: CharacterLayer, displayScale: number) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectedId(layer.id);
+    dragRef.current = {
+      layerId: layer.id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: layer.x,
+      originY: layer.y,
+    };
+    (event.currentTarget as HTMLDivElement).dataset.canvasScale = String(displayScale);
+  };
+
+  const moveDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const displayScale = Number(event.currentTarget.dataset.canvasScale) || 1;
+    const dx = (event.clientX - drag.startX) / displayScale;
+    const dy = (event.clientY - drag.startY) / displayScale;
+    setLayers((current) => current.map((layer) => layer.id === drag.layerId
+      ? { ...layer, x: Math.round(drag.originX + dx), y: Math.round(drag.originY + dy) }
+      : layer));
+    setCopied(false);
+  };
+
+  const endDrag = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
+  };
+
+  const copyOutput = async () => {
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopied(true);
+    } catch {
+      setError('クリップボードにコピーできませんでした。コード欄からコピーしてください。');
+    }
+  };
+
+  return (
+    <Stack spacing={2}>
+      <Box>
+        <Typography variant="h5" fontWeight={800}>キャラクター位置合わせ</Typography>
+        <Typography variant="body2" color="text.secondary">
+          胴体の中心を (0, 0) として、画像を重ねて配置します。座標はキャンバス上のpxで、倍率を変えても変化しません。
+        </Typography>
+      </Box>
+
+      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
+        <Stack spacing={1}>
+          <Typography fontWeight={800}>基準となる胴体画像</Typography>
+          <TextField
+            size="small"
+            fullWidth
+            label="胴体画像URL"
+            placeholder="https://res.cloudinary.com/..."
+            value={bodyUrl}
+            onChange={(event) => setBodyUrl(event.target.value)}
+          />
+          {bodyUrl && !isHttpUrl(bodyUrl) && <Alert severity="warning">HTTP/HTTPS形式のURLを入力してください。</Alert>}
+        </Stack>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
+        <Stack spacing={1}>
+          <Typography fontWeight={800}>画像を追加</Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <TextField
+              size="small"
+              fullWidth
+              label="画像URL"
+              placeholder="Cloudinaryなどの画像URL"
+              value={urlDraft}
+              onChange={(event) => setUrlDraft(event.target.value)}
+              onKeyDown={(event) => { if (event.key === 'Enter') addLayer(); }}
+            />
+            <Button variant="contained" startIcon={<AddPhotoAlternateRoundedIcon />} onClick={addLayer} disabled={!urlDraft.trim()}>
+              追加
+            </Button>
+          </Stack>
+          {error && <Alert severity="error" onClose={() => setError('')}>{error}</Alert>}
+        </Stack>
+      </Paper>
+
+      <Box>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Typography fontWeight={800}>配置プレビュー（画像全体を表示）</Typography>
+          <Button size="small" disabled={!selectedId} onClick={() => setSelectedId(null)}>選択解除</Button>
+        </Stack>
+        <ImageViewport
+          contentWidth={bounds.width}
+          contentHeight={bounds.height}
+          anchor={{ x: -bounds.left, y: -bounds.top }}
+          backgroundColor="#f4eef4"
+          backgroundImage="linear-gradient(45deg, #e8e0e9 25%, transparent 25%), linear-gradient(-45deg, #e8e0e9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e0e9 75%), linear-gradient(-45deg, transparent 75%, #e8e0e9 75%)"
+          backgroundSize="20px 20px"
+          backgroundPosition="0 0, 0 10px, 10px -10px, -10px 0"
+          ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
+          onBackgroundPointerDown={() => setSelectedId(null)}
+          onPanRequest={(_nextPan, applyDefault) => applyDefault()}
+        >
+          {(viewport) => {
+            const items: ImageRenderItem[] = [];
+            if (bodySize.width > 0 && bodySize.height > 0) items.push({
+              src: bodyUrl, x: -bodySize.width / 2 - bounds.left,
+              y: -bodySize.height / 2 - bounds.top,
+              width: bodySize.width, height: bodySize.height,
+            });
+            layers.forEach((layer) => {
+              if (layer.width <= 0 || layer.height <= 0) return;
+              const width = layer.width * layer.scale;
+              const height = layer.height * layer.scale;
+              items.push({
+                src: layer.url, x: layer.x - width / 2 - bounds.left,
+                y: layer.y - height / 2 - bounds.top, width, height,
+              });
+            });
+            return (
+              <>
+              <Box
+                ref={canvasRef}
+                sx={{
+                  position: 'absolute', width: bounds.width, height: bounds.height,
+                  left: viewport.centeredOffset.x + viewport.pan.x,
+                  top: viewport.centeredOffset.y + viewport.pan.y,
+                  transform: `scale(${viewport.scale})`, transformOrigin: 'top left',
+                }}
+              >
+                <Box
+                  onPointerDown={() => setSelectedId(null)}
+                  sx={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}
+                >
+                  <Box sx={{ pointerEvents: 'none' }}>
+                  <ImageLayerRenderer items={items} width={bounds.width} height={bounds.height} />
+                </Box>
+                </Box>
+                <Box sx={{ position: 'absolute', left: -bounds.left, top: -bounds.top, width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
+                {layers.map((layer, index) => (
+                  <Box
+                    key={layer.id}
+                    data-viewport-pan-ignore="true"
+                    onPointerDown={(event) => beginDrag(event, layer, viewport.scale)}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    sx={{
+                      position: 'absolute', left: -bounds.left + layer.x,
+                      top: -bounds.top + layer.y,
+                      width: Math.max(24, layer.width * layer.scale),
+                      height: Math.max(24, layer.height * layer.scale),
+                      transform: 'translate(-50%, -50%)', cursor: 'grab',
+                      touchAction: 'none',
+                      pointerEvents: 'auto',
+                      outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
+                      zIndex: index + 6,
+                    }}
+                  />
+                ))}
+              </Box>
+              {selected && (
+                <Stack
+                  data-viewport-pan-ignore="true"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onTouchStart={(event) => event.stopPropagation()}
+                  spacing={0.5}
+                  alignItems="center"
+                  sx={{
+                    position: 'absolute',
+                    zIndex: 1100,
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    py: 1,
+                    px: 0.5,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(255,255,255,.94)',
+                    boxShadow: '0 1px 6px rgba(0,0,0,.2)',
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    aria-label="パーツを1%拡大"
+                    onClick={() => updateSelected({ scale: Math.min(3, Math.round((selected.scale + 0.01) * 100) / 100) })}
+                    disabled={selected.scale >= 3}
+                  >
+                    <Typography fontSize={12} fontWeight={800}>＋1%</Typography>
+                  </IconButton>
+                  <Slider
+                    orientation="vertical"
+                    aria-label="選択パーツの倍率"
+                    min={10}
+                    max={300}
+                    step={1}
+                    value={Math.round(selected.scale * 100)}
+                    onChange={(_, value) => updateSelected({ scale: (value as number) / 100 })}
+                    sx={{ height: 180, my: 0.5 }}
+                  />
+                  <IconButton
+                    size="small"
+                    aria-label="パーツを1%縮小"
+                    onClick={() => updateSelected({ scale: Math.max(0.1, Math.round((selected.scale - 0.01) * 100) / 100) })}
+                    disabled={selected.scale <= 0.1}
+                  >
+                    <Typography fontSize={12} fontWeight={800}>−1%</Typography>
+                  </IconButton>
+                  <Typography variant="caption" fontWeight={800} sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {Math.round(selected.scale * 100)}%
+                  </Typography>
+                </Stack>
+              )}
+              </>
+            );
+          }}
+        </ImageViewport>
+        <Typography variant="caption" color="text.secondary">
+          画像をタップすると選択して移動できます。空白部分をタップすると選択解除、空白部分のドラッグでキャンバス移動。ホイール／ピンチでズームできます。
+        </Typography>
+      </Box>
+
+      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
+        <Typography fontWeight={800} sx={{ mb: 0.5 }}>追加済み画像</Typography>
+        <Typography variant="caption" color="text.secondary">
+          上にある画像ほど手前に表示されます。左のつまみをドラッグして重ね順を変更できます。
+        </Typography>
+        {layers.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">まだ画像がありません。</Typography>
+        ) : (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderLayers}>
+            <SortableContext items={[...layers].reverse().map((layer) => layer.id)} strategy={verticalListSortingStrategy}>
+              <List dense disablePadding>
+                {[...layers].reverse().map((layer) => (
+                  <SortableLayerRow
+                    key={layer.id}
+                    layer={layer}
+                    selected={selectedId === layer.id}
+                    onSelect={() => setSelectedId(layer.id)}
+                    onDelete={() => {
+                      const index = layers.findIndex((item) => item.id === layer.id);
+                      const next = layers.filter((item) => item.id !== layer.id);
+                      setLayers(next);
+                      if (selectedId === layer.id) setSelectedId(next[Math.min(index, next.length - 1)]?.id ?? null);
+                      setCopied(false);
+                    }}
+                  />
+                ))}
+              </List>
+            </SortableContext>
+          </DndContext>
+        )}
+      </Paper>
+
+      {selected && (
+        <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
+          <Stack spacing={1.5}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Typography fontWeight={800} sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.file}</Typography>
+              <Button color="error" size="small" startIcon={<DeleteOutlineRoundedIcon />} onClick={removeSelected}>削除</Button>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <TextField size="small" type="number" fullWidth label="Xオフセット (px)" value={selected.x} onChange={(event) => updateSelected({ x: Number(event.target.value) || 0 })} />
+              <TextField size="small" type="number" fullWidth label="Yオフセット (px)" value={selected.y} onChange={(event) => updateSelected({ y: Number(event.target.value) || 0 })} />
+            </Stack>
+            <Typography variant="caption" color="text.secondary">ドラッグでも移動できます。拡大縮小してもオフセット値は変わりません。</Typography>
+          </Stack>
+        </Paper>
+      )}
+
+      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+          <Typography fontWeight={800}>JavaScript出力</Typography>
+          <Button size="small" startIcon={<ContentCopyRoundedIcon />} onClick={copyOutput} disabled={!bodyUrl.trim() && layers.length === 0}>
+            {copied ? 'コピー済み' : 'コピー'}
+          </Button>
+        </Stack>
+        <TextField
+          fullWidth
+          multiline
+          minRows={5}
+          maxRows={14}
+          value={output}
+          InputProps={{ readOnly: true, sx: { fontFamily: 'monospace', fontSize: 12 } }}
+        />
+      </Paper>
+    </Stack>
+  );
+}

@@ -47,7 +47,7 @@ describe('getFurnitureImagePosition', () => {
       facing: 'front-left' as const,
     };
     const definition = {
-      image: { src: 'chair.png', anchor: { x: 20, y: 70 } },
+      image: { src: 'chair.png', width: 100, height: 200, anchor: { x: 20, y: 70 } },
     };
 
     expect(getFurnitureImagePosition(placement, definition, projection))
