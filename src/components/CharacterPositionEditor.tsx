@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Alert,
   Box,
@@ -8,6 +11,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  ListItemIcon,
   Paper,
   Slider,
   Stack,
@@ -17,6 +21,7 @@ import {
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import DragIndicatorRoundedIcon from '@mui/icons-material/DragIndicatorRounded';
 import { ImageLayerRenderer, type ImageRenderItem } from './ImageLayerRenderer';
 import ImageViewport from './ImageViewport';
 
@@ -51,6 +56,39 @@ const isHttpUrl = (value: string): boolean => {
   }
 };
 
+type SortableLayerRowProps = {
+  layer: CharacterLayer;
+  selected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+};
+
+function SortableLayerRow({ layer, selected, onSelect, onDelete }: SortableLayerRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: layer.id });
+  return (
+    <ListItem
+      ref={setNodeRef}
+      disablePadding
+      secondaryAction={
+        <IconButton edge="end" aria-label={`${layer.file}を削除`} onClick={onDelete}>
+          <DeleteOutlineRoundedIcon />
+        </IconButton>
+      }
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.45 : 1 }}
+    >
+      <ListItemButton selected={selected} onClick={onSelect} sx={{ borderRadius: 2, pr: 7 }}>
+        <ListItemIcon sx={{ minWidth: 32 }}>
+          <IconButton size="small" aria-label={`${layer.file}の重ね順を変更`} {...attributes} {...listeners}
+            onClick={(event) => event.stopPropagation()} sx={{ cursor: 'grab', touchAction: 'none' }}>
+            <DragIndicatorRoundedIcon />
+          </IconButton>
+        </ListItemIcon>
+        <ListItemText primary={layer.file} secondary={`x: ${layer.x}px / y: ${layer.y}px / ${Math.round(layer.scale * 100)}%`} primaryTypographyProps={{ noWrap: true }} />
+      </ListItemButton>
+    </ListItem>
+  );
+}
+
 export default function CharacterPositionEditor() {
   const [bodyUrl, setBodyUrl] = useState('');
   const [urlDraft, setUrlDraft] = useState('');
@@ -61,6 +99,7 @@ export default function CharacterPositionEditor() {
   const [bodySize, setBodySize] = useState({ width: 0, height: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ layerId: string; pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }));
 
   useEffect(() => {
     if (!bodyUrl || !isHttpUrl(bodyUrl)) { setBodySize({ width: 0, height: 0 }); return; }
@@ -122,6 +161,16 @@ export default function CharacterPositionEditor() {
     setSelectedId(id);
     setUrlDraft('');
     setError('');
+    setCopied(false);
+  };
+
+  const reorderLayers = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const frontToBack = [...layers].reverse();
+    const oldIndex = frontToBack.findIndex((layer) => layer.id === active.id);
+    const newIndex = frontToBack.findIndex((layer) => layer.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    setLayers(arrayMove(frontToBack, oldIndex, newIndex).reverse());
     setCopied(false);
   };
 
@@ -309,32 +358,34 @@ export default function CharacterPositionEditor() {
       </Box>
 
       <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 3 }}>
-        <Typography fontWeight={800} sx={{ mb: 1 }}>追加済み画像</Typography>
+        <Typography fontWeight={800} sx={{ mb: 0.5 }}>追加済み画像</Typography>
+        <Typography variant="caption" color="text.secondary">
+          上にある画像ほど手前に表示されます。左のつまみをドラッグして重ね順を変更できます。
+        </Typography>
         {layers.length === 0 ? (
           <Typography variant="body2" color="text.secondary">まだ画像がありません。</Typography>
         ) : (
-          <List dense disablePadding>
-            {layers.map((layer) => (
-              <ListItem
-                key={layer.id}
-                disablePadding
-                secondaryAction={
-                  <IconButton edge="end" aria-label={`${layer.file}を削除`} onClick={() => {
-                    const index = layers.findIndex((item) => item.id === layer.id);
-                    const next = layers.filter((item) => item.id !== layer.id);
-                    setLayers(next);
-                    if (selectedId === layer.id) setSelectedId(next[Math.min(index, next.length - 1)]?.id ?? null);
-                  }}>
-                    <DeleteOutlineRoundedIcon />
-                  </IconButton>
-                }
-              >
-                <ListItemButton selected={selectedId === layer.id} onClick={() => setSelectedId(layer.id)} sx={{ borderRadius: 2, pr: 6 }}>
-                  <ListItemText primary={layer.file} secondary={`x: ${layer.x}px / y: ${layer.y}px / ${Math.round(layer.scale * 100)}%`} primaryTypographyProps={{ noWrap: true }} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderLayers}>
+            <SortableContext items={[...layers].reverse().map((layer) => layer.id)} strategy={verticalListSortingStrategy}>
+              <List dense disablePadding>
+                {[...layers].reverse().map((layer) => (
+                  <SortableLayerRow
+                    key={layer.id}
+                    layer={layer}
+                    selected={selectedId === layer.id}
+                    onSelect={() => setSelectedId(layer.id)}
+                    onDelete={() => {
+                      const index = layers.findIndex((item) => item.id === layer.id);
+                      const next = layers.filter((item) => item.id !== layer.id);
+                      setLayers(next);
+                      if (selectedId === layer.id) setSelectedId(next[Math.min(index, next.length - 1)]?.id ?? null);
+                      setCopied(false);
+                    }}
+                  />
+                ))}
+              </List>
+            </SortableContext>
+          </DndContext>
         )}
       </Paper>
 
