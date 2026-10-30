@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
 import TeacherMode from './components/TeacherMode';
-import AudioMaintenance from './components/AudioMaintenance';
+import AdminMode from './components/AdminMode';
 import RecordingLibrary from './components/RecordingLibrary';
 import ShopPage, { type ShopItem } from './components/ShopPage';
 import ItemsPage from './components/ItemsPage';
@@ -337,7 +337,7 @@ export default function App() {
         {route.page === 'recordings' ? (
           <RecordingLibrary onBack={returnToLesson} />
         ) : route.page === 'admin' ? (
-          <AudioMaintenance />
+          <AdminMode />
         ) : route.page === 'complete' ? (
           <Stack spacing={2}>
             <Card sx={{ borderRadius: 2, bgcolor: '#fff0f8', border: '1px solid #f0d7e8', textAlign: 'center' }}>
