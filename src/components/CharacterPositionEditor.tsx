@@ -17,6 +17,7 @@ import {
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import { ImageLayerRenderer, type ImageRenderItem } from './ImageLayerRenderer';
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 768;
@@ -28,6 +29,8 @@ type CharacterLayer = {
   x: number;
   y: number;
   scale: number;
+  width: number;
+  height: number;
 };
 
 const getFileName = (url: string): string => {
@@ -56,6 +59,7 @@ export default function CharacterPositionEditor() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [canvasScale, setCanvasScale] = useState(1);
+  const [bodySize, setBodySize] = useState({ width: 0, height: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
 
@@ -68,6 +72,24 @@ export default function CharacterPositionEditor() {
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!bodyUrl || !isHttpUrl(bodyUrl)) { setBodySize({ width: 0, height: 0 }); return; }
+    const image = new Image();
+    image.onload = () => setBodySize({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => setError('胴体画像を読み込めませんでした。URLを確認してください。');
+    image.src = bodyUrl;
+  }, [bodyUrl]);
+
+  useEffect(() => {
+    layers.filter((layer) => layer.width === 0 || layer.height === 0).forEach((layer) => {
+      const image = new Image();
+      image.onload = () => setLayers((current) => current.map((item) => item.id === layer.id
+        ? { ...item, width: image.naturalWidth, height: image.naturalHeight } : item));
+      image.onerror = () => setError(`画像を読み込めませんでした: ${layer.file}`);
+      image.src = layer.url;
+    });
+  }, [layers]);
 
   const selected = layers.find((layer) => layer.id === selectedId) ?? null;
   const output = useMemo(() => {
@@ -86,7 +108,7 @@ export default function CharacterPositionEditor() {
     }
     const id = `layer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const file = getFileName(url);
-    setLayers((current) => [...current, { id, url, file, x: 0, y: 0, scale: 1 }]);
+    setLayers((current) => [...current, { id, url, file, x: 0, y: 0, scale: 1, width: 0, height: 0 }]);
     setSelectedId(id);
     setUrlDraft('');
     setError('');
@@ -224,27 +246,29 @@ export default function CharacterPositionEditor() {
             transform: `scale(${canvasScale})`,
             transformOrigin: 'top left',
           }}>
-            {bodyUrl && isHttpUrl(bodyUrl) && (
-              <Box
-                component="img"
-                src={bodyUrl}
-                alt="基準の胴体"
-                draggable={false}
-                onError={() => setError('胴体画像を読み込めませんでした。URLを確認してください。')}
-                sx={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 'auto',
-                  height: 'auto',
-                  maxWidth: 'none',
-                  maxHeight: 'none',
-                  pointerEvents: 'none',
-                  userSelect: 'none',
-                }}
-              />
-            )}
+            {(() => {
+              const items: ImageRenderItem[] = [];
+              if (bodySize.width > 0 && bodySize.height > 0) items.push({
+                src: bodyUrl,
+                x: CANVAS_WIDTH / 2 - bodySize.width / 2,
+                y: CANVAS_HEIGHT / 2 - bodySize.height / 2,
+                width: bodySize.width,
+                height: bodySize.height,
+              });
+              layers.forEach((layer) => {
+                if (layer.width <= 0 || layer.height <= 0) return;
+                const width = layer.width * layer.scale;
+                const height = layer.height * layer.scale;
+                items.push({
+                  src: layer.url,
+                  x: CANVAS_WIDTH / 2 + layer.x - width / 2,
+                  y: CANVAS_HEIGHT / 2 + layer.y - height / 2,
+                  width,
+                  height,
+                });
+              });
+              return <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />;
+            })()}
             <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
             {layers.map((layer, index) => (
               <Box
@@ -257,24 +281,15 @@ export default function CharacterPositionEditor() {
                   position: 'absolute',
                   left: `calc(50% + ${layer.x}px)`,
                   top: `calc(50% + ${layer.y}px)`,
-                  transform: `translate(-50%, -50%) scale(${layer.scale})`,
-                  transformOrigin: 'center center',
+                  width: Math.max(24, layer.width * layer.scale),
+                  height: Math.max(24, layer.height * layer.scale),
+                  transform: 'translate(-50%, -50%)',
                   cursor: 'grab',
                   touchAction: 'none',
                   outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
-                  zIndex: index + 2,
-                  '&:active': { cursor: 'grabbing' },
+                  zIndex: index + 6,
                 }}
-              >
-                <Box
-                  component="img"
-                  src={layer.url}
-                  alt={layer.file}
-                  draggable={false}
-                  onError={() => setError(`画像を読み込めませんでした: ${layer.file}`)}
-                  sx={{ display: 'block', maxWidth: 'none', maxHeight: 'none', width: 'auto', height: 'auto', pointerEvents: 'none', userSelect: 'none' }}
-                />
-              </Box>
+              />
             ))}
           </Box>
         </Box>
