@@ -37,6 +37,7 @@ export type ImageViewportProps = {
   ariaLabel?: string;
   backgroundColor?: string;
   showControls?: boolean;
+  onBackgroundPointerDown?: () => void;
   children: (transform: ImageViewportTransform) => ReactNode;
   onPanRequest?: (nextPan: ViewportPoint, applyDefault: () => void) => void;
   onZoomRequest?: (nextZoom: number, focus: ViewportPoint, applyDefault: () => void) => void;
@@ -63,6 +64,7 @@ export default function ImageViewport({
   ariaLabel = 'ホイールまたはピンチで拡大縮小、ドラッグで移動できます',
   backgroundColor = '#faf8fb',
   showControls = true,
+  onBackgroundPointerDown,
   children,
   onPanRequest,
   onZoomRequest,
@@ -134,6 +136,7 @@ export default function ImageViewport({
     if (event.defaultPrevented) return;
     if (event.target instanceof Element && event.target.closest('[data-viewport-pan-ignore="true"]')) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
+    onBackgroundPointerDown?.();
     event.currentTarget.setPointerCapture(event.pointerId);
     const point = { pointerId: event.pointerId, ...getLocalPoint(event.clientX, event.clientY) };
     const pointers = [...pointersRef.current.filter((item) => item.pointerId !== event.pointerId), point];
