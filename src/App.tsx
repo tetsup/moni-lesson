@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import LessonMode from './components/LessonMode';
 import TeacherMode from './components/TeacherMode';
-import AudioMaintenance from './components/AudioMaintenance';
+import AdminMode from './components/AdminMode';
 import RecordingLibrary from './components/RecordingLibrary';
 import ShopPage, { type ShopItem } from './components/ShopPage';
 import ItemsPage from './components/ItemsPage';
