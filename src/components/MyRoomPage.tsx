@@ -55,19 +55,6 @@ export default function MyRoomPage() {
           >
             {(viewport) => (
               <>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1 }}>
-                  <Typography fontWeight={800} sx={{ color: '#654575' }}>
-                    {SAMPLE_ROOM_SKIN.name}
-                  </Typography>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <Button size="small" aria-label="縮小" onClick={() => viewport.zoomAt(viewport.zoom / 1.2)}>−</Button>
-                    <Typography variant="caption" sx={{ minWidth: 42, textAlign: 'center' }}>
-                      {Math.round(viewport.zoom * 100)}%
-                    </Typography>
-                    <Button size="small" aria-label="拡大" onClick={() => viewport.zoomAt(viewport.zoom * 1.2)}>＋</Button>
-                    <Button size="small" onClick={viewport.resetView}>全体表示</Button>
-                  </Stack>
-                </Stack>
                 {imageSize && (
                   <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
                     <RoomRenderer
@@ -93,9 +80,6 @@ export default function MyRoomPage() {
               </>
             )}
           </ImageViewport>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            ホイール／ピンチで拡大・縮小、ドラッグで移動できます。
-          </Typography>
         </CardContent>
       </Card>
     </Stack>
