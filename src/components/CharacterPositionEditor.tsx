@@ -249,14 +249,17 @@ export default function CharacterPositionEditor() {
               >
                 <Box
                   onPointerDown={() => setSelectedId(null)}
-                  sx={{ position: 'absolute', inset: 0, zIndex: 4 }}
+                  sx={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}
                 >
+                  <Box sx={{ pointerEvents: 'none' }}>
                   <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                </Box>
                 </Box>
                 <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
                 {layers.map((layer, index) => (
                   <Box
                     key={layer.id}
+                    data-viewport-pan-ignore="true"
                     onPointerDown={(event) => beginDrag(event, layer, viewport.scale)}
                     onPointerMove={moveDrag}
                     onPointerUp={endDrag}
@@ -268,6 +271,7 @@ export default function CharacterPositionEditor() {
                       height: Math.max(24, layer.height * layer.scale),
                       transform: 'translate(-50%, -50%)', cursor: 'grab',
                       touchAction: 'none',
+                      pointerEvents: 'auto',
                       outline: selectedId === layer.id ? '1px dashed #d65d8b' : 'none',
                       zIndex: index + 6,
                     }}
