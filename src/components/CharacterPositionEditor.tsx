@@ -20,8 +20,7 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import { ImageLayerRenderer, type ImageRenderItem } from './ImageLayerRenderer';
 import ImageViewport from './ImageViewport';
 
-const CANVAS_WIDTH = 512;
-const CANVAS_HEIGHT = 768;
+const CANVAS_PADDING = 64;
 
 type CharacterLayer = {
   id: string;
@@ -80,6 +79,27 @@ export default function CharacterPositionEditor() {
       image.src = layer.url;
     });
   }, [layers]);
+
+  const bounds = useMemo(() => {
+    let left = bodySize.width > 0 ? -bodySize.width / 2 : 0;
+    let top = bodySize.height > 0 ? -bodySize.height / 2 : 0;
+    let right = bodySize.width > 0 ? bodySize.width / 2 : 0;
+    let bottom = bodySize.height > 0 ? bodySize.height / 2 : 0;
+    layers.forEach((layer) => {
+      if (layer.width <= 0 || layer.height <= 0) return;
+      const width = layer.width * layer.scale;
+      const height = layer.height * layer.scale;
+      left = Math.min(left, layer.x - width / 2);
+      top = Math.min(top, layer.y - height / 2);
+      right = Math.max(right, layer.x + width / 2);
+      bottom = Math.max(bottom, layer.y + height / 2);
+    });
+    left -= CANVAS_PADDING;
+    top -= CANVAS_PADDING;
+    right += CANVAS_PADDING;
+    bottom += CANVAS_PADDING;
+    return { left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
+  }, [bodySize, layers]);
 
   const selected = layers.find((layer) => layer.id === selectedId) ?? null;
   const output = useMemo(() => {
@@ -208,13 +228,17 @@ export default function CharacterPositionEditor() {
 
       <Box>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Typography fontWeight={800}>配置プレビュー（512 × 768）</Typography>
+          <Typography fontWeight={800}>配置プレビュー（画像全体を表示）</Typography>
           <Button size="small" disabled={!selectedId} onClick={() => setSelectedId(null)}>選択解除</Button>
         </Stack>
         <ImageViewport
-          contentWidth={CANVAS_WIDTH}
-          contentHeight={CANVAS_HEIGHT}
+          contentWidth={bounds.width}
+          contentHeight={bounds.height}
+          anchor={{ x: -bounds.left, y: -bounds.top }}
           backgroundColor="#f4eef4"
+          backgroundImage="linear-gradient(45deg, #e8e0e9 25%, transparent 25%), linear-gradient(-45deg, #e8e0e9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e0e9 75%), linear-gradient(-45deg, transparent 75%, #e8e0e9 75%)"
+          backgroundSize="20px 20px"
+          backgroundPosition="0 0, 0 10px, 10px -10px, -10px 0"
           ariaLabel="キャラクター配置キャンバス。選択した画像をドラッグ、未選択時はドラッグで移動、ホイールやピンチで拡大縮小できます"
           onBackgroundPointerDown={() => setSelectedId(null)}
           onPanRequest={(_nextPan, applyDefault) => applyDefault()}
@@ -222,8 +246,8 @@ export default function CharacterPositionEditor() {
           {(viewport) => {
             const items: ImageRenderItem[] = [];
             if (bodySize.width > 0 && bodySize.height > 0) items.push({
-              src: bodyUrl, x: CANVAS_WIDTH / 2 - bodySize.width / 2,
-              y: CANVAS_HEIGHT / 2 - bodySize.height / 2,
+              src: bodyUrl, x: -bodySize.width / 2 - bounds.left,
+              y: -bodySize.height / 2 - bounds.top,
               width: bodySize.width, height: bodySize.height,
             });
             layers.forEach((layer) => {
@@ -231,21 +255,18 @@ export default function CharacterPositionEditor() {
               const width = layer.width * layer.scale;
               const height = layer.height * layer.scale;
               items.push({
-                src: layer.url, x: CANVAS_WIDTH / 2 + layer.x - width / 2,
-                y: CANVAS_HEIGHT / 2 + layer.y - height / 2, width, height,
+                src: layer.url, x: layer.x - width / 2 - bounds.left,
+                y: layer.y - height / 2 - bounds.top, width, height,
               });
             });
             return (
               <Box
                 ref={canvasRef}
                 sx={{
-                  position: 'absolute', width: CANVAS_WIDTH, height: CANVAS_HEIGHT,
+                  position: 'absolute', width: bounds.width, height: bounds.height,
                   left: viewport.centeredOffset.x + viewport.pan.x,
                   top: viewport.centeredOffset.y + viewport.pan.y,
                   transform: `scale(${viewport.scale})`, transformOrigin: 'top left',
-                  backgroundImage: 'linear-gradient(45deg, #e8e0e9 25%, transparent 25%), linear-gradient(-45deg, #e8e0e9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8e0e9 75%), linear-gradient(-45deg, transparent 75%, #e8e0e9 75%)',
-                  backgroundSize: '20px 20px',
-                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
                 }}
               >
                 <Box
@@ -253,10 +274,10 @@ export default function CharacterPositionEditor() {
                   sx={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}
                 >
                   <Box sx={{ pointerEvents: 'none' }}>
-                  <ImageLayerRenderer items={items} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                  <ImageLayerRenderer items={items} width={bounds.width} height={bounds.height} />
                 </Box>
                 </Box>
-                <Box sx={{ position: 'absolute', left: '50%', top: '50%', width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
+                <Box sx={{ position: 'absolute', left: -bounds.left, top: -bounds.top, width: 6, height: 6, borderRadius: '50%', bgcolor: '#d65d8b', transform: 'translate(-50%, -50%)', zIndex: 5, pointerEvents: 'none' }} />
                 {layers.map((layer, index) => (
                   <Box
                     key={layer.id}
@@ -266,8 +287,8 @@ export default function CharacterPositionEditor() {
                     onPointerUp={endDrag}
                     onPointerCancel={endDrag}
                     sx={{
-                      position: 'absolute', left: `calc(50% + ${layer.x}px)`,
-                      top: `calc(50% + ${layer.y}px)`,
+                      position: 'absolute', left: -bounds.left + layer.x,
+                      top: -bounds.top + layer.y,
                       width: Math.max(24, layer.width * layer.scale),
                       height: Math.max(24, layer.height * layer.scale),
                       transform: 'translate(-50%, -50%)', cursor: 'grab',
