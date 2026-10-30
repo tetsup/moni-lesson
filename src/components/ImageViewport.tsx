@@ -127,8 +127,9 @@ export default function ImageViewport({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.defaultPrevented) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
-    if (event.target === event.currentTarget) event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.setPointerCapture(event.pointerId);
     const point = { pointerId: event.pointerId, ...getLocalPoint(event.clientX, event.clientY) };
     const pointers = [...pointersRef.current.filter((item) => item.pointerId !== event.pointerId), point];
     pointersRef.current = pointers;
